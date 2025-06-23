@@ -27,7 +27,7 @@ export const schema = z.object({
   username: z.string().optional(),
   password: z.string().optional(),
   token: z.string().optional(),
-  priority: z.coerce.number().min(1).max(5).default(3),
+  priority: z.coerce.number().min(1).max(5),
   tags: z.string().optional(),
   title: z.string().optional(),
   custom_message: z.string().optional(),
