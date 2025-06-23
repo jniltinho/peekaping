@@ -384,7 +384,7 @@ const PublicStatusPage = () => {
           <p className="text-xs text-muted-foreground">
             Powered by{" "}
             <a
-              href="https://github.com/your-repo"
+              href="https://github.com/0xfurai/peekaping"
               className="underline hover:text-foreground"
             >
               Peekaping
