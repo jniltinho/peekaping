@@ -37,6 +37,7 @@ func NewNotificationEventListener(p NotificationEventListenerParams) *Notificati
 	RegisterNotificationChannelProvider("telegram", providers.NewTelegramSender(p.Logger))
 	RegisterNotificationChannelProvider("webhook", providers.NewWebhookSender(p.Logger))
 	RegisterNotificationChannelProvider("slack", providers.NewSlackSender(p.Logger, p.Config))
+	RegisterNotificationChannelProvider("ntfy", providers.NewNTFYSender(p.Logger))
 
 	return &NotificationEventListener{
 		service:                    p.Service,

@@ -26,6 +26,7 @@ import { toast } from "sonner";
 import * as TelegramForm from "../integrations/telegram-form";
 import * as WebhookForm from "../integrations/webhook-form";
 import * as SlackForm from "../integrations/slack-form";
+import * as NtfyForm from "../integrations/ntfy-form";
 import { useEffect } from "react";
 import { commonMutationErrorHandler } from "@/lib/utils";
 
@@ -34,6 +35,7 @@ const typeFormRegistry = {
   telegram: TelegramForm,
   webhook: WebhookForm,
   slack: SlackForm,
+  ntfy: NtfyForm,
 };
 
 const notificationSchema = z
@@ -48,7 +50,8 @@ const notificationSchema = z
       TelegramForm.schema,
       WebhookForm.schema,
       SlackForm.schema,
-    ])
+      NtfyForm.schema,
+    ] as const)
   );
 
 export type NotificationForm = z.infer<typeof notificationSchema>;
@@ -149,7 +152,7 @@ export default function CreateEditNotificationChannel({
             <Select
               onValueChange={(val) => {
                 if (!val) return;
-                baseForm.setValue("type", val as "smtp" | "telegram");
+                baseForm.setValue("type", val as "smtp" | "telegram" | "webhook" | "slack" | "ntfy");
               }}
               value={type}
             >
