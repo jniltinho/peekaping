@@ -82,7 +82,6 @@ export default function MaintenancePage() {
       .findAll({ queryKey: getMaintenancesQueryKey() });
 
     allQueries.forEach(({ queryKey }) => {
-      console.log(queryKey);
       queryClient.setQueryData(
         queryKey,
         (
@@ -196,11 +195,11 @@ export default function MaintenancePage() {
   };
 
   const handleCreateClick = () => {
-    navigate("/maintenance/new");
+    navigate("/maintenances/new");
   };
 
   const handleEditClick = (id: string) => {
-    navigate(`/maintenance/${id}/edit`);
+    navigate(`/maintenances/${id}/edit`);
   };
 
   const handleObserver = useCallback(
@@ -269,7 +268,7 @@ export default function MaintenancePage() {
             title="No maintenance windows found"
             text="Get started by creating your first maintenance window to prevent scheduled downtimes."
             actionText="Create your first maintenance window"
-            onClick={() => navigate("/maintenance/new")}
+            onClick={() => navigate("/maintenances/new")}
           />
         )}
 

@@ -37,8 +37,8 @@ const data = {
       icon: Home,
     },
     {
-      title: "Maintenance",
-      url: "/maintenance",
+      title: "Maintenances",
+      url: "/maintenances",
       icon: SettingsIcon,
     },
     {

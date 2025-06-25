@@ -53,7 +53,7 @@ const EditMaintenance = () => {
           },
         }),
       });
-      navigate("/maintenance");
+      navigate("/maintenances");
     },
     onError: commonMutationErrorHandler("Failed to update maintenance")
   });

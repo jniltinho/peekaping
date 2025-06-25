@@ -10,9 +10,11 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import type { MaintenanceCreateUpdateDto } from "@/api";
 import { commonMutationErrorHandler } from "@/lib/utils";
+import { useNavigate } from "react-router-dom";
 
 const NewMaintenance = () => {
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
 
   const createMaintenanceMutation = useMutation({
     ...postMaintenancesMutation(),
@@ -20,6 +22,8 @@ const NewMaintenance = () => {
       toast.success("Maintenance created successfully");
 
       queryClient.invalidateQueries({ queryKey: getMaintenancesQueryKey() });
+
+      navigate("/maintenances");
     },
     onError: commonMutationErrorHandler("Failed to create maintenance"),
   });
