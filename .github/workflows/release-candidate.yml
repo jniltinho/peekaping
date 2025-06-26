@@ -12,11 +12,6 @@ on:
         required: false
         type: string
         default: 'Release candidate build'
-      branch:
-        description: 'Branch to build from'
-        required: false
-        type: string
-        default: 'main'
   workflow_call:
     inputs:
       version:
@@ -28,11 +23,6 @@ on:
         required: false
         type: string
         default: 'Release candidate build'
-      branch:
-        description: 'Branch to build from'
-        required: false
-        type: string
-        default: 'main'
 
 jobs:
   validate-version:
@@ -59,8 +49,6 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.inputs.branch }}
 
       - name: Log in to GHCR
         uses: docker/login-action@v3
@@ -172,7 +160,7 @@ jobs:
           tag_name: ${{ github.event.inputs.version }}
           name: "Release Candidate ${{ github.event.inputs.version }}"
           prerelease: true
-          target_commitish: ${{ github.event.inputs.branch }}
+          target_commitish: ${{ github.ref_name }}
           body: |
             🚀 **Release Candidate ${{ github.event.inputs.version }}**
 
@@ -202,7 +190,7 @@ jobs:
             # - Migrate: ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}-migrate:${{ github.event.inputs.version }}
             ```
 
-            Built from branch: `${{ github.event.inputs.branch }}`
+            Built from branch: `${{ github.ref_name }}`
             Commit: `${{ github.sha }}`
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -212,12 +200,12 @@ jobs:
         with:
           script: |
             // Try to find PR associated with the current branch
-            if ('${{ github.event.inputs.branch }}' !== 'main' && '${{ github.event.inputs.branch }}' !== 'master') {
+            if ('${{ github.ref_name }}' !== 'main' && '${{ github.ref_name }}' !== 'master') {
               try {
                 const { data: prs } = await github.rest.pulls.list({
                   owner: context.repo.owner,
                   repo: context.repo.repo,
-                  head: `${context.repo.owner}:${{ github.event.inputs.branch }}`,
+                  head: `${context.repo.owner}:${{ github.ref_name }}`,
                   state: 'open'
                 });
 
