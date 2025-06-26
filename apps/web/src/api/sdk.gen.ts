@@ -79,9 +79,6 @@ import type {
   GetMonitorsByIdStatsUptimeData,
   GetMonitorsByIdStatsUptimeResponses,
   GetMonitorsByIdStatsUptimeErrors,
-  GetMonitorsByIdStatsUptimeSlowData,
-  GetMonitorsByIdStatsUptimeSlowResponses,
-  GetMonitorsByIdStatsUptimeSlowErrors,
   GetNotificationChannelsData,
   GetNotificationChannelsResponses,
   GetNotificationChannelsErrors,
@@ -780,31 +777,6 @@ export const getMonitorsByIdStatsUptime = <
       },
     ],
     url: "/monitors/{id}/stats/uptime",
-    ...options,
-  });
-};
-
-/**
- * Get monitor uptime stats (24h, 7d, 30d, 365d)
- */
-export const getMonitorsByIdStatsUptimeSlow = <
-  ThrowOnError extends boolean = false,
->(
-  options: Options<GetMonitorsByIdStatsUptimeSlowData, ThrowOnError>,
-) => {
-  return (options.client ?? _heyApiClient).get<
-    GetMonitorsByIdStatsUptimeSlowResponses,
-    GetMonitorsByIdStatsUptimeSlowErrors,
-    ThrowOnError
-  >({
-    responseType: "json",
-    security: [
-      {
-        name: "Authorization",
-        type: "apiKey",
-      },
-    ],
-    url: "/monitors/{id}/stats/uptime-slow",
     ...options,
   });
 };

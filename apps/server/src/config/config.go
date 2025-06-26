@@ -20,6 +20,7 @@ type Config struct {
 	DBName string `env:"DB_NAME"`
 	DBUser string `env:"DB_USER"`
 	DBPass string `env:"DB_PASS"`
+	DBType string `env:"DB_TYPE" default:"mongo"`
 
 	AccessTokenExpiresIn  time.Duration `env:"ACCESS_TOKEN_EXPIRED_IN"`
 	AccessTokenSecretKey  string        `env:"ACCESS_TOKEN_SECRET_KEY"`

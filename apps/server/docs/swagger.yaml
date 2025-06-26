@@ -186,8 +186,6 @@ definitions:
         type: string
       title:
         type: string
-      user_id:
-        type: string
       weekdays:
         items:
           type: integer
@@ -236,8 +234,6 @@ definitions:
         type: string
       updated_at:
         type: string
-      user_id:
-        type: string
       weekdays:
         items:
           type: integer
@@ -279,8 +275,6 @@ definitions:
         type: string
       updated_at:
         type: string
-      user_id:
-        type: string
       weekdays:
         items:
           type: integer
@@ -320,8 +314,6 @@ definitions:
       timezone:
         type: string
       title:
-        type: string
-      user_id:
         type: string
       weekdays:
         items:
@@ -571,17 +563,6 @@ definitions:
       uptime:
         type: number
     type: object
-  monitor.UptimeStatsDto:
-    properties:
-      7d:
-        type: number
-      24h:
-        type: number
-      30d:
-        type: number
-      365d:
-        type: number
-    type: object
   notification_channel.CreateUpdateDto:
     properties:
       active:
@@ -601,6 +582,8 @@ definitions:
         type: boolean
       config:
         type: string
+      created_at:
+        type: string
       id:
         type: string
       is_default:
@@ -608,6 +591,8 @@ definitions:
       name:
         type: string
       type:
+        type: string
+      updated_at:
         type: string
     type: object
   notification_channel.PartialUpdateDto:
@@ -1109,16 +1094,6 @@ definitions:
     properties:
       data:
         $ref: '#/definitions/monitor.StatPointsSummaryDto'
-      message:
-        type: string
-    required:
-    - data
-    - message
-    type: object
-  utils.ApiResponse-monitor_UptimeStatsDto:
-    properties:
-      data:
-        $ref: '#/definitions/monitor.UptimeStatsDto'
       message:
         type: string
     required:
@@ -2028,38 +2003,6 @@ paths:
       security:
       - BearerAuth: []
       summary: Get monitor uptime stats (24h, 30d, 365d)
-      tags:
-      - Monitors
-  /monitors/{id}/stats/uptime-slow:
-    get:
-      parameters:
-      - description: Monitor ID
-        in: path
-        name: id
-        required: true
-        type: string
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/utils.ApiResponse-monitor_UptimeStatsDto'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/utils.APIError'
-        "404":
-          description: Not Found
-          schema:
-            $ref: '#/definitions/utils.APIError'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/utils.APIError'
-      security:
-      - BearerAuth: []
-      summary: Get monitor uptime stats (24h, 7d, 30d, 365d)
       tags:
       - Monitors
   /monitors/batch:

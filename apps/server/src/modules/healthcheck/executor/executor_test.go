@@ -36,11 +36,6 @@ func (m *ExecutorMockHeartbeatService) Delete(ctx context.Context, id string) er
 	return args.Error(0)
 }
 
-func (m *ExecutorMockHeartbeatService) FindByMonitorIDAndTimeRange(ctx context.Context, monitorID string, startTime, endTime time.Time) ([]*heartbeat.ChartPoint, error) {
-	args := m.Called(ctx, monitorID, startTime, endTime)
-	return args.Get(0).([]*heartbeat.ChartPoint), args.Error(1)
-}
-
 func (m *ExecutorMockHeartbeatService) FindUptimeStatsByMonitorID(ctx context.Context, monitorID string, periods map[string]time.Duration, now time.Time) (map[string]float64, error) {
 	args := m.Called(ctx, monitorID, periods, now)
 	return args.Get(0).(map[string]float64), args.Error(1)

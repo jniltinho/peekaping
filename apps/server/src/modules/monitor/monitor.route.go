@@ -38,7 +38,4 @@ func (uc *MonitorRoute) ConnectRoute(
 	router.GET(":id/heartbeats", uc.monitorController.FindByMonitorIDPaginated)
 	router.GET(":id/stats/uptime", uc.monitorController.GetUptimeStats)
 	router.GET(":id/stats/points", uc.monitorController.GetStatPoints)
-
-	// @deprecated
-	router.GET(":id/stats/uptime-slow", uc.monitorController.GetUptimeStatsSlow)
 }

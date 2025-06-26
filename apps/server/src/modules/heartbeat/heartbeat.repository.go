@@ -12,12 +12,6 @@ type Repository interface {
 	FindActive(ctx context.Context) ([]*Model, error)
 	Delete(ctx context.Context, id string) error
 
-	FindByMonitorIDAndTimeRange(
-		ctx context.Context,
-		monitorID string,
-		startTime,
-		endTime time.Time,
-	) ([]*ChartPoint, error)
 	FindByMonitorIDPaginated(
 		ctx context.Context,
 		monitorID string,

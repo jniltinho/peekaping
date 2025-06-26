@@ -28,7 +28,6 @@ import {
   getMonitorsByIdHeartbeats,
   getMonitorsByIdStatsPoints,
   getMonitorsByIdStatsUptime,
-  getMonitorsByIdStatsUptimeSlow,
   getNotificationChannels,
   postNotificationChannels,
   postNotificationChannelsTest,
@@ -127,7 +126,6 @@ import type {
   GetMonitorsByIdHeartbeatsResponse,
   GetMonitorsByIdStatsPointsData,
   GetMonitorsByIdStatsUptimeData,
-  GetMonitorsByIdStatsUptimeSlowData,
   GetNotificationChannelsData,
   GetNotificationChannelsError,
   GetNotificationChannelsResponse,
@@ -1266,30 +1264,6 @@ export const getMonitorsByIdStatsUptimeOptions = (
       return data;
     },
     queryKey: getMonitorsByIdStatsUptimeQueryKey(options),
-  });
-};
-
-export const getMonitorsByIdStatsUptimeSlowQueryKey = (
-  options: Options<GetMonitorsByIdStatsUptimeSlowData>,
-) => createQueryKey("getMonitorsByIdStatsUptimeSlow", options);
-
-/**
- * Get monitor uptime stats (24h, 7d, 30d, 365d)
- */
-export const getMonitorsByIdStatsUptimeSlowOptions = (
-  options: Options<GetMonitorsByIdStatsUptimeSlowData>,
-) => {
-  return queryOptions({
-    queryFn: async ({ queryKey, signal }) => {
-      const { data } = await getMonitorsByIdStatsUptimeSlow({
-        ...options,
-        ...queryKey[0],
-        signal,
-        throwOnError: true,
-      });
-      return data;
-    },
-    queryKey: getMonitorsByIdStatsUptimeSlowQueryKey(options),
   });
 };
 

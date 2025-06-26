@@ -106,14 +106,15 @@ export default function MaintenancePage() {
     ...patchMaintenancesByIdPauseMutation(),
     onSuccess: () => {
       toast.success("Maintenance paused successfully");
-      if (pendingMaintenanceId) {
-        updateMaintenanceState(pendingMaintenanceId, false);
-      }
       setShowConfirmDialog(false);
       setPendingAction(null);
       setPendingMaintenanceId(null);
     },
     onError: (err) => {
+      // Revert optimistic update on error
+      if (pendingMaintenanceId) {
+        updateMaintenanceState(pendingMaintenanceId, true);
+      }
       commonMutationErrorHandler("Failed to pause maintenance")(err);
       setShowConfirmDialog(false);
       setPendingAction(null);
@@ -125,14 +126,15 @@ export default function MaintenancePage() {
     ...patchMaintenancesByIdResumeMutation(),
     onSuccess: () => {
       toast.success("Maintenance resumed successfully");
-      if (pendingMaintenanceId) {
-        updateMaintenanceState(pendingMaintenanceId, true);
-      }
       setShowConfirmDialog(false);
       setPendingAction(null);
       setPendingMaintenanceId(null);
     },
     onError: (err) => {
+      // Revert optimistic update on error
+      if (pendingMaintenanceId) {
+        updateMaintenanceState(pendingMaintenanceId, false);
+      }
       commonMutationErrorHandler("Failed to resume maintenance")(err);
       setShowConfirmDialog(false);
       setPendingAction(null);
@@ -170,6 +172,10 @@ export default function MaintenancePage() {
 
   const handleConfirmAction = () => {
     if (!pendingMaintenanceId || !pendingAction) return;
+
+    // Optimistic update - update UI immediately
+    const newActiveState = pendingAction === "resume";
+    updateMaintenanceState(pendingMaintenanceId, newActiveState);
 
     if (pendingAction === "pause") {
       pauseMutation.mutate({

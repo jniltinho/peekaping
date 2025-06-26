@@ -44,7 +44,7 @@ type RepositoryImpl struct {
 	collection *mongo.Collection
 }
 
-func NewRepository(client *mongo.Client, cfg *config.Config) Repository {
+func NewMongoRepository(client *mongo.Client, cfg *config.Config) Repository {
 	db := client.Database(cfg.DBName)
 	collection := db.Collection("users")
 	return &RepositoryImpl{client, db, collection}

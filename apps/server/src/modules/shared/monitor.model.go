@@ -31,14 +31,15 @@ type Monitor struct {
 	// Resend Notification if Down X times consecutively
 	ResendInterval int `json:"resend_interval" example:"10"`
 
-	Active    bool          `json:"active"`
-	Status    MonitorStatus `json:"status"`
-	CreatedAt time.Time     `json:"created_at"`
-	UpdatedAt time.Time     `json:"updated_at"`
+	Active bool          `json:"active"`
+	Status MonitorStatus `json:"status"`
 
 	Config    string `json:"config"`
 	ProxyId   string `json:"proxy_id"`
 	PushToken string `json:"push_token"`
+
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
 }
 
 type UpdateMonitor struct {
@@ -52,9 +53,10 @@ type UpdateMonitor struct {
 	ResendInterval *int           `json:"resend_interval"`
 	Active         *bool          `json:"active"`
 	Status         *MonitorStatus `json:"status"`
-	CreatedAt      *time.Time     `json:"created_at"`
-	UpdatedAt      *time.Time     `json:"updated_at"`
 	Config         *string        `json:"config"`
 	ProxyId        *string        `json:"proxy_id"`
 	PushToken      *string        `json:"push_token"`
+
+	CreatedAt *time.Time `json:"created_at"`
+	UpdatedAt *time.Time `json:"updated_at"`
 }
