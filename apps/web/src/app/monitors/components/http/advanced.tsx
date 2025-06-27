@@ -37,7 +37,7 @@ const Advanced = () => {
 
       <FormField
         control={form.control}
-        name="http.accepted_statuscodes"
+        name="accepted_statuscodes"
         render={({ field }) => {
           return <FormItem>
           <FormLabel>Accepted Status Codes</FormLabel>

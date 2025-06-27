@@ -3,7 +3,11 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "dev": "node index.js"
+    "dev": "node index.js",
+    "generate-certs": "chmod +x generate-certs.sh && ./generate-certs.sh",
+    "show-certs": "chmod +x show-certs.sh && ./show-certs.sh",
+    "mtls": "node mtls-server.js",
+    "setup": "npm run generate-certs && echo '\n✅ Setup complete! Run npm run mtls to start the mTLS server'"
   },
   "keywords": [],
   "author": "",
