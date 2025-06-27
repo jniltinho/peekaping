@@ -4,8 +4,10 @@ import {
   FormField,
   FormLabel,
   FormMessage,
+  FormDescription,
 } from "@/components/ui/form";
 import { FormItem } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
 import { TypographyH4 } from "@/components/ui/typography";
 import { useFormContext } from "react-hook-form";
 import { z } from "zod";
@@ -20,12 +22,14 @@ const acceptedStatusCodesOptions = [
 
 export const advancedSchema = z.object({
   accepted_statuscodes: z.array(z.string()),
+  max_redirects: z.coerce.number().min(0).max(30),
 });
 
 export type AdvancedForm = z.infer<typeof advancedSchema>;
 
 export const advancedDefaultValues: AdvancedForm = {
   accepted_statuscodes: ["2XX"],
+  max_redirects: 10,
 }
 
 const Advanced = () => {
@@ -53,6 +57,23 @@ const Advanced = () => {
           <FormMessage />
         </FormItem>
         }}
+      />
+
+      <FormField
+        control={form.control}
+        name="max_redirects"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Maximum Redirects</FormLabel>
+            <FormControl>
+              <Input placeholder="10" {...field} type="number" />
+            </FormControl>
+            <FormDescription>
+              Maximum number of redirects to follow (0-30). Set to 0 to disable redirects.
+            </FormDescription>
+            <FormMessage />
+          </FormItem>
+        )}
       />
     </>
   );

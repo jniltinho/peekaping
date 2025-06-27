@@ -7,10 +7,12 @@ import (
 	"crypto/x509"
 	"crypto/x509/pkix"
 	"encoding/json"
+	"fmt"
 	"math/big"
 	"net/http"
 	"net/http/httptest"
 	"peekaping/src/modules/shared"
+	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -946,12 +948,22 @@ func TestHTTPExecutor_Execute_MaxRedirects(t *testing.T) {
 	logger := zap.NewNop().Sugar()
 	executor := NewHTTPExecutor(logger)
 
-	redirectCount := 0
-	// Create test server that redirects
+	// Create test server that redirects using query parameters to track count
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		redirectParam := r.URL.Query().Get("redirect")
+		var redirectCount int
+		if redirectParam != "" {
+			var err error
+			redirectCount, err = strconv.Atoi(redirectParam)
+			if err != nil {
+				redirectCount = 0
+			}
+		}
+
 		if redirectCount < 3 {
-			redirectCount++
-			http.Redirect(w, r, r.URL.String()+"?redirect="+string(rune(redirectCount)), http.StatusFound)
+			nextCount := redirectCount + 1
+			redirectURL := fmt.Sprintf("http://%s?redirect=%d", r.Host, nextCount)
+			http.Redirect(w, r, redirectURL, http.StatusFound)
 			return
 		}
 		w.WriteHeader(http.StatusOK)
@@ -977,6 +989,90 @@ func TestHTTPExecutor_Execute_MaxRedirects(t *testing.T) {
 	result := executor.Execute(context.Background(), monitor, nil)
 	// Should fail because we exceed max redirects (2) but need 3 redirects to reach final page
 	assert.Equal(t, shared.MonitorStatusDown, result.Status)
+	assert.Contains(t, result.Message, "too many redirects")
+	assert.Contains(t, result.Message, "maximum allowed is 2")
+}
+
+func TestHTTPExecutor_Execute_MaxRedirects_Success(t *testing.T) {
+	// Setup
+	logger := zap.NewNop().Sugar()
+	executor := NewHTTPExecutor(logger)
+
+	// Create test server that redirects using query parameters to track count
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		redirectParam := r.URL.Query().Get("redirect")
+		var redirectCount int
+		if redirectParam != "" {
+			var err error
+			redirectCount, err = strconv.Atoi(redirectParam)
+			if err != nil {
+				redirectCount = 0
+			}
+		}
+
+		if redirectCount < 2 { // Only 2 redirects, within limit of 5
+			nextCount := redirectCount + 1
+			redirectURL := fmt.Sprintf("http://%s?redirect=%d", r.Host, nextCount)
+			http.Redirect(w, r, redirectURL, http.StatusFound)
+			return
+		}
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(`{"status": "ok"}`))
+	}))
+	defer server.Close()
+
+	monitor := &Monitor{
+		ID:       "monitor1",
+		Type:     "http",
+		Name:     "Test Monitor",
+		Interval: 30,
+		Timeout:  5,
+		Config: `{
+			"url": "` + server.URL + `",
+			"method": "GET",
+			"encoding": "json",
+			"accepted_statuscodes": ["2XX"],
+			"authMethod": "none",
+			"max_redirects": 5
+		}`,
+	}
+
+	result := executor.Execute(context.Background(), monitor, nil)
+	// Should succeed because we only have 2 redirects within the limit of 5
+	assert.Equal(t, shared.MonitorStatusUp, result.Status)
+}
+
+func TestHTTPExecutor_Execute_DisabledRedirects(t *testing.T) {
+	// Setup
+	logger := zap.NewNop().Sugar()
+	executor := NewHTTPExecutor(logger)
+
+	// Create test server that redirects
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		http.Redirect(w, r, r.URL.String()+"?redirected", http.StatusFound)
+	}))
+	defer server.Close()
+
+	monitor := &Monitor{
+		ID:       "monitor1",
+		Type:     "http",
+		Name:     "Test Monitor",
+		Interval: 30,
+		Timeout:  5,
+		Config: `{
+			"url": "` + server.URL + `",
+			"method": "GET",
+			"encoding": "json",
+			"accepted_statuscodes": ["2XX"],
+			"authMethod": "none",
+			"max_redirects": 0
+		}`,
+	}
+
+	result := executor.Execute(context.Background(), monitor, nil)
+	// Should fail because redirects are disabled
+	assert.Equal(t, shared.MonitorStatusDown, result.Status)
+	assert.Contains(t, result.Message, "redirects disabled")
 }
 
 func TestIsStatusAccepted(t *testing.T) {

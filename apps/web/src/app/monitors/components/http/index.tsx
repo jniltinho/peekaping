@@ -44,6 +44,7 @@ const Http = () => {
       accepted_statuscodes: data.accepted_statuscodes.map(
         (code) => code as "2XX" | "3XX" | "4XX" | "5XX"
       ),
+      max_redirects: data.max_redirects,
       method: data.httpOptions.method,
       headers: data.httpOptions.headers,
       encoding: data.httpOptions.encoding,
@@ -176,6 +177,7 @@ const Http = () => {
         notification_ids: monitor.data.notification_ids,
         proxy_id: monitor.data.proxy_id,
         accepted_statuscodes: parsedConfig.accepted_statuscodes,
+        max_redirects: parsedConfig.max_redirects,
         httpOptions,
         authentication,
       });

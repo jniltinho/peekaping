@@ -272,9 +272,16 @@ func (h *HTTPExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *Prox
 		}
 	}
 
+	// Determine effective max redirects value
+	effectiveMaxRedirects := cfg.MaxRedirects
+
 	checkRedirect := func(req *http.Request, via []*http.Request) error {
-		if len(via) >= cfg.MaxRedirects {
-			return http.ErrUseLastResponse
+		h.logger.Debugf("checkRedirect: %d redirects followed, max allowed: %d", len(via), effectiveMaxRedirects)
+		if effectiveMaxRedirects == 0 {
+			return fmt.Errorf("redirects disabled: max_redirects set to 0")
+		}
+		if len(via) > effectiveMaxRedirects {
+			return fmt.Errorf("too many redirects: followed %d redirects, maximum allowed is %d", len(via), effectiveMaxRedirects)
 		}
 		return nil
 	}
@@ -298,11 +305,6 @@ func (h *HTTPExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *Prox
 	// Set timeout from monitor configuration
 	timeout := time.Duration(m.Timeout) * time.Second
 
-	maxRedirects := cfg.MaxRedirects
-	if maxRedirects == 0 {
-		maxRedirects = 10
-	}
-
 	// --- AUTHENTICATION LOGIC ---
 	switch cfg.AuthMethod {
 	case "basic":
@@ -313,8 +315,9 @@ func (h *HTTPExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *Prox
 			RoundTripper: transport,
 		}
 		h.client = &http.Client{
-			Transport: &ntlmTransport,
-			Timeout:   time.Duration(m.Timeout) * time.Second,
+			Transport:     &ntlmTransport,
+			Timeout:       time.Duration(m.Timeout) * time.Second,
+			CheckRedirect: checkRedirect,
 		}
 
 		if cfg.AuthDomain != "" {
@@ -374,8 +377,9 @@ func (h *HTTPExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *Prox
 		}
 		mtlsTransportWithProxy := buildProxyTransport(mtlsTransport, proxyModel)
 		h.client = &http.Client{
-			Transport: mtlsTransportWithProxy,
-			Timeout:   time.Duration(m.Timeout) * time.Second,
+			Transport:     mtlsTransportWithProxy,
+			Timeout:       time.Duration(m.Timeout) * time.Second,
+			CheckRedirect: checkRedirect,
 		}
 	}
 
