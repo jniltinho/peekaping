@@ -6,8 +6,10 @@ import {
   getMonitorsByIdOptions,
   getMonitorsByIdQueryKey,
   getMonitorsByIdStatsUptimeOptions,
+  getMonitorsByIdStatsUptimeQueryKey,
   getMonitorsInfiniteQueryKey,
   patchMonitorsByIdMutation,
+  postMonitorsByIdResetMutation,
 } from "@/api/@tanstack/react-query.gen";
 import { Chart } from "@/components/app-chart-example";
 import BarHistory from "@/components/bars";
@@ -26,7 +28,15 @@ import { Card, CardContent } from "@/components/ui/card";
 import { useWebSocket, WebSocketStatus } from "@/context/websocket-context";
 import Layout from "@/layout";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, Edit, Loader2, Pause, PlayIcon, Trash } from "lucide-react";
+import {
+  ArrowLeft,
+  Edit,
+  Loader2,
+  Pause,
+  PlayIcon,
+  RotateCcw,
+  Trash,
+} from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
@@ -41,6 +51,7 @@ const MonitorPage = () => {
 
   const [showConfirmDelete, setShowConfirmDelete] = useState(false);
   const [showConfirmPause, setShowConfirmPause] = useState(false);
+  const [showConfirmReset, setShowConfirmReset] = useState(false);
 
   const [heartbeatData, setHeartbeatData] = useState<HeartbeatModel[]>([]);
 
@@ -230,6 +241,48 @@ const MonitorPage = () => {
     ];
   }, [stats]);
 
+  const resetMutation = useMutation({
+    ...postMonitorsByIdResetMutation({
+      path: {
+        id: id!,
+      },
+    }),
+    onSuccess: () => {
+      toast.success("Monitor data reset successfully");
+      setShowConfirmReset(false);
+
+      queryClient.invalidateQueries({
+        queryKey: getMonitorsByIdQueryKey({
+          path: { id: id! },
+        }),
+      });
+
+      queryClient.invalidateQueries({
+        queryKey: getMonitorsByIdStatsUptimeQueryKey({
+          path: { id: id! },
+        }),
+      });
+
+      queryClient.invalidateQueries({
+        predicate: (query) =>
+          Array.isArray(query.queryKey) &&
+          query.queryKey[0]?._id === "getMonitorsByIdStatsPoints" &&
+          query.queryKey[0]?.path?.id === id,
+      });
+
+      queryClient.invalidateQueries({
+        predicate: (query) =>
+          Array.isArray(query.queryKey) &&
+          query.queryKey[0]?._id === "getMonitorsByIdHeartbeats" &&
+          query.queryKey[0]?.path?.id === id,
+      });
+
+      // Clear local heartbeat data
+      setHeartbeatData([]);
+    },
+    onError: commonMutationErrorHandler("Failed to reset monitor data"),
+  });
+
   return (
     <Layout
       pageName={`Monitors > ${monitor?.name ?? ""}`}
@@ -309,6 +362,19 @@ const MonitorPage = () => {
             >
               <Edit />
               Edit
+            </Button>
+            <Button
+              variant="destructive"
+              className="rounded-none border-r"
+              disabled={resetMutation.isPending}
+              onClick={() => setShowConfirmReset(true)}
+            >
+              {resetMutation.isPending ? (
+                <Loader2 className="animate-spin" />
+              ) : (
+                <RotateCcw />
+              )}
+              Reset Data
             </Button>
             <Button
               variant="destructive"
@@ -439,6 +505,39 @@ const MonitorPage = () => {
             >
               {pauseMutation.isPending && <Loader2 className="animate-spin" />}
               Pause
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={showConfirmReset}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Reset Monitor Data</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete all heartbeat history and uptime
+              statistics for this monitor. The monitor will appear as if it was
+              just created. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setShowConfirmReset(false)}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() =>
+                resetMutation.mutate({
+                  path: {
+                    id: id!,
+                  },
+                })
+              }
+              disabled={resetMutation.isPending}
+              className="bg-orange-600 hover:bg-orange-700"
+            >
+              {resetMutation.isPending && <Loader2 className="animate-spin" />}
+              Reset Data
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

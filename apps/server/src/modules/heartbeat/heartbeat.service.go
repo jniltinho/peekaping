@@ -18,6 +18,7 @@ type Service interface {
 	FindUptimeStatsByMonitorID(ctx context.Context, monitorID string, periods map[string]time.Duration, now time.Time) (map[string]float64, error)
 	DeleteOlderThan(ctx context.Context, cutoff time.Time) (int64, error)
 	FindByMonitorIDPaginated(ctx context.Context, monitorID string, limit, page int, important *bool, reverse bool) ([]*Model, error)
+	DeleteByMonitorID(ctx context.Context, monitorID string) error
 }
 
 type ServiceImpl struct {
@@ -100,4 +101,8 @@ func (mr *ServiceImpl) DeleteOlderThan(ctx context.Context, cutoff time.Time) (i
 
 func (mr *ServiceImpl) FindByMonitorIDPaginated(ctx context.Context, monitorID string, limit, page int, important *bool, reverse bool) ([]*Model, error) {
 	return mr.repository.FindByMonitorIDPaginated(ctx, monitorID, limit, page, important, reverse)
+}
+
+func (mr *ServiceImpl) DeleteByMonitorID(ctx context.Context, monitorID string) error {
+	return mr.repository.DeleteByMonitorID(ctx, monitorID)
 }

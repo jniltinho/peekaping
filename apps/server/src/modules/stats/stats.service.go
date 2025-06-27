@@ -21,6 +21,7 @@ type Service interface {
 	RegisterEventHandlers(eventBus *events.EventBus)
 	FindStatsByMonitorIDAndTimeRange(ctx context.Context, monitorID string, since, until time.Time, period StatPeriod) ([]*Stat, error)
 	StatPointsSummary(statsList []*Stat) *Stats
+	DeleteByMonitorID(ctx context.Context, monitorID string) error
 }
 
 type ServiceImpl struct {
@@ -233,4 +234,8 @@ func (s *ServiceImpl) StatPointsSummary(statsList []*Stat) *Stats {
 		Uptime:      uptime,
 		Maintenance: maintenance,
 	}
+}
+
+func (s *ServiceImpl) DeleteByMonitorID(ctx context.Context, monitorID string) error {
+	return s.repo.DeleteByMonitorID(ctx, monitorID)
 }

@@ -1928,6 +1928,38 @@ paths:
       summary: Get paginated heartbeats for a monitor
       tags:
       - Monitors
+  /monitors/{id}/reset:
+    post:
+      parameters:
+      - description: Monitor ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.ApiResponse-any'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.APIError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.APIError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.APIError'
+      security:
+      - BearerAuth: []
+      summary: Reset monitor data (heartbeats and stats)
+      tags:
+      - Monitors
   /monitors/{id}/stats/points:
     get:
       parameters:

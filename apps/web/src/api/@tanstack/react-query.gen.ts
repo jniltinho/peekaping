@@ -26,6 +26,7 @@ import {
   patchMonitorsById,
   putMonitorsById,
   getMonitorsByIdHeartbeats,
+  postMonitorsByIdReset,
   getMonitorsByIdStatsPoints,
   getMonitorsByIdStatsUptime,
   getNotificationChannels,
@@ -124,6 +125,9 @@ import type {
   GetMonitorsByIdHeartbeatsData,
   GetMonitorsByIdHeartbeatsError,
   GetMonitorsByIdHeartbeatsResponse,
+  PostMonitorsByIdResetData,
+  PostMonitorsByIdResetError,
+  PostMonitorsByIdResetResponse,
   GetMonitorsByIdStatsPointsData,
   GetMonitorsByIdStatsUptimeData,
   GetNotificationChannelsData,
@@ -1217,6 +1221,57 @@ export const getMonitorsByIdHeartbeatsInfiniteOptions = (
       queryKey: getMonitorsByIdHeartbeatsInfiniteQueryKey(options),
     },
   );
+};
+
+export const postMonitorsByIdResetQueryKey = (
+  options: Options<PostMonitorsByIdResetData>,
+) => createQueryKey("postMonitorsByIdReset", options);
+
+/**
+ * Reset monitor data (heartbeats and stats)
+ */
+export const postMonitorsByIdResetOptions = (
+  options: Options<PostMonitorsByIdResetData>,
+) => {
+  return queryOptions({
+    queryFn: async ({ queryKey, signal }) => {
+      const { data } = await postMonitorsByIdReset({
+        ...options,
+        ...queryKey[0],
+        signal,
+        throwOnError: true,
+      });
+      return data;
+    },
+    queryKey: postMonitorsByIdResetQueryKey(options),
+  });
+};
+
+/**
+ * Reset monitor data (heartbeats and stats)
+ */
+export const postMonitorsByIdResetMutation = (
+  options?: Partial<Options<PostMonitorsByIdResetData>>,
+): UseMutationOptions<
+  PostMonitorsByIdResetResponse,
+  AxiosError<PostMonitorsByIdResetError>,
+  Options<PostMonitorsByIdResetData>
+> => {
+  const mutationOptions: UseMutationOptions<
+    PostMonitorsByIdResetResponse,
+    AxiosError<PostMonitorsByIdResetError>,
+    Options<PostMonitorsByIdResetData>
+  > = {
+    mutationFn: async (localOptions) => {
+      const { data } = await postMonitorsByIdReset({
+        ...options,
+        ...localOptions,
+        throwOnError: true,
+      });
+      return data;
+    },
+  };
+  return mutationOptions;
 };
 
 export const getMonitorsByIdStatsPointsQueryKey = (

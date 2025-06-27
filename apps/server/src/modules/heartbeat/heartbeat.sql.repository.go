@@ -227,3 +227,11 @@ func (r *SQLRepositoryImpl) DeleteOlderThan(ctx context.Context, cutoff time.Tim
 	rowsAffected, _ := result.RowsAffected()
 	return rowsAffected, nil
 }
+
+func (r *SQLRepositoryImpl) DeleteByMonitorID(ctx context.Context, monitorID string) error {
+	_, err := r.db.NewDelete().
+		Model((*sqlModel)(nil)).
+		Where("monitor_id = ?", monitorID).
+		Exec(ctx)
+	return err
+}

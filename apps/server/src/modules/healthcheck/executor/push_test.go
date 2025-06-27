@@ -53,6 +53,11 @@ func (m *PushMockHeartbeatService) FindByMonitorIDPaginated(ctx context.Context,
 	return args.Get(0).([]*heartbeat.Model), args.Error(1)
 }
 
+func (m *PushMockHeartbeatService) DeleteByMonitorID(ctx context.Context, monitorID string) error {
+	args := m.Called(ctx, monitorID)
+	return args.Error(0)
+}
+
 func TestPushExecutor_Validate(t *testing.T) {
 	// Setup
 	logger := zap.NewNop().Sugar()

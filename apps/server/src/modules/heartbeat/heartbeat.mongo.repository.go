@@ -310,3 +310,14 @@ func (r *RepositoryImpl) FindByMonitorIDPaginated(
 
 	return models, nil
 }
+
+func (r *RepositoryImpl) DeleteByMonitorID(ctx context.Context, monitorID string) error {
+	objectID, err := primitive.ObjectIDFromHex(monitorID)
+	if err != nil {
+		return err
+	}
+
+	filter := bson.M{"monitor_id": objectID}
+	_, err = r.collection.DeleteMany(ctx, filter)
+	return err
+}

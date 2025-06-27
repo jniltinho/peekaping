@@ -1521,6 +1521,46 @@ export type GetMonitorsByIdHeartbeatsResponses = {
 export type GetMonitorsByIdHeartbeatsResponse =
   GetMonitorsByIdHeartbeatsResponses[keyof GetMonitorsByIdHeartbeatsResponses];
 
+export type PostMonitorsByIdResetData = {
+  body?: never;
+  path: {
+    /**
+     * Monitor ID
+     */
+    id: string;
+  };
+  query?: never;
+  url: "/monitors/{id}/reset";
+};
+
+export type PostMonitorsByIdResetErrors = {
+  /**
+   * Bad Request
+   */
+  400: UtilsApiError;
+  /**
+   * Not Found
+   */
+  404: UtilsApiError;
+  /**
+   * Internal Server Error
+   */
+  500: UtilsApiError;
+};
+
+export type PostMonitorsByIdResetError =
+  PostMonitorsByIdResetErrors[keyof PostMonitorsByIdResetErrors];
+
+export type PostMonitorsByIdResetResponses = {
+  /**
+   * OK
+   */
+  200: UtilsApiResponseAny;
+};
+
+export type PostMonitorsByIdResetResponse =
+  PostMonitorsByIdResetResponses[keyof PostMonitorsByIdResetResponses];
+
 export type GetMonitorsByIdStatsPointsData = {
   body?: never;
   path: {

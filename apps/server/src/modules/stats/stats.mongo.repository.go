@@ -170,3 +170,24 @@ func (r *MongoRepository) FindStatsByMonitorIDAndTimeRange(
 	}
 	return stats, nil
 }
+
+func (r *MongoRepository) DeleteByMonitorID(ctx context.Context, monitorID string) error {
+	objectID, err := primitive.ObjectIDFromHex(monitorID)
+	if err != nil {
+		return err
+	}
+
+	filter := bson.M{"monitor_id": objectID}
+
+	// Delete from all stats collections
+	periods := []StatPeriod{StatMinutely, StatHourly, StatDaily}
+	for _, period := range periods {
+		coll := r.getStatCollection(period)
+		_, err = coll.DeleteMany(ctx, filter)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}

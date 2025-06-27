@@ -157,3 +157,11 @@ func (r *SQLRepositoryImpl) FindStatsByMonitorIDAndTimeRange(ctx context.Context
 	}
 	return stats, nil
 }
+
+func (r *SQLRepositoryImpl) DeleteByMonitorID(ctx context.Context, monitorID string) error {
+	_, err := r.db.NewDelete().
+		Model((*sqlModel)(nil)).
+		Where("monitor_id = ?", monitorID).
+		Exec(ctx)
+	return err
+}

@@ -73,6 +73,9 @@ import type {
   GetMonitorsByIdHeartbeatsData,
   GetMonitorsByIdHeartbeatsResponses,
   GetMonitorsByIdHeartbeatsErrors,
+  PostMonitorsByIdResetData,
+  PostMonitorsByIdResetResponses,
+  PostMonitorsByIdResetErrors,
   GetMonitorsByIdStatsPointsData,
   GetMonitorsByIdStatsPointsResponses,
   GetMonitorsByIdStatsPointsErrors,
@@ -727,6 +730,29 @@ export const getMonitorsByIdHeartbeats = <ThrowOnError extends boolean = false>(
       },
     ],
     url: "/monitors/{id}/heartbeats",
+    ...options,
+  });
+};
+
+/**
+ * Reset monitor data (heartbeats and stats)
+ */
+export const postMonitorsByIdReset = <ThrowOnError extends boolean = false>(
+  options: Options<PostMonitorsByIdResetData, ThrowOnError>,
+) => {
+  return (options.client ?? _heyApiClient).post<
+    PostMonitorsByIdResetResponses,
+    PostMonitorsByIdResetErrors,
+    ThrowOnError
+  >({
+    responseType: "json",
+    security: [
+      {
+        name: "Authorization",
+        type: "apiKey",
+      },
+    ],
+    url: "/monitors/{id}/reset",
     ...options,
   });
 };
