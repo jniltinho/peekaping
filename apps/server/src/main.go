@@ -118,7 +118,7 @@ func main() {
 
 		port := server.cfg.Port
 		if port == "" {
-			port = "8080"
+			port = "8084"
 		}
 		if port[0] != ':' {
 			port = ":" + port

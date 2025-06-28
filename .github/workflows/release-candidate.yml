@@ -225,9 +225,15 @@ jobs:
             ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-migrate:${{ github.event.inputs.version }}-arm64
           docker manifest push ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-migrate:${{ github.event.inputs.version }}
 
+  playwright-tests:
+    needs: create-manifest
+    uses: ./.github/workflows/playwright-reusable.yml
+    with:
+      container-tag: ${{ github.event.inputs.version }}
+
   release:
     runs-on: ubuntu-latest
-    needs: create-manifest
+    needs: playwright-tests
     steps:
       - name: Checkout code
         uses: actions/checkout@v4

@@ -220,9 +220,15 @@ jobs:
             ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-migrate:latest-arm64
           docker manifest push ${{ secrets.DOCKERHUB_USERNAME }}/${{ github.event.repository.name }}-migrate:latest
 
+  playwright-tests:
+    needs: create-manifest
+    uses: ./.github/workflows/playwright-reusable.yml
+    with:
+      container-tag: ${{ github.event.inputs.version }}
+
   release:
     runs-on: ubuntu-latest
-    needs: create-manifest
+    needs: playwright-tests
     steps:
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2

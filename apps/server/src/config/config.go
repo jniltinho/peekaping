@@ -20,7 +20,7 @@ type Config struct {
 	DBName string `env:"DB_NAME"`
 	DBUser string `env:"DB_USER"`
 	DBPass string `env:"DB_PASS"`
-	DBType string `env:"DB_TYPE" default:"mongo"`
+	DBType string `env:"DB_TYPE"`
 
 	AccessTokenExpiresIn  time.Duration `env:"ACCESS_TOKEN_EXPIRED_IN"`
 	AccessTokenSecretKey  string        `env:"ACCESS_TOKEN_SECRET_KEY"`
@@ -56,6 +56,10 @@ func LoadConfig(path string) (config Config, err error) {
 	totalProvided := len(envVarsFromFile) + len(envVarsFromEnv)
 	fmt.Printf("Config loaded: %d environment variables provided (%d from .env file, %d from system env)\n",
 		totalProvided, len(envVarsFromFile), len(envVarsFromEnv))
+
+	// Print detailed environment variables
+	printEnvVars("From .env file:", envVarsFromFile)
+	printEnvVars("From system env:", envVarsFromEnv)
 
 	os.Setenv("TZ", config.Timezone)
 
@@ -162,4 +166,46 @@ func setFieldsFromMap(config *Config, values map[string]string) error {
 	}
 
 	return nil
+}
+
+func printEnvVars(title string, envVars map[string]string) {
+	if len(envVars) == 0 {
+		return
+	}
+
+	fmt.Printf("  %s\n", title)
+	for key, value := range envVars {
+		maskedValue := maskSensitiveValue(key, value)
+		fmt.Printf("    %s=%s\n", key, maskedValue)
+	}
+}
+
+func maskSensitiveValue(key, value string) string {
+	if value == "" {
+		return value
+	}
+
+	// Define sensitive key patterns
+	sensitiveKeys := []string{
+		"SECRET_KEY", "SECRET", "PASSWORD", "PASS", "TOKEN", "API_KEY", "PRIVATE_KEY",
+	}
+
+	keyUpper := strings.ToUpper(key)
+	for _, sensitive := range sensitiveKeys {
+		if strings.Contains(keyUpper, sensitive) {
+			return "*****"
+		}
+	}
+
+	// For database URI or connection strings, mask everything after the protocol
+	if strings.Contains(keyUpper, "URI") || strings.Contains(keyUpper, "URL") {
+		if strings.Contains(value, "://") {
+			parts := strings.SplitN(value, "://", 2)
+			if len(parts) == 2 {
+				return parts[0] + "://***"
+			}
+		}
+	}
+
+	return value
 }
