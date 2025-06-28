@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useMemo, useState } from "react";
+import React, { createContext, useContext, useMemo, useState, useEffect } from "react";
 import { useForm, type UseFormReturn } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
@@ -27,7 +27,9 @@ import type {
   PutMonitorsByIdError,
   PutMonitorsByIdData,
 } from "@/api";
-import type { UtilsApiResponseMonitorMonitorResponseDto } from "@/api/types.gen";
+import type {
+  UtilsApiResponseMonitorMonitorResponseDto,
+} from "@/api/types.gen";
 import {
   httpDefaultValues,
   httpSchema,
@@ -35,6 +37,7 @@ import {
 } from "../components/http/schema";
 import { z } from "zod";
 import { commonMutationErrorHandler } from "@/lib/utils";
+import { deserializeMonitor } from "../components/monitor-registry";
 
 const formSchema = z.discriminatedUnion("type", [httpSchema, pushSchema]);
 
@@ -89,17 +92,20 @@ interface MonitorFormProviderProps {
   children: React.ReactNode;
   mode: Mode;
   monitorId?: string;
+  initialValues?: MonitorForm;
 }
 
 export const MonitorFormProvider: React.FC<MonitorFormProviderProps> = ({
   children,
   mode,
   monitorId,
+  initialValues = formDefaultValues,
 }) => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [notifierSheetOpen, setNotifierSheetOpen] = useState(false);
   const [proxySheetOpen, setProxySheetOpen] = useState(false);
+
 
   // Only fetch monitor in edit mode
   const { data: monitor } = useQuery({
@@ -108,9 +114,28 @@ export const MonitorFormProvider: React.FC<MonitorFormProviderProps> = ({
   });
 
   const form = useForm<MonitorForm>({
-    defaultValues: formDefaultValues,
+    defaultValues: initialValues,
     resolver: zodResolver(formSchema),
   });
+
+  // Handle form population for edit mode only
+  useEffect(() => {
+    let formData: MonitorForm | undefined;
+
+    try {
+      if (mode === "edit" && monitor?.data) {
+        // Use registry deserialize function for edit mode
+        formData = deserializeMonitor(monitor.data);
+      }
+
+      if (formData) {
+        form.reset(formData);
+      }
+    } catch (error) {
+      console.error("Failed to deserialize monitor data:", error);
+      toast.error("Failed to load monitor data");
+    }
+  }, [mode, monitor, form]);
 
   // Mutations
   const createMonitorMutation = useMutation({
@@ -154,7 +179,6 @@ export const MonitorFormProvider: React.FC<MonitorFormProviderProps> = ({
       proxySheetOpen,
       setProxySheetOpen,
       monitor,
-      // onSubmit,
       mode,
       isPending:
         mode === "create"
@@ -171,7 +195,6 @@ export const MonitorFormProvider: React.FC<MonitorFormProviderProps> = ({
       notifierSheetOpen,
       proxySheetOpen,
       monitor,
-      // onSubmit,
       mode,
       monitorId,
     ]
