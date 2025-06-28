@@ -23,6 +23,14 @@ const monitorTypes = [
     description: "HTTP(S) Monitor",
   },
   {
+    type: "tcp",
+    description: "TCP Port Monitor",
+  },
+  {
+    type: "ping",
+    description: "Ping Monitor (ICMP)",
+  },
+  {
     type: "push",
     description: "Push Monitor (external service calls a generated URL)",
   },

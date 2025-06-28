@@ -7,8 +7,8 @@ import (
 type Monitor struct {
 	ID string `json:"id"`
 
-	// connection type: http, etc
-	Type string `json:"type" validate:"required,oneof=http" example:"http"`
+	// connection type: http, tcp, ping, etc
+	Type string `json:"type" validate:"required" example:"http"`
 
 	// monitor name
 	Name string `json:"name" example:"Monitor"`

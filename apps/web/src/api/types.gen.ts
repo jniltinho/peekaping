@@ -224,9 +224,9 @@ export type MonitorModel = {
    */
   timeout?: number;
   /**
-   * connection type: http, etc
+   * connection type: http, tcp, ping, etc
    */
-  type: "http";
+  type: string;
   updated_at?: string;
 };
 
@@ -426,9 +426,9 @@ export type StatusPageMonitorWithHeartbeatsAndUptimeDto = {
    */
   timeout?: number;
   /**
-   * connection type: http, etc
+   * connection type: http, tcp, ping, etc
    */
-  type: "http";
+  type: string;
   updated_at?: string;
   uptime_24h?: number;
 };

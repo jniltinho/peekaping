@@ -423,9 +423,7 @@ definitions:
         example: 16
         type: integer
       type:
-        description: 'connection type: http, etc'
-        enum:
-        - http
+        description: 'connection type: http, tcp, ping, etc'
         example: http
         type: string
       updated_at:
@@ -835,9 +833,7 @@ definitions:
         example: 16
         type: integer
       type:
-        description: 'connection type: http, etc'
-        enum:
-        - http
+        description: 'connection type: http, tcp, ping, etc'
         example: http
         type: string
       updated_at:

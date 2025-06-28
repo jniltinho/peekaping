@@ -54,6 +54,8 @@ func NewExecutorRegistry(logger *zap.SugaredLogger, heartbeatService heartbeat.S
 
 	registry["http"] = NewHTTPExecutor(logger)
 	registry["push"] = NewPushExecutor(logger, heartbeatService)
+	registry["tcp"] = NewTCPExecutor(logger)
+	registry["ping"] = NewPingExecutor(logger)
 
 	return &ExecutorRegistry{
 		registry: registry,

@@ -3286,11 +3286,8 @@ const docTemplate = `{
                     "example": 16
                 },
                 "type": {
-                    "description": "connection type: http, etc",
+                    "description": "connection type: http, tcp, ping, etc",
                     "type": "string",
-                    "enum": [
-                        "http"
-                    ],
                     "example": "http"
                 },
                 "updated_at": {
@@ -3879,11 +3876,8 @@ const docTemplate = `{
                     "example": 16
                 },
                 "type": {
-                    "description": "connection type: http, etc",
+                    "description": "connection type: http, tcp, ping, etc",
                     "type": "string",
-                    "enum": [
-                        "http"
-                    ],
                     "example": "http"
                 },
                 "updated_at": {

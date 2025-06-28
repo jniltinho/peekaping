@@ -35,13 +35,21 @@ import {
   httpSchema,
   type HttpForm,
 } from "../components/http/schema";
+import {
+  tcpSchema,
+  type TCPForm,
+} from "../components/tcp";
+import {
+  pingSchema,
+  type PingForm,
+} from "../components/ping";
 import { z } from "zod";
 import { commonMutationErrorHandler } from "@/lib/utils";
 import { deserializeMonitor } from "../components/monitor-registry";
 
-const formSchema = z.discriminatedUnion("type", [httpSchema, pushSchema]);
+const formSchema = z.discriminatedUnion("type", [httpSchema, tcpSchema, pingSchema, pushSchema]);
 
-export type MonitorForm = HttpForm | PushForm;
+export type MonitorForm = HttpForm | TCPForm | PingForm | PushForm;
 
 export const formDefaultValues: MonitorForm = httpDefaultValues;
 

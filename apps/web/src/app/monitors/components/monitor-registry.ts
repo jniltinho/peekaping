@@ -1,7 +1,11 @@
 import type { MonitorMonitorResponseDto } from "@/api";
 import type { MonitorForm } from "../context/monitor-form-context";
 import { deserialize as httpDeserialize } from "./http/schema";
+import { deserialize as tcpDeserialize } from "./tcp";
+import { deserialize as pingDeserialize } from "./ping";
 import { deserialize as pushDeserialize } from "./push";
+import TCPForm from "./tcp";
+import PingForm from "./ping";
 import HttpForm from "./http";
 import PushForm from "./push";
 import type { ComponentType } from "react";
@@ -26,6 +30,14 @@ const monitorTypeRegistry: Record<string, MonitorTypeConfig> = {
   http: {
     deserialize: httpDeserialize,
     component: HttpForm,
+  },
+  tcp: {
+    deserialize: tcpDeserialize,
+    component: TCPForm,
+  },
+  ping: {
+    deserialize: pingDeserialize,
+    component: PingForm,
   },
   push: {
     deserialize: pushDeserialize,

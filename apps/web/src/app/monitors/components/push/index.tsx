@@ -66,9 +66,9 @@ export const deserialize = (data: MonitorMonitorResponseDto): PushForm => {
     name: data.name || "My Monitor",
     interval: data.interval || 60,
     timeout: data.timeout || 16,
-    max_retries: data.max_retries || 3,
+    max_retries: data.max_retries ?? 3,
     retry_interval: data.retry_interval || 60,
-    resend_interval: data.resend_interval || 10,
+    resend_interval: data.resend_interval ?? 10,
     notification_ids: data.notification_ids || [],
     proxy_id: data.proxy_id || "",
     pushToken: data.push_token || config.pushToken || "", // Get from API or config
