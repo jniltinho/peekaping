@@ -814,6 +814,8 @@ definitions:
         type: string
       id:
         type: string
+      ping:
+        type: integer
       status:
         $ref: '#/definitions/shared.MonitorStatus'
       time:

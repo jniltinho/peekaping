@@ -404,6 +404,7 @@ export type StatusPageMonitorWithHeartbeatsAndUptimeDto = {
 export type StatusPagePublicHeartbeatDto = {
   end_time?: string;
   id?: string;
+  ping?: number;
   status?: SharedMonitorStatus;
   time?: string;
 };

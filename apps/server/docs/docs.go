@@ -3852,6 +3852,9 @@ const docTemplate = `{
                 "id": {
                     "type": "string"
                 },
+                "ping": {
+                    "type": "integer"
+                },
                 "status": {
                     "$ref": "#/definitions/shared.MonitorStatus"
                 },

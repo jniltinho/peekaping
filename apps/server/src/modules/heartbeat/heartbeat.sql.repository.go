@@ -194,10 +194,8 @@ func (r *SQLRepositoryImpl) FindUptimeStatsByMonitorID(
 
 		err := r.db.NewSelect().
 			Model((*sqlModel)(nil)).
-			Column(
-				"COUNT(*) as total",
-				"COUNT(CASE WHEN status = ? THEN 1 END) as up",
-			).
+			ColumnExpr("COUNT(*) as total").
+			ColumnExpr("COUNT(CASE WHEN status = ? THEN 1 END) as up", 1).
 			Where("monitor_id = ? AND time >= ?", monitorID, since).
 			Scan(ctx, &result)
 

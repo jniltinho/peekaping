@@ -77,6 +77,7 @@ type PublicHeartbeatDTO struct {
 	Status  shared.MonitorStatus `json:"status"`
 	Time    time.Time            `json:"time"`
 	EndTime time.Time            `json:"end_time"`
+	Ping    int                  `json:"ping"`
 }
 
 type MonitorWithHeartbeatsAndUptimeDTO struct {

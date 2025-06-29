@@ -247,6 +247,7 @@ func (c *Controller) GetMonitorsBySlug(ctx *gin.Context) {
 				Status:  hb.Status,
 				Time:    hb.Time,
 				EndTime: hb.EndTime,
+				Ping:    hb.Ping,
 			}
 			publicHeartbeats = append(publicHeartbeats, publicHeartbeat)
 		}
@@ -259,6 +260,8 @@ func (c *Controller) GetMonitorsBySlug(ctx *gin.Context) {
 		uptimeStats, err := c.heartbeatService.FindUptimeStatsByMonitorID(ctx, msp.MonitorID, periods, now)
 		if err != nil {
 			c.logger.Errorw("Failed to get uptime stats for monitor", "error", err, "monitorID", msp.MonitorID)
+			ctx.JSON(http.StatusInternalServerError, utils.NewFailResponse("failed to get uptime stats for monitor"))
+			return
 		}
 
 		uptime24h := 0.0
