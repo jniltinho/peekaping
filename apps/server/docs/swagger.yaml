@@ -791,57 +791,33 @@ definitions:
     properties:
       active:
         type: boolean
-      config:
-        type: string
-      created_at:
-        type: string
       heartbeats:
         items:
-          $ref: '#/definitions/heartbeat.Model'
+          $ref: '#/definitions/status_page.PublicHeartbeatDTO'
         type: array
       id:
         type: string
-      interval:
-        description: monitor interval in seconds to do request to url
-        example: 60
-        type: integer
-      max_retries:
-        description: Maximum retries before the service is marked as down and a notification
-          is sent
-        example: 3
-        type: integer
       name:
-        description: monitor name
         example: Monitor
         type: string
-      proxy_id:
-        type: string
-      push_token:
-        type: string
-      resend_interval:
-        description: Resend Notification if Down X times consecutively
-        example: 10
-        type: integer
-      retry_interval:
-        description: Retry interval in seconds to do request to url
-        example: 60
-        type: integer
-      status:
-        $ref: '#/definitions/shared.MonitorStatus'
-      timeout:
-        description: monitor timeout in seconds to do request otherwise stop request
-        example: 16
-        type: integer
       type:
-        description: 'connection type: http, tcp, ping, etc'
         example: http
-        type: string
-      updated_at:
         type: string
       uptime_24h:
         type: number
     required:
     - type
+    type: object
+  status_page.PublicHeartbeatDTO:
+    properties:
+      end_time:
+        type: string
+      id:
+        type: string
+      status:
+        $ref: '#/definitions/shared.MonitorStatus'
+      time:
+        type: string
     type: object
   status_page.StatusPageWithMonitorsResponseDTO:
     properties:

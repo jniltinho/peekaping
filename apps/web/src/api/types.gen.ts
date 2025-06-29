@@ -394,43 +394,18 @@ export type StatusPageModel = {
 
 export type StatusPageMonitorWithHeartbeatsAndUptimeDto = {
   active?: boolean;
-  config?: string;
-  created_at?: string;
-  heartbeats?: Array<HeartbeatModel>;
+  heartbeats?: Array<StatusPagePublicHeartbeatDto>;
   id?: string;
-  /**
-   * monitor interval in seconds to do request to url
-   */
-  interval?: number;
-  /**
-   * Maximum retries before the service is marked as down and a notification is sent
-   */
-  max_retries?: number;
-  /**
-   * monitor name
-   */
   name?: string;
-  proxy_id?: string;
-  push_token?: string;
-  /**
-   * Resend Notification if Down X times consecutively
-   */
-  resend_interval?: number;
-  /**
-   * Retry interval in seconds to do request to url
-   */
-  retry_interval?: number;
-  status?: SharedMonitorStatus;
-  /**
-   * monitor timeout in seconds to do request otherwise stop request
-   */
-  timeout?: number;
-  /**
-   * connection type: http, tcp, ping, etc
-   */
   type: string;
-  updated_at?: string;
   uptime_24h?: number;
+};
+
+export type StatusPagePublicHeartbeatDto = {
+  end_time?: string;
+  id?: string;
+  status?: SharedMonitorStatus;
+  time?: string;
 };
 
 export type StatusPageStatusPageWithMonitorsResponseDto = {

@@ -3821,70 +3821,42 @@ const docTemplate = `{
                 "active": {
                     "type": "boolean"
                 },
-                "config": {
-                    "type": "string"
-                },
-                "created_at": {
-                    "type": "string"
-                },
                 "heartbeats": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/heartbeat.Model"
+                        "$ref": "#/definitions/status_page.PublicHeartbeatDTO"
                     }
                 },
                 "id": {
                     "type": "string"
                 },
-                "interval": {
-                    "description": "monitor interval in seconds to do request to url",
-                    "type": "integer",
-                    "example": 60
-                },
-                "max_retries": {
-                    "description": "Maximum retries before the service is marked as down and a notification is sent",
-                    "type": "integer",
-                    "example": 3
-                },
                 "name": {
-                    "description": "monitor name",
                     "type": "string",
                     "example": "Monitor"
                 },
-                "proxy_id": {
+                "type": {
+                    "type": "string",
+                    "example": "http"
+                },
+                "uptime_24h": {
+                    "type": "number"
+                }
+            }
+        },
+        "status_page.PublicHeartbeatDTO": {
+            "type": "object",
+            "properties": {
+                "end_time": {
                     "type": "string"
                 },
-                "push_token": {
+                "id": {
                     "type": "string"
-                },
-                "resend_interval": {
-                    "description": "Resend Notification if Down X times consecutively",
-                    "type": "integer",
-                    "example": 10
-                },
-                "retry_interval": {
-                    "description": "Retry interval in seconds to do request to url",
-                    "type": "integer",
-                    "example": 60
                 },
                 "status": {
                     "$ref": "#/definitions/shared.MonitorStatus"
                 },
-                "timeout": {
-                    "description": "monitor timeout in seconds to do request otherwise stop request",
-                    "type": "integer",
-                    "example": 16
-                },
-                "type": {
-                    "description": "connection type: http, tcp, ping, etc",
-                    "type": "string",
-                    "example": "http"
-                },
-                "updated_at": {
+                "time": {
                     "type": "string"
-                },
-                "uptime_24h": {
-                    "type": "number"
                 }
             }
         },
