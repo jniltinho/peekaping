@@ -18,9 +18,9 @@ NC='\033[0m' # No Color
 FROM_TAG=${1:-$(git describe --tags --abbrev=0 2>/dev/null || echo "")}
 TO_REF=${2:-HEAD}
 
-printf "${BLUE}🎉 Peekaping Detailed Changelog Generator${NC}\n"
-echo "=========================================="
-echo ""
+# printf "${BLUE}🎉 Peekaping Detailed Changelog Generator${NC}\n"
+# echo "=========================================="
+# echo ""
 
 if [ -z "$FROM_TAG" ]; then
     printf "${YELLOW}⚠️  No previous release tag found${NC}\n"
@@ -32,8 +32,8 @@ if [ -z "$FROM_TAG" ]; then
     exit 0
 fi
 
-printf "${GREEN}📋 Generating detailed changelog from ${FROM_TAG} to ${TO_REF}${NC}\n"
-echo ""
+# printf "${GREEN}📋 Generating detailed changelog from ${FROM_TAG} to ${TO_REF}${NC}\n"
+# echo ""
 
 # Initialize categories
 NEW_FEATURES=""
@@ -158,15 +158,15 @@ echo ""
 printf "${CYAN}## 👥 Contributors${NC}\n"
 printf "Thanks to: "
 git log $FROM_TAG..$TO_REF --pretty=format:"@%an" | sort | uniq | tr '\n' ' '
-echo ""
-echo ""
+# echo ""
+# echo ""
 
-echo "=========================================="
-printf "${GREEN}✅ Detailed changelog generated successfully!${NC}\n"
-echo ""
-printf "${PURPLE}💡 Usage tips:${NC}\n"
-echo "• Copy the sections above for your GitHub release"
-echo "• Use conventional commit messages (feat:, fix:, docs:, etc.) for better categorization"
-echo "• PR numbers will be automatically detected from merge commits"
-echo ""
-printf "${BLUE}🚀 Ready to release? Copy this changelog and use it in the GitHub Actions workflow!${NC}\n"
+# echo "=========================================="
+# printf "${GREEN}✅ Detailed changelog generated successfully!${NC}\n"
+# echo ""
+# printf "${PURPLE}💡 Usage tips:${NC}\n"
+# echo "• Copy the sections above for your GitHub release"
+# echo "• Use conventional commit messages (feat:, fix:, docs:, etc.) for better categorization"
+# echo "• PR numbers will be automatically detected from merge commits"
+# echo ""
+# printf "${BLUE}🚀 Ready to release? Copy this changelog and use it in the GitHub Actions workflow!${NC}\n"
