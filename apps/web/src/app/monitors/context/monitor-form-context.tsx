@@ -1,4 +1,10 @@
-import React, { createContext, useContext, useMemo, useState, useEffect } from "react";
+import React, {
+  createContext,
+  useContext,
+  useMemo,
+  useState,
+  useEffect,
+} from "react";
 import { useForm, type UseFormReturn } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
@@ -27,29 +33,28 @@ import type {
   PutMonitorsByIdError,
   PutMonitorsByIdData,
 } from "@/api";
-import type {
-  UtilsApiResponseMonitorMonitorResponseDto,
-} from "@/api/types.gen";
+import type { UtilsApiResponseMonitorMonitorResponseDto } from "@/api/types.gen";
 import {
   httpDefaultValues,
   httpSchema,
   type HttpForm,
 } from "../components/http/schema";
-import {
-  tcpSchema,
-  type TCPForm,
-} from "../components/tcp";
-import {
-  pingSchema,
-  type PingForm,
-} from "../components/ping";
+import { tcpSchema, type TCPForm } from "../components/tcp";
+import { pingSchema, type PingForm } from "../components/ping";
+import { dnsSchema, type DNSForm } from "../components/dns";
 import { z } from "zod";
 import { commonMutationErrorHandler } from "@/lib/utils";
 import { deserializeMonitor } from "../components/monitor-registry";
 
-const formSchema = z.discriminatedUnion("type", [httpSchema, tcpSchema, pingSchema, pushSchema]);
+const formSchema = z.discriminatedUnion("type", [
+  httpSchema,
+  tcpSchema,
+  pingSchema,
+  dnsSchema,
+  pushSchema,
+]);
 
-export type MonitorForm = HttpForm | TCPForm | PingForm | PushForm;
+export type MonitorForm = HttpForm | TCPForm | PingForm | DNSForm | PushForm;
 
 export const formDefaultValues: MonitorForm = httpDefaultValues;
 
@@ -113,7 +118,6 @@ export const MonitorFormProvider: React.FC<MonitorFormProviderProps> = ({
   const queryClient = useQueryClient();
   const [notifierSheetOpen, setNotifierSheetOpen] = useState(false);
   const [proxySheetOpen, setProxySheetOpen] = useState(false);
-
 
   // Only fetch monitor in edit mode
   const { data: monitor } = useQuery({

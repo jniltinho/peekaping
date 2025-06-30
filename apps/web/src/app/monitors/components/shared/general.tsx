@@ -31,6 +31,10 @@ const monitorTypes = [
     description: "Ping Monitor (ICMP)",
   },
   {
+    type: "dns",
+    description: "DNS Monitor",
+  },
+  {
     type: "push",
     description: "Push Monitor (external service calls a generated URL)",
   },
