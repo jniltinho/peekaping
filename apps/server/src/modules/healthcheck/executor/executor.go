@@ -57,6 +57,7 @@ func NewExecutorRegistry(logger *zap.SugaredLogger, heartbeatService heartbeat.S
 	registry["tcp"] = NewTCPExecutor(logger)
 	registry["ping"] = NewPingExecutor(logger)
 	registry["dns"] = NewDNSExecutor(logger)
+	registry["docker"] = NewDockerExecutor(logger)
 
 	return &ExecutorRegistry{
 		registry: registry,

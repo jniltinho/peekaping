@@ -44,7 +44,7 @@ func (s *DNSExecutor) Validate(configJSON string) error {
 func (d *DNSExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *Proxy) *Result {
 	cfgAny, err := d.Unmarshal(m.Config)
 	if err != nil {
-		return downResult(err, time.Now().UTC(), time.Now().UTC())
+		return DownResult(err, time.Now().UTC(), time.Now().UTC())
 	}
 	cfg := cfgAny.(*DNSConfig)
 

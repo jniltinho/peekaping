@@ -5,11 +5,13 @@ import { deserialize as tcpDeserialize } from "./tcp";
 import { deserialize as pingDeserialize } from "./ping";
 import { deserialize as dnsDeserialize } from "./dns";
 import { deserialize as pushDeserialize } from "./push";
+import { deserialize as dockerDeserialize } from "./docker";
 import TCPForm from "./tcp";
 import PingForm from "./ping";
 import DNSForm from "./dns";
 import HttpForm from "./http";
 import PushForm from "./push";
+import DockerForm from "./docker";
 import type { ComponentType } from "react";
 
 type DeserializeFunction = (data: MonitorMonitorResponseDto) => MonitorForm;
@@ -48,6 +50,10 @@ const monitorTypeRegistry: Record<string, MonitorTypeConfig> = {
   push: {
     deserialize: pushDeserialize,
     component: PushForm,
+  },
+  docker: {
+    deserialize: dockerDeserialize,
+    component: DockerForm,
   },
 };
 

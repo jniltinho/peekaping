@@ -46,7 +46,7 @@ func (s *PingExecutor) Validate(configJSON string) error {
 func (p *PingExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *Proxy) *Result {
 	cfgAny, err := p.Unmarshal(m.Config)
 	if err != nil {
-		return downResult(err, time.Now().UTC(), time.Now().UTC())
+		return DownResult(err, time.Now().UTC(), time.Now().UTC())
 	}
 	cfg := cfgAny.(*PingConfig)
 

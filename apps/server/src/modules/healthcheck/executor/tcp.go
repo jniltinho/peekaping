@@ -40,7 +40,7 @@ func (s *TCPExecutor) Validate(configJSON string) error {
 func (t *TCPExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *Proxy) *Result {
 	cfgAny, err := t.Unmarshal(m.Config)
 	if err != nil {
-		return downResult(err, time.Now().UTC(), time.Now().UTC())
+		return DownResult(err, time.Now().UTC(), time.Now().UTC())
 	}
 	cfg := cfgAny.(*TCPConfig)
 

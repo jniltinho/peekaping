@@ -42,6 +42,7 @@ import {
 import { tcpSchema, type TCPForm } from "../components/tcp";
 import { pingSchema, type PingForm } from "../components/ping";
 import { dnsSchema, type DNSForm } from "../components/dns";
+import { dockerSchema, type DockerForm } from "../components/docker";
 import { z } from "zod";
 import { commonMutationErrorHandler } from "@/lib/utils";
 import { deserializeMonitor } from "../components/monitor-registry";
@@ -52,9 +53,10 @@ const formSchema = z.discriminatedUnion("type", [
   pingSchema,
   dnsSchema,
   pushSchema,
+  dockerSchema,
 ]);
 
-export type MonitorForm = HttpForm | TCPForm | PingForm | DNSForm | PushForm;
+export type MonitorForm = HttpForm | TCPForm | PingForm | DNSForm | PushForm | DockerForm;
 
 export const formDefaultValues: MonitorForm = httpDefaultValues;
 

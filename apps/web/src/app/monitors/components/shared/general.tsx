@@ -38,6 +38,10 @@ const monitorTypes = [
     type: "push",
     description: "Push Monitor (external service calls a generated URL)",
   },
+  {
+    type: "docker",
+    description: "Docker Container",
+  },
 ];
 
 export const generalDefaultValues = {
