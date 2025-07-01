@@ -43,6 +43,7 @@ import { tcpSchema, type TCPForm } from "../components/tcp";
 import { pingSchema, type PingForm } from "../components/ping";
 import { dnsSchema, type DNSForm } from "../components/dns";
 import { dockerSchema, type DockerForm } from "../components/docker";
+import { snmpSchema, type SnmpForm } from "../components/snmp";
 import { z } from "zod";
 import { commonMutationErrorHandler } from "@/lib/utils";
 import { deserializeMonitor } from "../components/monitor-registry";
@@ -54,9 +55,10 @@ const formSchema = z.discriminatedUnion("type", [
   dnsSchema,
   pushSchema,
   dockerSchema,
+  snmpSchema,
 ]);
 
-export type MonitorForm = HttpForm | TCPForm | PingForm | DNSForm | PushForm | DockerForm;
+export type MonitorForm = HttpForm | TCPForm | PingForm | DNSForm | PushForm | DockerForm | SnmpForm;
 
 export const formDefaultValues: MonitorForm = httpDefaultValues;
 
@@ -218,6 +220,15 @@ export const MonitorFormProvider: React.FC<MonitorFormProviderProps> = ({
     throw new Error("Monitor ID is required in edit mode");
   }
 
+  // For edit mode, don't render children until monitor data is available
+  if (mode === "edit" && !monitor) {
+    return (
+      <MonitorFormContext.Provider value={value}>
+        <div>Loading...</div>
+      </MonitorFormContext.Provider>
+    );
+  }
+
   return (
     <MonitorFormContext.Provider value={value}>
       {children}
@@ -227,9 +238,10 @@ export const MonitorFormProvider: React.FC<MonitorFormProviderProps> = ({
 
 export const useMonitorFormContext = () => {
   const ctx = useContext(MonitorFormContext);
-  if (!ctx)
+  if (!ctx) {
     throw new Error(
       "useMonitorFormContext must be used within a MonitorFormProvider"
     );
+  }
   return ctx;
 };
