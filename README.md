@@ -51,8 +51,12 @@ If you enjoy this project, come say hi &amp; follow along!
 ## ✨ Features
 
 ### 🔍 **Monitoring Types**
-- **HTTP/HTTPS Monitoring** - Monitor websites, APIs, and web services
-- **Push Monitoring** - Monitor services that push heartbeats to Peekaping
+- **HTTP/HTTPS Monitoring** - Monitor websites, APIs, and web services with comprehensive options
+- **TCP Port Monitoring** - Monitor TCP port connectivity and availability
+- **Ping Monitoring (ICMP)** - Traditional ping monitoring using ICMP packets
+- **DNS Monitoring** - Monitor DNS query responses and resolution times
+- **Push Monitoring** - Monitor services that push heartbeats to a generated URL endpoint
+- **Docker Container Monitoring** - Monitor Docker container status and health
 
 ### 📊 **Real-time Dashboard**
 - Live status updates with WebSocket connections
