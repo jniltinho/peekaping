@@ -8,11 +8,6 @@ on:
         required: true
         type: string
         default: 'latest'
-      update_release_notes:
-        description: 'Update GitHub release notes with deployment status'
-        required: false
-        type: boolean
-        default: false
   workflow_call:
     inputs:
       version:
@@ -58,13 +53,3 @@ jobs:
 
             echo "✅ Demo deployment completed successfully!"
             echo "🌐 Demo should be available at the configured endpoint"
-
-      - name: Summary
-        if: always()
-        run: |
-          if [ "${{ steps.deploy.outcome }}" = "success" ]; then
-            echo "✅ Demo deployment successful for version ${{ inputs.version }}"
-            echo "🌐 Demo environment updated"
-          else
-            echo "❌ Demo deployment failed for version ${{ inputs.version }}"
-            echo "📋 Check the deployment logs above for details"
