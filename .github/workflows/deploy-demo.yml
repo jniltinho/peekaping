@@ -20,7 +20,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Deploy to Demo Environment
-        continue-on-error: true
+        continue-on-error: ${{ github.event_name == 'workflow_call' }}
         id: deploy
         uses: appleboy/ssh-action@v1.0.3
         with:
@@ -34,8 +34,8 @@ jobs:
             # Navigate to the demo directory
             cd ${{ secrets.DEMO_DEPLOY_PATH || '/opt/peekaping-demo' }}
 
-            # Update docker-compose to use the new version
-            echo "📝 Updating docker-compose with new image tags..."
+            # Update docker compose to use the new version
+            echo "📝 Updating docker compose with new image tags..."
 
             # Update image tags to the new version
             sed -i "s|0xfurai/peekaping-web:.*|0xfurai/peekaping-web:${{ inputs.version }}|g" compose-demo.yaml
@@ -43,10 +43,10 @@ jobs:
             sed -i "s|0xfurai/peekaping-migrate:.*|0xfurai/peekaping-migrate:${{ inputs.version }}|g" compose-demo.yaml
 
             echo "📥 Pulling new Docker images..."
-            docker-compose -f compose-demo.yaml pull
+            docker compose -f compose-demo.yaml pull
 
             # echo "🔄 Recreating services with new images..."
-            # docker-compose up -d --force-recreate
+            # docker compose up -d --force-recreate
 
             echo "🧹 Cleaning up old images..."
             docker image prune -f
