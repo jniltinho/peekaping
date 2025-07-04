@@ -1,9 +1,3 @@
-@import "tailwindcss";
-
-@custom-variant dark (&:is([data-theme="dark"] *));
-
-
-
 @theme inline {
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
@@ -118,9 +112,6 @@
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.556 0 0);
 }
-
-
-
 
 .navbar__item, .footer__link-item {
   display: inline-flex;

@@ -5,7 +5,6 @@ import type * as Preset from "@docusaurus/preset-classic";
 // This runs in Node.js - Don't use client-side code here (browser APIs, JSX...)
 
 const config: Config = {
-  plugins: ["./src/plugins/tailwind-config.js"],
   title: "Peekaping Docs",
   tagline: "Peekaping is a monitoring tool for your servers",
   // favicon: 'img/favicon.ico',
