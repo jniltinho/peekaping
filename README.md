@@ -22,6 +22,12 @@ Want to see Peekaping in action? Try our live demo:
 
 The demo allows you to explore all features instantly in your browser without any setup. Perfect for evaluating Peekaping before deploying your own instance!
 
+## 📚 Documentation
+
+For detailed setup instructions, configuration options, and guides:
+
+🔗 **[Docs](https://docs.peekaping.com)**
+
 ## ⚠️ Beta Status
 
 **Peekaping is currently in beta and actively being developed.** While I am excited to share this project with the community, please note that:
@@ -77,7 +83,7 @@ If you enjoy this project, come say hi &amp; follow along!
 ### 🛠 **Advanced Features**
 - **Maintenance Windows** - Schedule maintenance to prevent false alerts
 - **Proxy Support** - Route monitoring through HTTP proxies
-- **Multi-user Authentication** - Secure login with 2FA support
+- **2FA User Authentication** - Secure login with 2FA support
 - **Real-time Collaboration** - Multiple users can monitor simultaneously
 - **Data Retention** - Automatic cleanup of old heartbeat data
 
