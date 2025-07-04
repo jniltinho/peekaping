@@ -84,7 +84,6 @@ If you enjoy this project, come say hi &amp; follow along!
 - **Maintenance Windows** - Schedule maintenance to prevent false alerts
 - **Proxy Support** - Route monitoring through HTTP proxies
 - **2FA User Authentication** - Secure login with 2FA support
-- **Real-time Collaboration** - Multiple users can monitor simultaneously
 - **Data Retention** - Automatic cleanup of old heartbeat data
 
 ### 🏗 **Technical Highlights**
