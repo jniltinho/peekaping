@@ -37,7 +37,7 @@ DB_PORT=5432
 DB_TYPE=postgres
 
 # Server Configuration
-PORT=8034
+SERVER_PORT=8034
 CLIENT_URL="http://localhost:8383"
 
 # JWT Configuration

@@ -35,7 +35,7 @@ DB_NAME=/app/data/peekaping.db
 DB_TYPE=sqlite
 
 # Server Configuration
-PORT=8034
+SERVER_PORT=8034
 CLIENT_URL="http://localhost:8383"
 
 # JWT Configuration

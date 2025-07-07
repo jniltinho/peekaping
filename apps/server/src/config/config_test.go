@@ -357,7 +357,7 @@ func TestLoadConfigWithValidation(t *testing.T) {
 	tempDir := t.TempDir()
 
 	// Create a valid .env file
-	envContent := `PORT=8080
+	envContent := `SERVER_PORT=8080
 CLIENT_URL=http://localhost:3000
 DB_HOST=localhost
 DB_PORT=5432
@@ -383,7 +383,7 @@ TZ=UTC`
 	assert.Equal(t, "postgres", config.DBType)
 
 	// Test loading invalid config
-	invalidEnvContent := `PORT=invalid-port
+	invalidEnvContent := `SERVER_PORT=invalid-port
 CLIENT_URL=not-a-url
 DB_TYPE=invalid-db`
 

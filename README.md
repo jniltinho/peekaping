@@ -188,7 +188,7 @@ DB_HOST=localhost
 DB_PORT=6001
 DB_TYPE=mongo # postges | mysql |sqlite
 
-PORT=8034
+SERVER_PORT=8034
 CLIENT_URL="http://localhost:5173"
 ACCESS_TOKEN_EXPIRED_IN=1m
 ACCESS_TOKEN_SECRET_KEY=secret-key

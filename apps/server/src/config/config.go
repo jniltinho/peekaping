@@ -13,7 +13,7 @@ import (
 )
 
 type Config struct {
-	Port      string `env:"PORT" validate:"required,port" default:"8034"`
+	Port      string `env:"SERVER_PORT" validate:"required,port" default:"8034"`
 	ClientURL string `env:"CLIENT_URL" validate:"required,url"`
 
 	DBHost string `env:"DB_HOST"`                           // validated in validateCustomRules
