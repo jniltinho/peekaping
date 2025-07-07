@@ -13,7 +13,7 @@ import (
 )
 
 type Config struct {
-	Port      string `env:"PORT" validate:"required,port"`
+	Port      string `env:"PORT" validate:"required,port" default:"8034"`
 	ClientURL string `env:"CLIENT_URL" validate:"required,url"`
 
 	DBHost string `env:"DB_HOST"`                           // validated in validateCustomRules
@@ -23,9 +23,9 @@ type Config struct {
 	DBPass string `env:"DB_PASS"`                           // validated in validateCustomRules
 	DBType string `env:"DB_TYPE" validate:"required,db_type"`
 
-	AccessTokenExpiresIn  time.Duration `env:"ACCESS_TOKEN_EXPIRED_IN" validate:"required,duration_min=1m" default:"15m"`
+	AccessTokenExpiresIn  time.Duration `env:"ACCESS_TOKEN_EXPIRED_IN" validate:"duration_min=1m" default:"15m"`
 	AccessTokenSecretKey  string        `env:"ACCESS_TOKEN_SECRET_KEY" validate:"required,min=16"`
-	RefreshTokenExpiresIn time.Duration `env:"REFRESH_TOKEN_EXPIRED_IN" validate:"required,duration_min=1m" default:"720h"`
+	RefreshTokenExpiresIn time.Duration `env:"REFRESH_TOKEN_EXPIRED_IN" validate:"duration_min=1m" default:"720h"`
 	RefreshTokenSecretKey string        `env:"REFRESH_TOKEN_SECRET_KEY" validate:"required,min=16"`
 
 	Mode string `env:"MODE" validate:"required,oneof=dev prod test" default:"dev"`
