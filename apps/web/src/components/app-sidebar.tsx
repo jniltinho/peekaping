@@ -23,52 +23,55 @@ import { NavMain } from "./nav-main";
 import { NavSecondary } from "./nav-secondary";
 import { useAuthStore } from "@/store/auth";
 import { VERSION } from "../version";
-
-const data = {
-  user: {
-    name: "shadcn",
-    email: "m@example.com",
-    avatar: "/avatars/shadcn.jpg",
-  },
-  navMain: [
-    {
-      title: "Monitors",
-      url: "/monitors",
-      icon: Home,
-    },
-    {
-      title: "Maintenances",
-      url: "/maintenances",
-      icon: SettingsIcon,
-    },
-    {
-      title: "Status pages",
-      url: "/status-pages",
-      icon: ListCheckIcon,
-    },
-    {
-      title: "Proxies",
-      url: "/proxies",
-      icon: Network,
-    },
-    {
-      title: "Notification channels",
-      url: "/notification-channels",
-      icon: Vibrate,
-    },
-  ],
-  navSecondary: [
-    {
-      title: "Get Help",
-      url: "https://peekaping.com/docs",
-      icon: HelpCircleIcon,
-      target: "_blank",
-    },
-  ],
-};
+import { useLocalizedTranslation } from "@/hooks/useTranslation";
 
 export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
   const user = useAuthStore((state) => state.user);
+  const { t } = useLocalizedTranslation();
+
+  const data = {
+    user: {
+      name: "shadcn",
+      email: "m@example.com",
+      avatar: "/avatars/shadcn.jpg",
+    },
+    navMain: [
+      {
+        title: t("navigation.monitors"),
+        url: "/monitors",
+        icon: Home,
+      },
+      {
+        title: t("navigation.maintenance"),
+        url: "/maintenances",
+        icon: SettingsIcon,
+      },
+      {
+        title: t("navigation.status_pages"),
+        url: "/status-pages",
+        icon: ListCheckIcon,
+      },
+      {
+        title: t("navigation.proxies"),
+        url: "/proxies",
+        icon: Network,
+      },
+      {
+        title: t("navigation.notification_channels"),
+        url: "/notification-channels",
+        icon: Vibrate,
+      },
+    ],
+    navSecondary: [
+      {
+        title: "Get Help",
+        url: "https://docs.peekaping.com",
+        icon: HelpCircleIcon,
+        target: "_blank",
+      },
+    ],
+  };
+
   return (
     <Sidebar collapsible="offcanvas" {...props}>
       <SidebarHeader>

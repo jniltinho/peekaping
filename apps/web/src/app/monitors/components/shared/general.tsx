@@ -16,6 +16,7 @@ import {
 import { TypographyH4 } from "@/components/ui/typography";
 import { useFormContext } from "react-hook-form";
 import { z } from "zod";
+import { useLocalizedTranslation } from "@/hooks/useTranslation";
 
 const monitorTypes = [
   {
@@ -62,18 +63,19 @@ export const generalSchema = z.object({
 
 const General = () => {
   const form = useFormContext();
+  const { t } = useLocalizedTranslation();
 
   return (
     <>
-      <TypographyH4>General</TypographyH4>
+      <TypographyH4>{t('ui.general')}</TypographyH4>
       <FormField
         control={form.control}
         name="name"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Friendly name</FormLabel>
+            <FormLabel>{t('forms.labels.monitor_name')}</FormLabel>
             <FormControl>
-              <Input placeholder="Select friendly name" {...field} />
+              <Input placeholder={t('forms.placeholders.monitor_name')} {...field} />
             </FormControl>
             <FormMessage />
           </FormItem>
@@ -85,7 +87,7 @@ const General = () => {
         name="type"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Monitor type</FormLabel>
+            <FormLabel>{t('forms.labels.monitor_type')}</FormLabel>
             <Select
               onValueChange={(val) => {
                 field.onChange(val);
@@ -94,7 +96,7 @@ const General = () => {
             >
               <FormControl>
                 <SelectTrigger>
-                  <SelectValue placeholder="Select monitor type" />
+                  <SelectValue placeholder={t('common.select')} />
                 </SelectTrigger>
               </FormControl>
 
