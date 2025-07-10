@@ -203,6 +203,8 @@ func (mr *MonitorServiceImpl) Delete(ctx context.Context, id string) error {
 
 	// Cascade delete monitor_notification relations
 	_ = mr.monitorNotificationService.DeleteByMonitorID(ctx, id)
+	_ = mr.heartbeatService.DeleteByMonitorID(ctx, id)
+	_ = mr.statPointsService.DeleteByMonitorID(ctx, id)
 
 	// Emit monitor deleted event
 	mr.eventBus.Publish(events.Event{
