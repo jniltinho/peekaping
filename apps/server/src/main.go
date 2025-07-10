@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"os"
 	"peekaping/docs"
 	"peekaping/src/config"
 	"peekaping/src/modules/auth"
@@ -38,11 +39,18 @@ func main() {
 
 	utils.RegisterCustomValidators()
 
-	cfg, err := config.LoadConfig("../..")
+	cfg, err := config.LoadConfig[config.Config]("../..")
 
 	if err != nil {
 		panic(err)
 	}
+
+	err = config.ValidateDatabaseCustomRules(config.ExtractDBConfig(&cfg))
+	if err != nil {
+		panic(err)
+	}
+
+	os.Setenv("TZ", cfg.Timezone)
 
 	container := dig.New()
 
