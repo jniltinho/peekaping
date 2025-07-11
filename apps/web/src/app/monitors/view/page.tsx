@@ -51,6 +51,7 @@ function formatDuration(ms: number): string {
     return "";
   }
 
+
   const d = dayjs.duration(ms);
 
   const parts: string[] = [];
