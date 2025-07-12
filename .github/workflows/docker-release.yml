@@ -156,7 +156,7 @@ jobs:
       - name: Commit and tag version bump (amd64 only)
         if: matrix.arch == 'amd64'
         run: |
-          git add apps/web/package.json apps/web/src/version.ts apps/server/src/version.go
+          git add apps/web/package.json apps/web/src/version.ts apps/server/src/version/version.go
           git commit -m "chore: bump version to ${{ github.event.inputs.version }}"
           git push origin HEAD:${{ github.ref_name }}
         env:
