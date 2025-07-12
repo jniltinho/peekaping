@@ -90,7 +90,7 @@ jobs:
 
       - name: Update version in go files (server)
         run: |
-          sed -i.bak -E 's/(Version\s*=\s*")[^"]+(")/\1${{ github.event.inputs.version }}\2/' version.go
+          sed -i.bak -E 's/(Version[[:space:]]*=[[:space:]]*")[^"]+(")/\1${{ github.event.inputs.version }}\2/' version.go
           rm version.go.bak
         working-directory: ./apps/server/src/version
 
