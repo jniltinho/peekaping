@@ -88,11 +88,11 @@ jobs:
           npm version ${{ github.event.inputs.version }} --no-git-tag-version
         working-directory: ./apps/web
 
-      - name: Update version in main.go (server)
+      - name: Update version in go files (server)
         run: |
           sed -i.bak -E 's/(Version\s*=\s*")[^"]+(")/\1${{ github.event.inputs.version }}\2/' version.go
           rm version.go.bak
-        working-directory: ./apps/server/src
+        working-directory: ./apps/server/src/version
 
       - name: Write version.ts for web
         run: |
