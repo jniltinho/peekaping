@@ -28,6 +28,7 @@ import * as WebhookForm from "../integrations/webhook-form";
 import * as SlackForm from "../integrations/slack-form";
 import * as NtfyForm from "../integrations/ntfy-form";
 import * as PagerDutyForm from "../integrations/pagerduty-form";
+import * as GoogleChatForm from "../integrations/google-chat-form";
 import * as GrafanaOncallForm from "../integrations/grafana-oncall-form";
 import * as SignalForm from "../integrations/signal-form";
 import { useEffect } from "react";
@@ -40,6 +41,7 @@ const typeFormRegistry = {
   slack: SlackForm,
   ntfy: NtfyForm,
   pagerduty: PagerDutyForm,
+  google_chat: GoogleChatForm,
   grafana_oncall: GrafanaOncallForm,
   signal: SignalForm,
 };
@@ -58,6 +60,7 @@ const notificationSchema = z
       SlackForm.schema,
       NtfyForm.schema,
       PagerDutyForm.schema,
+      GoogleChatForm.schema,
       GrafanaOncallForm.schema,
       SignalForm.schema,
     ] as const)
@@ -161,7 +164,19 @@ export default function CreateEditNotificationChannel({
             <Select
               onValueChange={(val) => {
                 if (!val) return;
-                baseForm.setValue("type", val as "smtp" | "telegram" | "webhook" | "slack" | "ntfy" | "pagerduty" | "signal" | "grafana_oncall");
+                baseForm.setValue(
+                  "type",
+                  val as
+                    | "smtp"
+                    | "telegram"
+                    | "webhook"
+                    | "slack"
+                    | "ntfy"
+                    | "pagerduty"
+                    | "signal"
+                    | "google_chat"
+                    | "grafana_oncall"
+                );
               }}
               value={type}
             >
