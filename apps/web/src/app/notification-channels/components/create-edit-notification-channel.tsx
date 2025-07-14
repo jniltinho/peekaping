@@ -32,6 +32,7 @@ import * as OpsgenieForm from "../integrations/opsgenie-form";
 import * as GoogleChatForm from "../integrations/google-chat-form";
 import * as GrafanaOncallForm from "../integrations/grafana-oncall-form";
 import * as SignalForm from "../integrations/signal-form";
+import * as PushoverForm from "../integrations/pushover-form";
 import * as MattermostForm from "../integrations/mattermost-form";
 import * as MatrixForm from "../integrations/matrix-form";
 import { useEffect } from "react";
@@ -48,6 +49,7 @@ const typeFormRegistry = {
   google_chat: GoogleChatForm,
   grafana_oncall: GrafanaOncallForm,
   signal: SignalForm,
+  pushover: PushoverForm,
   mattermost: MattermostForm,
   matrix: MatrixForm,
 };
@@ -70,6 +72,7 @@ const notificationSchema = z
       GoogleChatForm.schema,
       GrafanaOncallForm.schema,
       SignalForm.schema,
+      PushoverForm.schema,
       MattermostForm.schema,
       MatrixForm.schema,
     ] as const)
@@ -187,6 +190,7 @@ export default function CreateEditNotificationChannel({
                     | "google_chat"
                     | "grafana_oncall"
                     | "opsgenie"
+                    | "pushover"
                     | "mattermost"
                     | "matrix"
                 );
