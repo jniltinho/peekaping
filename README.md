@@ -66,6 +66,43 @@ If you enjoy this project, come say hi &amp; follow along!
 
 [![Follow me on X](https://img.shields.io/twitter/follow/your_handle?label=Follow&style=social)](https://x.com/0xfurai)
 
+## Development roadmap
+
+### General
+- [ ] Login bruteforce protection
+- [ ] Add ability to set custom domain for status pages
+- [ ] Incidents
+- [ ] Certificate expiration check
+- [ ] Badges
+- [ ] Multi user
+- [ ] Add support for Homepage (in progress)
+
+### Monitors
+- [ ] MQTT
+- [ ] RabbitMQ
+- [ ] Kafka Producer
+- [ ] Microsoft SQL Server
+- [ ] PostgreSQL
+- [ ] MySQL/MariaDB
+- [ ] MongoDB
+
+### Notification channels
+- [ ] Discord
+- [ ] Microsoft Teams
+- [ ] Twilio
+- [ ] WhatsApp (WAHA)
+- [ ] WhatsApp (Whapi)
+- [ ] WeCom (企业微信群机器人)
+- [ ] CallMeBot (WhatsApp, Telegram Call, Facebook Messanger)
+- [ ] LINE Messenger
+- [ ] LINE Notify
+- [ ] SendGrid
+- [ ] AliyunSMS (阿里云短信服务)
+- [ ] DingDing (钉钉)
+- [ ] Pushbullet
+- [ ] ClickSend SMS
+- [ ] PagerTree
+- [ ] Rocket.Chat
 
 ## 🤝 Contributing
 
