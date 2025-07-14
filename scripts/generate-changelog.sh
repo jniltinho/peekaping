@@ -15,7 +15,12 @@ CYAN='\033[0;36m'
 NC='\033[0m' # No Color
 
 # Get arguments
-FROM_TAG=${1:-$(git describe --tags --abbrev=0 2>/dev/null || echo "")}
+# Function to get latest stable tag (ignoring release candidates)
+get_latest_stable_tag() {
+    git tag -l | grep -vE '(-rc|-alpha|-beta|-pre)' | sort -V | tail -1 2>/dev/null || echo ""
+}
+
+FROM_TAG=${1:-$(get_latest_stable_tag)}
 TO_REF=${2:-HEAD}
 
 # printf "${BLUE}🎉 Peekaping Detailed Changelog Generator${NC}\n"
