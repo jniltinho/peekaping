@@ -85,6 +85,7 @@ If you enjoy this project, come say hi &amp; follow along!
 - [x] PostgreSQL
 - [x] MySQL/MariaDB
 - [x] MongoDB
+- [x] Redis
 
 ### Notification channels
 - [x] Discord
