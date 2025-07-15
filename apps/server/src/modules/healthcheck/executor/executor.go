@@ -63,6 +63,7 @@ func NewExecutorRegistry(logger *zap.SugaredLogger, heartbeatService heartbeat.S
 	registry["mongodb"] = NewMongoDBExecutor(logger)
 	registry["mysql"] = NewMySQLExecutor(logger)
 	registry["postgres"] = NewPostgresExecutor(logger)
+	registry["redis"] = NewRedisExecutor(logger)
 
 	return &ExecutorRegistry{
 		registry: registry,

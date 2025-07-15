@@ -63,6 +63,10 @@ const monitorTypes = [
     type: "mongodb",
     description: "MongoDB Database Monitor",
   },
+  {
+    type: "redis",
+    description: "Redis Database Monitor",
+  },
 ];
 
 export const generalDefaultValues = {

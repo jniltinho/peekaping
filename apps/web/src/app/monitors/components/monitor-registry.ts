@@ -11,6 +11,7 @@ import { deserialize as snmpDeserialize } from "./snmp";
 import { deserialize as mysqlDeserialize } from "./mysql";
 import { deserialize as postgresDeserialize } from "./postgres/schema";
 import { deserialize as mongodbDeserialize } from "./mongodb";
+import { deserialize as redisDeserialize } from "./redis";
 import TCPForm from "./tcp";
 import PingForm from "./ping";
 import DNSForm from "./dns";
@@ -22,6 +23,7 @@ import SnmpForm from "./snmp";
 import MySQLForm from "./mysql";
 import PostgresForm from "./postgres";
 import MongoDBForm from "./mongodb";
+import RedisForm from "./redis";
 
 import type { ComponentType } from "react";
 
@@ -85,6 +87,10 @@ const monitorTypeRegistry: Record<string, MonitorTypeConfig> = {
   mongodb: {
     deserialize: mongodbDeserialize,
     component: MongoDBForm,
+  },
+  redis: {
+    deserialize: redisDeserialize,
+    component: RedisForm,
   },
 };
 
