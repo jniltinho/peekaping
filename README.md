@@ -82,9 +82,9 @@ If you enjoy this project, come say hi &amp; follow along!
 - [ ] RabbitMQ
 - [ ] Kafka Producer
 - [ ] Microsoft SQL Server
-- [ ] PostgreSQL
-- [ ] MySQL/MariaDB
-- [ ] MongoDB
+- [x] PostgreSQL
+- [x] MySQL/MariaDB
+- [x] MongoDB
 
 ### Notification channels
 - [x] Discord
@@ -103,6 +103,8 @@ If you enjoy this project, come say hi &amp; follow along!
 - [ ] ClickSend SMS
 - [ ] PagerTree
 - [ ] Rocket.Chat
+
+![Alt](https://repobeats.axiom.co/api/embed/747c845fe0118082b51a1ab2fc6f8a4edd73c016.svg "Repobeats analytics image")
 
 ## 🤝 Contributing
 
