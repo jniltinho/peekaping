@@ -50,6 +50,7 @@ import {
 import { snmpSchema, type SnmpForm } from "../components/snmp";
 import { mysqlSchema, type MySQLForm } from "../components/mysql";
 import { mongodbSchema, type MongoDBForm } from "../components/mongodb";
+import { redisSchema, type RedisForm } from "../components/redis";
 import { z } from "zod";
 import { commonMutationErrorHandler } from "@/lib/utils";
 import { deserializeMonitor } from "../components/monitor-registry";
@@ -70,6 +71,7 @@ const formSchema = z.discriminatedUnion("type", [
   mysqlSchema,
   postgresSchema,
   mongodbSchema,
+  redisSchema,
 ]);
 
 export type MonitorForm =
@@ -83,7 +85,8 @@ export type MonitorForm =
   | GRPCKeywordForm
   | PostgresForm
   | MySQLForm
-  | MongoDBForm;
+  | MongoDBForm
+  | RedisForm;
 
 export const formDefaultValues: MonitorForm = httpDefaultValues;
 
