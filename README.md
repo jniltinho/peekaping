@@ -78,7 +78,7 @@ If you enjoy this project, come say hi &amp; follow along!
 - [ ] Add support for Homepage (in progress)
 
 ### Monitors
-- [ ] MQTT
+- [x] MQTT
 - [ ] RabbitMQ
 - [ ] Kafka Producer
 - [ ] Microsoft SQL Server
