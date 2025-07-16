@@ -79,7 +79,7 @@ If you enjoy this project, come say hi &amp; follow along!
 
 ### Monitors
 - [x] MQTT
-- [ ] RabbitMQ
+- [x] RabbitMQ
 - [ ] Kafka Producer
 - [ ] Microsoft SQL Server
 - [x] PostgreSQL
