@@ -67,9 +67,19 @@ jobs:
         with:
           go-version: '1.21'
 
-      - name: Run server tests
+      - name: Run server tests with coverage
         working-directory: apps/server
         run: |
           go mod download
-          go test -v ./src/...
+          go test -v -coverprofile=server.txt ./src/...
+
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v5
+        with:
+          file: ./apps/server/server.txt
+          flags: backend
+          name: backend-coverage
+          fail_ci_if_error: false
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
