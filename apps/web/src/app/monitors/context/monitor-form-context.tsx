@@ -58,6 +58,10 @@ import {
   postgresSchema,
   type PostgresForm,
 } from "../components/postgres/schema";
+import {
+  sqlServerSchema,
+  type SQLServerForm,
+} from "../components/sqlserver/schema";
 import { mqttSchema, type MQTTForm } from "../components/mqtt";
 import { rabbitMQSchema, type RabbitMQForm } from "../components/rabbitmq";
 import { kafkaProducerSchema, type KafkaProducerForm } from "../components/kafka-producer/schema";
@@ -73,6 +77,7 @@ const formSchema = z.discriminatedUnion("type", [
   snmpSchema,
   mysqlSchema,
   postgresSchema,
+  sqlServerSchema,
   mongodbSchema,
   redisSchema,
   mqttSchema,
@@ -90,6 +95,7 @@ export type MonitorForm =
   | SnmpForm
   | GRPCKeywordForm
   | PostgresForm
+  | SQLServerForm
   | MySQLForm
   | MongoDBForm
   | RedisForm
@@ -193,12 +199,12 @@ export const MonitorFormProvider: React.FC<MonitorFormProviderProps> = ({
   // Mutations
   const createMonitorMutation = useMutation({
     ...postMonitorsMutation(),
-    onSuccess: () => {
+    onSuccess: (res) => {
       toast.success("Monitor created successfully");
       queryClient.invalidateQueries({
         queryKey: getMonitorsInfiniteQueryKey(),
       });
-      navigate("/monitors");
+      navigate(`/monitors/${res.data.id}`);
     },
     onError: commonMutationErrorHandler("Failed to create monitor"),
   });
