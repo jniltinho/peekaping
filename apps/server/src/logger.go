@@ -1,13 +1,10 @@
 package main
 
 import (
-	"context"
 	"fmt"
 	"peekaping/src/config"
 	"strings"
-	"time"
 
-	zaploki "github.com/paul-milne/zap-loki"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )
@@ -34,20 +31,6 @@ func ProvideLogger(cfg *config.Config) (*zap.SugaredLogger, error) {
 	logger, err = zapConfig.Build()
 	if err != nil {
 		return nil, err
-	}
-
-	if cfg.LokiURL != "" {
-		loki := zaploki.New(context.Background(), zaploki.Config{
-			Url:          cfg.LokiURL,
-			BatchMaxSize: 1000,
-			BatchMaxWait: 10 * time.Second,
-			Labels:       map[string]string{"service_name": "peekaping"},
-		})
-
-		logger, err = loki.WithCreateLogger(zapConfig)
-		if err != nil {
-			return nil, err
-		}
 	}
 
 	return logger.Sugar(), nil
