@@ -67,8 +67,8 @@ If you enjoy this project, come say hi &amp; follow along!
 ## Development roadmap
 
 ### General
-- [ ] Login bruteforce protection
-- [ ] Add ability to set custom domain for status pages
+- [x] Login bruteforce protection
+- [ ] Add ability to set custom domain for status pages (in progress)
 - [ ] Incidents
 - [ ] Certificate expiration check
 - [ ] Badges
@@ -84,12 +84,13 @@ If you enjoy this project, come say hi &amp; follow along!
 - [x] MySQL/MariaDB
 - [x] MongoDB
 - [x] Redis
+- [ ] HTTPs keyword and JSON query
 
 ### Notification channels
 - [x] Discord
 - [ ] Microsoft Teams
 - [ ] Twilio
-- [ ] WhatsApp (WAHA)
+- [x] WhatsApp (WAHA)
 - [ ] WhatsApp (Whapi)
 - [ ] WeCom (企业微信群机器人)
 - [ ] CallMeBot (WhatsApp, Telegram Call, Facebook Messanger)
