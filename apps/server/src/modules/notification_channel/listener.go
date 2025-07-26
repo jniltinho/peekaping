@@ -48,7 +48,9 @@ func NewNotificationEventListener(p NotificationEventListenerParams) *Notificati
 	RegisterNotificationChannelProvider("mattermost", providers.NewMattermostSender(p.Logger))
 	RegisterNotificationChannelProvider("matrix", providers.NewMatrixSender(p.Logger))
 	RegisterNotificationChannelProvider("discord", providers.NewDiscordSender(p.Logger))
+	RegisterNotificationChannelProvider("wecom", providers.NewWeComSender(p.Logger))
 	RegisterNotificationChannelProvider("whatsapp", providers.NewWhatsAppSender(p.Logger))
+
 
 	return &NotificationEventListener{
 		service:                    p.Service,
