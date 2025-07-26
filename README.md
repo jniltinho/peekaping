@@ -92,7 +92,7 @@ If you enjoy this project, come say hi &amp; follow along!
 - [ ] Twilio
 - [x] WhatsApp (WAHA)
 - [ ] WhatsApp (Whapi)
-- [ ] WeCom (企业微信群机器人)
+- [x] WeCom (企业微信群机器人)
 - [ ] CallMeBot (WhatsApp, Telegram Call, Facebook Messanger)
 - [ ] LINE Messenger
 - [ ] LINE Notify
