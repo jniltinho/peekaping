@@ -33,9 +33,6 @@ if [ -z "$FROM_TAG" ]; then
     exit 0
 fi
 
-printf "${GREEN}Generating changelog from ${FROM_TAG} to ${TO_REF}${NC}\n"
-echo ""
-
 # Get all commits since last tag
 while IFS= read -r commit_hash; do
     # Get commit message and author
