@@ -68,7 +68,7 @@ If you enjoy this project, come say hi &amp; follow along!
 
 ### General
 - [x] Login bruteforce protection
-- [ ] Add ability to set custom domain for status pages (in progress)
+- [x] Add ability to set custom domain for status pages
 - [ ] Incidents
 - [ ] Certificate expiration check
 - [ ] Badges
