@@ -70,7 +70,7 @@ If you enjoy this project, come say hi &amp; follow along!
 - [x] Login bruteforce protection
 - [x] Add ability to set custom domain for status pages
 - [ ] Incidents
-- [ ] Certificate expiration check
+- [x] Certificate expiration check
 - [ ] Badges
 - [ ] Multi user
 - [ ] Add support for Homepage (in progress)

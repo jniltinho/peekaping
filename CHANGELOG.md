@@ -10,7 +10,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Add ability to set custom domain for status pages
+- Add ability to check certificate expiration and notify about it
 
 ### Changed
 
+- Change api url for web client in dev mode - now it is proxied via Vite
+
 ### Fixed
+
+- Fix push monitor url
