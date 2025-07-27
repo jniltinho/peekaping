@@ -2424,6 +2424,46 @@ const docTemplate = `{
                 }
             }
         },
+        "/status-pages/domain/{domain}": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Status Pages"
+                ],
+                "summary": "Get a status page by domain name",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Domain Name",
+                        "name": "domain",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ApiResponse-status_page_Model"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/utils.APIError"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/utils.APIError"
+                        }
+                    }
+                }
+            }
+        },
         "/status-pages/slug/{slug}": {
             "get": {
                 "produces": [
@@ -4144,6 +4184,12 @@ const docTemplate = `{
                 "description": {
                     "type": "string"
                 },
+                "domains": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
                 "footer_text": {
                     "type": "string"
                 },
@@ -4294,6 +4340,12 @@ const docTemplate = `{
                 "description": {
                     "type": "string"
                 },
+                "domains": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
                 "footer_text": {
                     "type": "string"
                 },
@@ -4355,6 +4407,12 @@ const docTemplate = `{
                 },
                 "description": {
                     "type": "string"
+                },
+                "domains": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 },
                 "footer_text": {
                     "type": "string"
