@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+### Changed
+
+### Fixed
+
+## [0.0.35] - 2025-07-27
+
+### Added
+
 - Add ability to set custom domain for status pages
 - Add ability to check certificate expiration and notify about it
 
@@ -19,3 +27,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Fix push monitor url
+
