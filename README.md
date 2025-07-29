@@ -39,7 +39,7 @@ We encourage you to try Peekaping and provide feedback, but please use it at you
 
 ## Quick start (docker + SQLite)
 ```bash
-docker run -d --rm --restart=always \
+docker run -d --restart=always \
   -p 8383:8383 \
   -e DB_NAME=/app/data/peekaping.db \
   -v $(pwd)/.data/sqlite:/app/data \
