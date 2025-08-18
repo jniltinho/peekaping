@@ -33,8 +33,8 @@ import { Link } from "react-router-dom";
 import { useLocalizedTranslation } from "@/hooks/useTranslation";
 
 const formSchema = z.object({
-  email: z.string().email("Please enter a valid email address"),
-  password: z.string().min(1, "Password is required"),
+  email: z.string().email("forms.validation.email_invalid"),
+  password: z.string().min(1, "forms.validation.password_required"),
 });
 
 type FormValues = z.infer<typeof formSchema>;

@@ -30,7 +30,7 @@ interface TwoFADialogProps {
 }
 
 const twoFASchema = z.object({
-  code: z.string().min(1, "2FA code is required"),
+  code: z.string().min(1, "auth.twofa.validation.code_required"),
 });
 
 type TwoFAFormValues = z.infer<typeof twoFASchema>;
@@ -43,7 +43,7 @@ export function TwoFADialog({
   loading,
 }: TwoFADialogProps) {
   const { t } = useLocalizedTranslation();
-  
+
   const form = useForm<TwoFAFormValues>({
     resolver: zodResolver(twoFASchema),
     defaultValues: { code: "" },

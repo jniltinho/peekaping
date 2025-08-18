@@ -33,9 +33,9 @@ import { useLocalizedTranslation } from "@/hooks/useTranslation";
 const tagSchema = z.object({
   name: z
     .string()
-    .min(1, "Name is required")
-    .max(100, "Name must be less than 100 characters"),
-  color: z.string().regex(/^#[0-9A-F]{6}$/i, "Color must be a valid hex color"),
+    .min(1, "tags.validation.name_required")
+    .max(100, "tags.validation.name_max_length"),
+  color: z.string().regex(/^#[0-9A-F]{6}$/i, "tags.validation.color_invalid"),
   description: z.string().optional(),
 });
 

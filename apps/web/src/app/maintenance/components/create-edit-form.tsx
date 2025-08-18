@@ -35,7 +35,7 @@ import { useLocalizedTranslation } from "@/hooks/useTranslation";
 
 // Base schema with shared fields
 const baseMaintenanceSchema = z.object({
-  title: z.string().min(1, "Title is required"),
+  title: z.string().min(1, "maintenance.validation.title_required"),
   description: z.string().optional(),
   active: z.boolean(),
   monitors: z.array(
@@ -65,8 +65,8 @@ const maintenanceSchema = z.discriminatedUnion("strategy", [
   baseMaintenanceSchema.extend({
     strategy: z.literal("single"),
     timezone: z.string().optional(),
-    startDateTime: z.string().min(1, "Start date is required"),
-    endDateTime: z.string().min(1, "End date is required"),
+    startDateTime: z.string().min(1, "maintenance.validation.start_date_required"),
+    endDateTime: z.string().min(1, "maintenance.validation.end_date_required"),
   }),
 
   // Cron expression
@@ -75,41 +75,41 @@ const maintenanceSchema = z.discriminatedUnion("strategy", [
     cron: z.string().optional(),
     duration: z.number().optional(),
     timezone: z.string().optional(),
-    startDateTime: z.string().min(1, "Start date is required"),
-    endDateTime: z.string().min(1, "End date is required"),
+    startDateTime: z.string().min(1, "maintenance.validation.start_date_required"),
+    endDateTime: z.string().min(1, "maintenance.validation.end_date_required"),
   }),
 
   // Recurring interval
   baseMaintenanceSchema.extend({
     strategy: z.literal("recurring-interval"),
-    intervalDay: z.number().min(1).max(3650, "Interval day must be between 1 and 3650"),
-    startTime: z.string().min(1, "Start time is required"),
-    endTime: z.string().min(1, "End time is required"),
+    intervalDay: z.number().min(1).max(3650, "maintenance.validation.interval_day_range"),
+    startTime: z.string().min(1, "maintenance.validation.start_time_required"),
+    endTime: z.string().min(1, "maintenance.validation.end_time_required"),
     timezone: z.string().optional(),
-    startDateTime: z.string().min(1, "Start date is required"),
-    endDateTime: z.string().min(1, "End date is required"),
+    startDateTime: z.string().min(1, "maintenance.validation.start_date_required"),
+    endDateTime: z.string().min(1, "maintenance.validation.end_date_required"),
   }),
 
   // Recurring weekday
   baseMaintenanceSchema.extend({
     strategy: z.literal("recurring-weekday"),
-    weekdays: z.array(z.number()).min(1, "At least one weekday must be selected"),
-    startTime: z.string().min(1, "Start time is required"),
-    endTime: z.string().min(1, "End time is required"),
+    weekdays: z.array(z.number()).min(1, "maintenance.validation.weekday_required"),
+    startTime: z.string().min(1, "maintenance.validation.start_time_required"),
+    endTime: z.string().min(1, "maintenance.validation.end_time_required"),
     timezone: z.string().optional(),
-    startDateTime: z.string().min(1, "Start date is required"),
-    endDateTime: z.string().min(1, "End date is required"),
+    startDateTime: z.string().min(1, "maintenance.validation.start_date_required"),
+    endDateTime: z.string().min(1, "maintenance.validation.end_date_required"),
   }),
 
   // Recurring day of month
   baseMaintenanceSchema.extend({
     strategy: z.literal("recurring-day-of-month"),
-    daysOfMonth: z.array(z.union([z.number(), z.string()])).min(1, "At least one day must be selected"),
-    startTime: z.string().min(1, "Start time is required"),
-    endTime: z.string().min(1, "End time is required"),
+    daysOfMonth: z.array(z.union([z.number(), z.string()])).min(1, "maintenance.validation.day_of_month_required"),
+    startTime: z.string().min(1, "maintenance.validation.start_time_required"),
+    endTime: z.string().min(1, "maintenance.validation.end_time_required"),
     timezone: z.string().optional(),
-    startDateTime: z.string().min(1, "Start date is required"),
-    endDateTime: z.string().min(1, "End date is required"),
+    startDateTime: z.string().min(1, "maintenance.validation.start_date_required"),
+    endDateTime: z.string().min(1, "maintenance.validation.end_date_required"),
   }),
 ]).superRefine((data, ctx) => {
     if (data.strategy === "single" || data.strategy === "cron") {
@@ -119,29 +119,29 @@ const maintenanceSchema = z.discriminatedUnion("strategy", [
       if (startDate >= endDate) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message: "Start date must be before end date",
+          message: "maintenance.validation.start_before_end_date",
           path: ["startDateTime"],
         });
       }
     }
   }
 
-  if (data.strategy === "recurring-interval" || 
-      data.strategy === "recurring-weekday" || 
+  if (data.strategy === "recurring-interval" ||
+      data.strategy === "recurring-weekday" ||
       data.strategy === "recurring-day-of-month") {
-    
+
     if (data.startTime && data.endTime) {
       const [startHour, startMin] = data.startTime.split(':').map(Number);
       const [endHour, endMin] = data.endTime.split(':').map(Number);
-      
+
       if (!isNaN(startHour) && !isNaN(startMin) && !isNaN(endHour) && !isNaN(endMin)) {
         const startMinutes = startHour * 60 + startMin;
         const endMinutes = endHour * 60 + endMin;
-        
+
         if (startMinutes >= endMinutes) {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
-            message: "Start time must be before end time",
+            message: "maintenance.validation.start_before_end_time",
             path: ["startTime"],
           });
         }
@@ -154,7 +154,7 @@ const maintenanceSchema = z.discriminatedUnion("strategy", [
       if (startDate >= endDate) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message: "Start date must be before end date",
+          message: "maintenance.validation.start_before_end_date",
           path: ["startDateTime"],
         });
       }
@@ -191,7 +191,7 @@ export default function CreateEditMaintenance({
   onSubmit: (data: MaintenanceFormValues) => void;
 }) {
   const { t } = useLocalizedTranslation();
-  
+
   const STRATEGY_OPTIONS = useMemo(() => [
     { value: "manual", label: t("maintenance.strategy.manual") },
     { value: "single", label: t("maintenance.strategy.single") },
@@ -200,7 +200,7 @@ export default function CreateEditMaintenance({
     { value: "recurring-weekday", label: t("maintenance.strategy.recurring_weekday") },
     { value: "recurring-day-of-month", label: t("maintenance.strategy.recurring_day_of_month") },
   ], [t]);
-  
+
   const form = useForm<MaintenanceFormValues>({
     resolver: zodResolver(maintenanceSchema),
     defaultValues: initialValues,
