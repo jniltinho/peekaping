@@ -25,12 +25,15 @@ import { toast } from "sonner";
 import { isAxiosError } from "axios";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertCircle, Loader2 } from "lucide-react";
+
 import React from "react";
 import { useAuthStore } from "@/store/auth";
 import type { AuthModel } from "@/api/types.gen";
 import { TwoFADialog } from "./two-fa-dialog";
 import { Link } from "react-router-dom";
 import { useLocalizedTranslation } from "@/hooks/useTranslation";
+
+import { PasswordInput } from "@/components/ui/password-input";
 
 const formSchema = z.object({
   email: z.string().email("forms.validation.email_invalid"),
@@ -45,6 +48,7 @@ export function LoginForm({
 }: React.ComponentPropsWithoutRef<"div">) {
   const { t } = useLocalizedTranslation();
   const [serverError, setServerError] = React.useState<string | null>(null);
+
   const setTokens = useAuthStore(
     (state: {
       setTokens: (accessToken: string, refreshToken: string) => void;
@@ -159,16 +163,13 @@ export function LoginForm({
                     <FormItem>
                       <FormLabel>{t("forms.labels.password")}</FormLabel>
                       <FormControl>
-                        <Input
-                          type="password"
-                          {...field}
-                          placeholder="********"
-                        />
+                        <PasswordInput {...field} placeholder="********" />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
+
 
                 {serverError && (
                   <Alert variant="destructive">

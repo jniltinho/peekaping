@@ -1,4 +1,5 @@
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import {
   FormField,
   FormItem,
@@ -53,13 +54,13 @@ export default function PagerDutyForm() {
               {t("notifications.form.pagerduty.integration_key_label")} <span className="text-red-500">*</span>
             </FormLabel>
             <FormControl>
-              <Input
+              <PasswordInput
                 placeholder={t("notifications.form.pagerduty.integration_key_placeholder")}
-                type="password"
                 required
                 {...field}
               />
             </FormControl>
+
             <FormDescription>
               <span className="text-red-500">*</span> {t("common.required")}
               <br />

@@ -22,6 +22,7 @@ import { useState } from "react";
 import { useAuthStore } from "@/store/auth";
 import QRCode from "react-qr-code";
 import { commonMutationErrorHandler } from "@/lib/utils";
+import { PasswordInput } from "@/components/ui/password-input";
 import { useLocalizedTranslation } from "@/hooks/useTranslation";
 
 const enable2FAPasswordSchema = z.object({
@@ -129,13 +130,13 @@ const Enable2FA = () => {
                 <FormItem>
                   <FormLabel>{t("security.enable_2fa.form.current_password_label")}</FormLabel>
                   <FormControl>
-                    <Input
-                      type="password"
+                    <PasswordInput
                       autoComplete="current-password"
                       placeholder={t("security.enable_2fa.form.current_password_placeholder")}
                       {...field}
                     />
                   </FormControl>
+
                   <FormMessage />
                 </FormItem>
               )}

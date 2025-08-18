@@ -1,4 +1,5 @@
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import {
   FormField,
   FormItem,
@@ -97,9 +98,8 @@ export default function MatrixForm() {
               {t("notifications.form.matrix.access_token_label")} <span className="text-red-500">*</span>
             </FormLabel>
             <FormControl>
-              <Input
+              <PasswordInput
                 placeholder="Your Matrix access token"
-                type="password"
                 required
                 {...field}
               />

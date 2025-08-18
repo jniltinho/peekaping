@@ -1,4 +1,5 @@
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import {
   FormField,
   FormItem,
@@ -96,9 +97,8 @@ export default function PushoverForm() {
               {t("notifications.form.pushover.user_key_label")} <span className="text-red-500">*</span>
             </FormLabel>
             <FormControl>
-              <Input
+              <PasswordInput
                 placeholder={t("notifications.form.pushover.user_key_placeholder")}
-                type="password"
                 required
                 {...field}
               />
@@ -120,13 +120,13 @@ export default function PushoverForm() {
               {t("notifications.form.pushover.application_token_label")} <span className="text-red-500">*</span>
             </FormLabel>
             <FormControl>
-              <Input
+              <PasswordInput
                 placeholder={t("notifications.form.pushover.application_token_placeholder")}
-                type="password"
                 required
                 {...field}
               />
             </FormControl>
+
             <FormDescription>
               <span className="text-red-500">*</span> {t("common.required")}
             </FormDescription>

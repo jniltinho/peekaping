@@ -1,4 +1,5 @@
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import {
   FormField,
   FormItem,
@@ -120,10 +121,11 @@ export default function SmtpForm() {
           <FormItem>
             <FormLabel>{t("forms.labels.password")}</FormLabel>
             <FormControl>
-              <Input placeholder={t("notifications.form.smtp.smtp_password_placeholder")} type="password" {...field} />
+              <PasswordInput placeholder={t("notifications.form.smtp.smtp_password_placeholder")} {...field} />
             </FormControl>
             <FormMessage />
           </FormItem>
+
         )}
       />
       <FormField
