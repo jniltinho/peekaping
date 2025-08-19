@@ -830,6 +830,30 @@
         "priority_placeholder": "Select priority level",
         "priority_warning": "Warning"
       },
+      "pushbullet": {
+        "access_token": "Access Token",
+        "access_token_description": "Your Pushbullet Access Token. Get it from",
+        "access_token_label": "Access Token",
+        "access_token_link": "Pushbullet Settings",
+        "channel_tag": "Channel Tag (Optional)",
+        "channel_tag_description": "Send notification to a Pushbullet channel instead of devices",
+        "channel_tag_label": "Channel Tag (Optional)",
+        "custom_message_template": "",
+        "custom_message_template_description": "Customize the notification body using template variables:",
+        "custom_message_template_heartbeat_ping": "Response time",
+        "custom_message_template_heartbeat_time": "Timestamp",
+        "custom_message_template_label": "Custom Message Template (Optional)",
+        "custom_message_template_monitor_url": "Monitor URL",
+        "custom_message_template_msg": "Alert message",
+        "custom_message_template_name": "Monitor name",
+        "custom_message_template_placeholder": "Monitor: {{ name }}\nStatus: {{ status }}\nMessage: {{ msg }}",
+        "custom_message_template_status": "Current status",
+        "device_id": "Device ID (Optional)",
+        "device_id_description": "Send notification to a specific device. Leave empty to send to all devices. You can find device IDs using the",
+        "device_id_label": "Device ID (Optional)",
+        "device_id_link": "Pushbullet API",
+        "more_info_on": "More info on:"
+      },
       "pushover": {
         "application_token_label": "Application Token",
         "application_token_placeholder": "Enter your Pushover application token",
@@ -1085,6 +1109,24 @@
       "title": "Update Password"
     }
   },
+  "sendgrid": {
+    "api_key_description": "Your SendGrid API key. You can create one in your SendGrid account under Settings → API Keys. Make sure it has \"Mail Send\" permissions.",
+    "api_key_label": "API Key",
+    "bcc_email_description": "Blind carbon copy recipients. Separate multiple emails with commas.",
+    "bcc_email_label": "BCC Email (Optional)",
+    "cc_email_description": "Carbon copy recipients. Separate multiple emails with commas.",
+    "cc_email_label": "CC Email (Optional)",
+    "from_email_description": "The sender email address. This must be a verified sender in your SendGrid account.",
+    "from_email_label": "From Email",
+    "subject_description": "Subject line for the email. Supports Liquid templating.",
+    "subject_label": "Custom Subject (Optional)",
+    "subject_variables_label": "Available variables:",
+    "subject_variables_msg": "message of the notification",
+    "subject_variables_name": "service name",
+    "subject_variables_status": "service status (UP/DOWN)",
+    "to_email_description": "Primary recipient email address. For multiple recipients, use CC or BCC fields.",
+    "to_email_label": "To Email"
+  },
   "settings": {
     "data_retention": {
       "days_label": "Days",
@@ -1120,24 +1162,6 @@
       "unknown": "Unknown"
     }
   },
-  "sendgrid": {
-    "api_key_description": "Your SendGrid API key. You can create one in your SendGrid account under Settings → API Keys. Make sure it has \"Mail Send\" permissions.",
-    "api_key_label": "API Key",
-    "bcc_email_description": "Blind carbon copy recipients. Separate multiple emails with commas.",
-    "bcc_email_label": "BCC Email (Optional)",
-    "cc_email_description": "Carbon copy recipients. Separate multiple emails with commas.",
-    "cc_email_label": "CC Email (Optional)",
-    "from_email_description": "The sender email address. This must be a verified sender in your SendGrid account.",
-    "from_email_label": "From Email",
-    "subject_description": "Subject line for the email. Supports Liquid templating.",
-    "subject_label": "Custom Subject (Optional)",
-    "subject_variables_label": "Available variables:",
-    "subject_variables_msg": "message of the notification",
-    "subject_variables_name": "service name",
-    "subject_variables_status": "service status (UP/DOWN)",
-    "to_email_description": "Primary recipient email address. For multiple recipients, use CC or BCC fields.",
-    "to_email_label": "To Email"
-  },
   "status_pages": {
     "affected_monitors": "Affected Monitors",
     "affected_monitors_info": "Select monitors that will be affected by this maintenance",
@@ -1150,9 +1174,9 @@
       "title": "Delete Status Page"
     },
     "description": "Enter status page description",
+    "domain_host_warning": "This domain is the same as your current host URL. This may cause conflicts.",
     "domains": "Domains",
     "domains_info_warning": "Don't forget to add the CNAME records to your DNS for each domain.",
-    "domain_host_warning": "This domain is the same as your current host URL. This may cause conflicts.",
     "draft_status": "Draft",
     "edit_page_name": "Edit Status Page",
     "messages": {

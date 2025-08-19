@@ -831,6 +831,30 @@
         "priority_placeholder": "Sélectionner le niveau de priorité",
         "priority_warning": "Avertissement"
       },
+      "pushbullet": {
+        "access_token": "Jeton d'accès",
+        "access_token_description": "Votre jeton d'accès Pushbullet. Obtenez-le sur",
+        "access_token_label": "Jeton d'accès",
+        "access_token_link": "Paramètres Pushbullet",
+        "channel_tag": "Tag de canal (Optionnel)",
+        "channel_tag_description": "Envoyer une notification à un canal Pushbullet au lieu d'appareils",
+        "channel_tag_label": "Tag de canal (Optionnel)",
+        "custom_message_template": "",
+        "custom_message_template_description": "Personnalisez le corps de la notification en utilisant des variables de modèle :",
+        "custom_message_template_heartbeat_ping": "Temps de réponse",
+        "custom_message_template_heartbeat_time": "Horodatage",
+        "custom_message_template_label": "Modèle de message personnalisé (Optionnel)",
+        "custom_message_template_monitor_url": "URL du moniteur",
+        "custom_message_template_msg": "Message d'alerte",
+        "custom_message_template_name": "Nom du moniteur",
+        "custom_message_template_placeholder": "Moniteur: {{ name }}\nStatut: {{ status }}\nMessage: {{ msg }}",
+        "custom_message_template_status": "Statut actuel",
+        "device_id": "ID de l'appareil (Optionnel)",
+        "device_id_description": "Envoyer une notification à un appareil spécifique. Laissez vide pour envoyer à tous les appareils. Vous pouvez trouver les ID des appareils en utilisant l'API",
+        "device_id_label": "ID de l'appareil (Optionnel)",
+        "device_id_link": "Pushbullet",
+        "more_info_on": "Plus d'informations sur :"
+      },
       "pushover": {
         "application_token_label": "Jeton d'application",
         "application_token_placeholder": "Entrez votre jeton d'application Pushover",
@@ -1086,6 +1110,24 @@
       "title": "Mettre à jour le mot de passe"
     }
   },
+  "sendgrid": {
+    "api_key_description": "Votre clé API SendGrid. Vous pouvez en créer une dans votre compte SendGrid sous Paramètres → Clés API. Assurez-vous qu'elle a les permissions \"Mail Send\".",
+    "api_key_label": "Clé API",
+    "bcc_email_description": "Destinataires en copie carbone cachée. Séparez plusieurs adresses avec des virgules.",
+    "bcc_email_label": "BCC Email (Optionnel)",
+    "cc_email_description": "Destinataires en copie carbone. Séparez plusieurs adresses avec des virgules.",
+    "cc_email_label": "CC Email (Optionnel)",
+    "from_email_description": "L'adresse email de l'expéditeur. Cette adresse doit être vérifiée dans votre compte SendGrid.",
+    "from_email_label": "Email de l'expéditeur",
+    "subject_description": "Ligne d'objet de l'email. Prend en charge le templating Liquid.",
+    "subject_label": "Objet personnalisé (Optionnel)",
+    "subject_variables_label": "Variables disponibles :",
+    "subject_variables_msg": "message de la notification",
+    "subject_variables_name": "nom du service",
+    "subject_variables_status": "statut du service (UP/DOWN)",
+    "to_email_description": "Adresse email du destinataire principal. Pour plusieurs destinataires, utilisez CC ou BCC.",
+    "to_email_label": "À Email"
+  },
   "settings": {
     "data_retention": {
       "days_label": "Jours",
@@ -1121,24 +1163,6 @@
       "unknown": "Inconnu"
     }
   },
-  "sendgrid": {
-    "api_key_description": "Votre clé API SendGrid. Vous pouvez en créer une dans votre compte SendGrid sous Paramètres → Clés API. Assurez-vous qu'elle a les permissions \"Mail Send\".",
-    "api_key_label": "Clé API",
-    "bcc_email_description": "Destinataires en copie carbone cachée. Séparez plusieurs adresses avec des virgules.",
-    "bcc_email_label": "BCC Email (Optionnel)",
-    "cc_email_description": "Destinataires en copie carbone. Séparez plusieurs adresses avec des virgules.",
-    "cc_email_label": "CC Email (Optionnel)",
-    "from_email_description": "L'adresse email de l'expéditeur. Cette adresse doit être vérifiée dans votre compte SendGrid.",
-    "from_email_label": "Email de l'expéditeur",
-    "subject_description": "Ligne d'objet de l'email. Prend en charge le templating Liquid.",
-    "subject_label": "Objet personnalisé (Optionnel)",
-    "subject_variables_label": "Variables disponibles :",
-    "subject_variables_msg": "message de la notification",
-    "subject_variables_name": "nom du service",
-    "subject_variables_status": "statut du service (UP/DOWN)",
-    "to_email_description": "Adresse email du destinataire principal. Pour plusieurs destinataires, utilisez CC ou BCC.",
-    "to_email_label": "À Email"
-  },
   "status_pages": {
     "affected_monitors": "Moniteurs affectés",
     "affected_monitors_info": "Sélectionnez les moniteurs qui seront affectés par cette maintenance",
@@ -1151,9 +1175,9 @@
       "title": "Supprimer la page de statut"
     },
     "description": "Entrez la description de la page de statut",
+    "domain_host_warning": "Ce domaine est identique à votre URL d'hôte actuelle. Cela peut causer des conflits.",
     "domains": "Domaines",
     "domains_info_warning": "N'oubliez pas d'ajouter les enregistrements CNAME à votre DNS pour chaque domaine.",
-    "domain_host_warning": "Ce domaine est identique à votre URL d'hôte actuelle. Cela peut causer des conflits.",
     "draft_status": "Brouillon",
     "edit_page_name": "Modifier la page de statut",
     "messages": {
