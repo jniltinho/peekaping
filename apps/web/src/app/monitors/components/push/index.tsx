@@ -226,23 +226,7 @@ const PushForm = () => {
 
         <Card>
           <CardContent className="space-y-4">
-            <Proxies onNewProxy={() => setProxySheetOpen(true)} />
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="space-y-4">
             <Intervals />
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="space-y-4">
-            <Advanced />
-            <Separator className="my-8" />
-            <Authentication />
-            <Separator className="my-8" />
-            <HttpOptions />
           </CardContent>
         </Card>
 
