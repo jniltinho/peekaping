@@ -3,10 +3,6 @@ import { TypographyH4 } from "@/components/ui/typography";
 import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
-import HttpOptions from "../http/options";
-import Authentication from "../http/authentication";
-import { Separator } from "@radix-ui/react-separator";
-import Advanced from "../http/advanced";
 import Intervals, {
   intervalsDefaultValues,
   intervalsSchema,
@@ -19,10 +15,6 @@ import Notifications, {
   notificationsDefaultValues,
   notificationsSchema,
 } from "../shared/notifications";
-import Proxies, {
-  proxiesDefaultValues,
-  proxiesSchema,
-} from "../shared/proxies";
 import Tags, {
   tagsDefaultValues,
   tagsSchema,
@@ -41,7 +33,6 @@ export const pushSchema = z
   .merge(generalSchema)
   .merge(intervalsSchema)
   .merge(notificationsSchema)
-  .merge(proxiesSchema)
   .merge(tagsSchema);
 
 export type PushForm = z.infer<typeof pushSchema>;
@@ -51,7 +42,6 @@ export const pushDefaultValues: PushForm = {
   ...generalDefaultValues,
   ...intervalsDefaultValues,
   ...notificationsDefaultValues,
-  ...proxiesDefaultValues,
   ...tagsDefaultValues,
 };
 
@@ -77,7 +67,6 @@ export const deserialize = (data: MonitorMonitorResponseDto): PushForm => {
     retry_interval: data.retry_interval || 60,
     resend_interval: data.resend_interval ?? 10,
     notification_ids: data.notification_ids || [],
-    proxy_id: data.proxy_id || "",
     pushToken: data.push_token || config.pushToken || "", // Get from API or config
     tag_ids: data.tag_ids || [],
   };
@@ -95,7 +84,6 @@ export const serialize = (formData: PushForm): MonitorCreateUpdateDto => {
     max_retries: formData.max_retries,
     retry_interval: formData.retry_interval,
     notification_ids: formData.notification_ids,
-    proxy_id: formData.proxy_id,
     resend_interval: formData.resend_interval,
     timeout: formData.timeout,
     config: JSON.stringify(config),
@@ -114,7 +102,6 @@ const PushForm = () => {
   const {
     form,
     setNotifierSheetOpen,
-    setProxySheetOpen,
     isPending,
     mode,
     createMonitorMutation,
