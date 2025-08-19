@@ -17,6 +17,7 @@ import {
 import { useFormContext, useWatch } from "react-hook-form";
 import { Textarea } from "@/components/ui/textarea";
 import { z } from "zod";
+import { PasswordInput } from "@/components/ui/password-input";
 import { useLocalizedTranslation } from "@/hooks/useTranslation";
 
 // Zod schema for authentication options
@@ -165,7 +166,7 @@ const OAuth2 = () => {
           <FormItem>
             <FormLabel>{t("monitors.form.http.authentication.client_secret")}</FormLabel>
             <FormControl>
-              <Input placeholder={t("monitors.form.http.authentication.client_secret_placeholder")} {...field} type="password" />
+              <PasswordInput {...field} placeholder={t("monitors.form.http.authentication.client_secret_placeholder")} />
             </FormControl>
             <FormMessage />
           </FormItem>

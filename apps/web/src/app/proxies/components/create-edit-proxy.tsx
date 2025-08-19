@@ -20,6 +20,7 @@ import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
+import { PasswordInput } from "@/components/ui/password-input";
 import { useLocalizedTranslation } from "@/hooks/useTranslation";
 
 const formSchema = z.object({
@@ -189,8 +190,9 @@ export default function CreateEditProxy({
                 <FormItem>
                   <FormLabel>{t("forms.labels.password")}</FormLabel>
                   <FormControl>
-                    <Input placeholder={t("forms.labels.password")} {...field} type="password" />
+                    <PasswordInput placeholder={t("forms.labels.password")} {...field} />
                   </FormControl>
+
                   <FormMessage />
                 </FormItem>
               )}

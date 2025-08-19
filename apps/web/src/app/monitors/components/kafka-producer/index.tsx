@@ -34,6 +34,8 @@ import {
   serialize,
 } from "./schema";
 
+import { PasswordInput } from "@/components/ui/password-input";
+
 const KafkaProducerForm = () => {
   const { t } = useLocalizedTranslation();
   const {
@@ -311,8 +313,7 @@ const KafkaProducerForm = () => {
                     <FormItem>
                       <FormLabel>{t("monitors.form.kafka.sasl_password_label")}</FormLabel>
                       <FormControl>
-                        <Input
-                          type="password"
+                        <PasswordInput
                           placeholder={t("monitors.form.kafka.sasl_password_placeholder")}
                           {...field}
                         />

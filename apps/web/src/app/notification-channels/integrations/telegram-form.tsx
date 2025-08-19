@@ -1,4 +1,5 @@
 import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import {
   FormField,
   FormItem,
@@ -114,14 +115,14 @@ export default function TelegramForm() {
           <FormItem>
             <FormLabel>{t("notifications.form.telegram.bot_token_label")}</FormLabel>
             <FormControl>
-              <Input
+              <PasswordInput
                 placeholder="Enter your Telegram bot token"
-                type="password"
                 autoComplete="new-password"
                 required
                 {...field}
               />
             </FormControl>
+
             <FormDescription>
               {t("notifications.form.telegram.bot_token_description")}{" "}
               <a

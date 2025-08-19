@@ -95,14 +95,14 @@ If you enjoy this project, come say hi &amp; follow along!
 ### Notification channels
 - [x] Discord
 - [ ] Microsoft Teams
-- [ ] Twilio
+- [x] Twilio
 - [x] WhatsApp (WAHA)
 - [ ] WhatsApp (Whapi)
 - [x] WeCom (企业微信群机器人)
 - [ ] CallMeBot (WhatsApp, Telegram Call, Facebook Messanger)
 - [ ] LINE Messenger
 - [ ] LINE Notify
-- [ ] SendGrid
+- [x] SendGrid
 - [ ] AliyunSMS (阿里云短信服务)
 - [ ] DingDing (钉钉)
 - [ ] Pushbullet

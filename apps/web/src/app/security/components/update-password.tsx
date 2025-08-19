@@ -6,8 +6,8 @@ import {
   FormControl,
   FormMessage,
 } from "@/components/ui/form";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -79,13 +79,13 @@ const UpdatePassword = () => {
               <FormItem>
                 <FormLabel>{t("security.update_password.form.old_password_label")}</FormLabel>
                 <FormControl>
-                  <Input
-                    type="password"
+                  <PasswordInput
                     autoComplete="current-password"
                     placeholder={t("security.update_password.form.old_password_placeholder")}
                     {...field}
                   />
                 </FormControl>
+
                 <FormMessage />
               </FormItem>
             )}
@@ -97,13 +97,13 @@ const UpdatePassword = () => {
               <FormItem>
                 <FormLabel>{t("security.update_password.form.new_password_label")}</FormLabel>
                 <FormControl>
-                  <Input
-                    type="password"
+                  <PasswordInput
                     autoComplete="new-password"
                     placeholder={t("security.update_password.form.new_password_placeholder")}
                     {...field}
                   />
                 </FormControl>
+
                 <FormMessage />
               </FormItem>
             )}
@@ -115,13 +115,13 @@ const UpdatePassword = () => {
               <FormItem>
                 <FormLabel>{t("security.update_password.form.confirm_new_password_label")}</FormLabel>
                 <FormControl>
-                  <Input
-                    type="password"
+                  <PasswordInput
                     autoComplete="new-password"
                     placeholder={t("security.update_password.form.confirm_new_password_placeholder")}
                     {...field}
                   />
                 </FormControl>
+
                 <FormMessage />
               </FormItem>
             )}

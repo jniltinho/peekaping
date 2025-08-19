@@ -1,4 +1,4 @@
-import { Input } from "@/components/ui/input";
+import { PasswordInput } from "@/components/ui/password-input";
 import {
   FormField,
   FormItem,
@@ -80,9 +80,8 @@ export default function OpsgenieForm() {
               {t("notifications.form.opsgenie.api_key_label")} <span className="text-red-500">*</span>
             </FormLabel>
             <FormControl>
-              <Input
+              <PasswordInput
                 placeholder="Enter your Opsgenie API key"
-                type="password"
                 required
                 {...field}
               />
