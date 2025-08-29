@@ -8,6 +8,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+
+### Changed
+
+### Fixed
+
+## [0.0.38] - 2025-08-29
+
+### Added
 - feat: badges (#156) (Thanks @0xfurai)
 - feat: enhance Playwright configuration and improve test coverage (Thanks @0xfurai)
 - feat: pagertree (#152) (Thanks @KarinaOliinyk)
