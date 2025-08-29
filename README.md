@@ -77,7 +77,7 @@ If you enjoy this project, come say hi &amp; follow along!
 - [x] Add ability to set custom domain for status pages
 - [ ] Incidents
 - [x] Certificate expiration check
-- [ ] Badges
+- [x] Badges
 - [ ] Multi user
 - [ ] Add support for Homepage (in progress)
 
