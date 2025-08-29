@@ -14,23 +14,9 @@
 
 Peekaping is a powerful, feature-rich uptime monitoring system similar to Uptime Kuma, built with Go and React. Monitor your websites, APIs, and services with real-time notifications, beautiful status pages, and comprehensive analytics.
 
-## Website
-
-Visit the official website:
-
-🔗 **[peekaping.com](https://peekaping.com)**
-
-## Live Demo
-
-Want to see Peekaping in action? Try our live demo:
-
-🔗 **[demo.peekaping.com](https://demo.peekaping.com)**
-
-## 📚 Documentation
-
-For detailed setup instructions, configuration options, and guides:
-
-🔗 **[docs.peekaping.com](https://docs.peekaping.com)**
+🔗 Website **[peekaping.com](https://peekaping.com)**
+🔗 Live Demo **[demo.peekaping.com](https://demo.peekaping.com)**
+🔗 Documentation **[docs.peekaping.com](https://docs.peekaping.com)**
 
 ## ⚠️ Beta Status
 
