@@ -37,23 +37,49 @@ jobs:
           # Make the script executable
           chmod +x scripts/generate-changelog.sh
 
-          # Generate changelog and capture output
+          # Extract human-friendly changelog from CHANGELOG.md
           if [ -n "${{ github.event.inputs.changelog }}" ]; then
             echo "Using provided changelog"
-            CHANGELOG="${{ github.event.inputs.changelog }}"
+            HUMAN_CHANGELOG="${{ github.event.inputs.changelog }}"
           else
-            echo "Auto-generating changelog"
-            # Run script and capture output without colors
-            CHANGELOG=$(NO_COLOR=1 ./scripts/generate-changelog.sh | sed 's/\x1b\[[0-9;]*m//g')
+            echo "Extracting changelog from CHANGELOG.md"
+            # Extract the unreleased content from CHANGELOG.md
+            HUMAN_CHANGELOG=$(awk '
+            /^## \[Unreleased\]/{in_unreleased=1; next}
+            /^## \[/{if(in_unreleased) exit}
+            in_unreleased && /^$/{print; next}
+            in_unreleased && /^### /{current_section=$0; print; next}
+            in_unreleased && /^[^#]/{print}
+            ' CHANGELOG.md)
+
+            # If no unreleased content found, use a default message
+            if [ -z "$HUMAN_CHANGELOG" ]; then
+              HUMAN_CHANGELOG="### Added
+
+          ### Changed
+
+          ### Fixed"
+            fi
           fi
+
+          # Generate raw commit list using the script
+          echo "Generating raw commit list"
+          RAW_COMMITS=$(NO_COLOR=1 ./scripts/generate-changelog.sh | sed 's/\x1b\[[0-9;]*m//g')
+
+          # Combine both changelogs
+          COMBINED_CHANGELOG="$HUMAN_CHANGELOG
+
+          ## Raw Commit List
+
+          $RAW_COMMITS"
 
           # Save changelog to output and file
           echo "changelog<<EOF" >> $GITHUB_OUTPUT
-          echo "$CHANGELOG" >> $GITHUB_OUTPUT
+          echo "$COMBINED_CHANGELOG" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
           # Also save to a file for artifact
-          echo "$CHANGELOG" > changelog.txt
+          echo "$COMBINED_CHANGELOG" > changelog.txt
 
       - name: Upload changelog artifact (amd64 only)
         if: matrix.arch == 'amd64'
