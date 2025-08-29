@@ -8,8 +8,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- feat: badges
+- feat: enhance Playwright configuration and improve test coverage
+- feat: pagertree
+- feat: implement pushbullet notifications
+- feat: add password visibility toggle to login form
+- feat: improve landing page
 
 ### Changed
+- refactor: remove unused proxy handling from Push Monitor
+- refactor: remove unused Card components from Push Monitor
 
 ### Fixed
 
