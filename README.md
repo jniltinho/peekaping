@@ -9,7 +9,6 @@
 ![SQLite](https://img.shields.io/badge/sqlite-%2307405e.svg?style=flat&logo=sqlite&logoColor=white)
 ![Docker Pulls](https://img.shields.io/docker/pulls/0xfurai/peekaping-web)
 
-
 **A modern, self-hosted uptime monitoring solution**
 
 Peekaping is a powerful, feature-rich uptime monitoring system similar to Uptime Kuma, built with Go and React. Monitor your websites, APIs, and services with real-time notifications, beautiful status pages, and comprehensive analytics.
@@ -32,6 +31,7 @@ Peekaping is a powerful, feature-rich uptime monitoring system similar to Uptime
 We encourage you to try Peekaping and provide feedback, but please use it at your own discretion. Your testing and feedback are invaluable to making Peekaping production-ready! 🚀
 
 ## Quick start (docker + SQLite)
+
 ```bash
 docker run -d --restart=always \
   -p 8383:8383 \
@@ -39,9 +39,64 @@ docker run -d --restart=always \
   -v $(pwd)/.data/sqlite:/app/data \
   0xfurai/peekaping-bundle-sqlite:latest
 ```
+
 [Docker + SQLite Setup](https://docs.peekaping.com/self-hosting/docker-with-sqlite)
 
 Peekaping also support [PostgreSQL Setup](https://docs.peekaping.com/self-hosting/docker-with-postgres) and [MongoDB Setup](https://docs.peekaping.com/self-hosting/docker-with-mongo). Read docs for more guidance
+
+## ⚡ Features
+
+### Available Monitors
+
+- HTTP/HTTPS
+- TCP
+- Ping (ICMP)
+- DNS
+- Push (incoming webhook)
+- Docker container
+- gRPC
+- SNMP
+- PostgreSQL
+- Microsoft SQL Server
+- MongoDB
+- Redis
+- MySQL/MariaDB -
+- MQTT Broker
+- RabbitMQ
+- Kafka Producer
+
+### 🔔 Alert Channels
+
+- Email (SMTP)
+- Webhook
+- Telegram
+- Slack
+- Google Chat
+- Signal
+- Mattermost
+- Matrix
+- Discord
+- WeCom
+- WhatsApp (WAHA)
+- PagerDuty
+- Opsgenie
+- Grafana OnCall
+- NTFY
+- Gotify
+- Pushover
+- SendGrid
+- Twilio
+- LINE Messenger
+- PagerTree
+- Pushbullet
+
+### ✨ Other
+
+- Beautiful Status Pages
+- SVG Status Badges
+- Multi-Factor Authentication (MFA)
+- Brute-Force Login Protection
+- SSL Certificate Expiration Checks
 
 ## 💡 Motivation
 
@@ -58,44 +113,32 @@ If you enjoy this project, come say hi &amp; follow along!
 
 [![Follow me on X](https://img.shields.io/twitter/follow/your_handle?label=Follow&style=social)](https://x.com/0xfurai)
 
-## Development roadmap
+## 🚧 Development roadmap
 
 ### General
-- [x] Login bruteforce protection
-- [x] Add ability to set custom domain for status pages
+
 - [ ] Incidents
-- [x] Certificate expiration check
-- [x] Badges
-- [ ] Multi user
-- [ ] Add support for Homepage (in progress)
+- [ ] Migration tool (from uptime kuma)
+- [ ] Multi user, groups, access levels
+- [ ] Group monitors
+- [ ] Add support for Homepage widget (in progress)
+- [ ] Gatus like conditions
 
 ### Monitors
-- [x] MQTT
-- [x] RabbitMQ
-- [x] Kafka Producer
-- [x] Microsoft SQL Server
-- [x] PostgreSQL
-- [x] MySQL/MariaDB
-- [x] MongoDB
-- [x] Redis
+
 - [ ] HTTPs keyword and JSON query
+- [ ] Steam
+- [ ] GameDig
+- [ ] Playwrite
 
 ### Notification channels
-- [x] Discord
+
 - [ ] Microsoft Teams
-- [x] Twilio
-- [x] WhatsApp (WAHA)
 - [ ] WhatsApp (Whapi)
-- [x] WeCom (企业微信群机器人)
 - [ ] CallMeBot (WhatsApp, Telegram Call, Facebook Messanger)
-- [ ] LINE Messenger
-- [ ] LINE Notify
-- [x] SendGrid
 - [ ] AliyunSMS (阿里云短信服务)
 - [ ] DingDing (钉钉)
-- [ ] Pushbullet
 - [ ] ClickSend SMS
-- [ ] PagerTree
 - [ ] Rocket.Chat
 
 ![Alt](https://repobeats.axiom.co/api/embed/747c845fe0118082b51a1ab2fc6f8a4edd73c016.svg "Repobeats analytics image")
@@ -110,7 +153,6 @@ We welcome contributions! Please:
 4. Add tests if applicable
 5. Submit a pull request
 
-
 ## 📝 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
@@ -124,6 +166,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## 📞 Support
 
 - **Issues**: Report bugs and request features via GitHub Issues
+
 ---
 
 **Made with ❤️ by the Peekaping team**
