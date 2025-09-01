@@ -15,6 +15,7 @@ import (
 	"peekaping/src/modules/shared"
 	"peekaping/src/utils"
 	"peekaping/src/version"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -24,6 +25,7 @@ import (
 
 	"github.com/Azure/go-ntlmssp"
 	"github.com/go-playground/validator/v10"
+	"github.com/tidwall/gjson"
 	"go.uber.org/zap"
 	"golang.org/x/net/proxy"
 )
@@ -123,6 +125,13 @@ type HTTPConfig struct {
 	MaxRedirects        int      `json:"max_redirects" validate:"omitempty,min=0"`
 	IgnoreTlsErrors     bool     `json:"ignore_tls_errors"`
 	CheckCertExpiry     bool     `json:"check_cert_expiry"`
+
+	// Response validation fields
+	Keyword       string `json:"keyword,omitempty"`
+	InvertKeyword bool   `json:"invert_keyword,omitempty"`
+	JsonQuery     string `json:"json_query,omitempty"`
+	JsonCondition string `json:"json_condition,omitempty" validate:"omitempty,oneof='==' '!=' '>' '<' '>=' '<='"`
+	ExpectedValue string `json:"expected_value,omitempty"`
 
 	// Authentication fields
 	AuthMethod        string `json:"authMethod" validate:"required,oneof=none basic oauth2-cc ntlm mtls"`
@@ -242,6 +251,143 @@ func isStatusAccepted(statusCode int, accepted []string) bool {
 		}
 	}
 	return false
+}
+
+// Helper to check keyword in response body
+func checkKeyword(responseBody, keyword string, invert bool) bool {
+	if keyword == "" {
+		return true // No keyword check needed
+	}
+
+	found := strings.Contains(responseBody, keyword)
+	if invert {
+		return !found
+	}
+	return found
+}
+
+// Helper to check JSON query and expected value
+func checkJsonQuery(responseBody, jsonQuery, condition, expectedValue string) (bool, error) {
+	if jsonQuery == "" && expectedValue == "" && condition == "" {
+		return true, nil // No JSON query check needed
+	}
+
+	var result gjson.Result
+
+	if jsonQuery == "" {
+		// When no query is specified, we want to compare the full response
+		if expectedValue != "" {
+			var responseJson, expectedJson interface{}
+
+			// Try to parse both as JSON first
+			responseIsJson := json.Unmarshal([]byte(responseBody), &responseJson) == nil
+			expectedIsJson := json.Unmarshal([]byte(expectedValue), &expectedJson) == nil
+
+			// If both are valid JSON, do JSON comparison
+			if responseIsJson && expectedIsJson {
+				// For JSON comparison, we need to marshal both back to normalized JSON strings
+				// This ensures consistent formatting and key ordering
+				responseJsonBytes, err := json.Marshal(responseJson)
+				if err != nil {
+					return false, fmt.Errorf("failed to marshal response JSON: %w", err)
+				}
+
+				expectedJsonBytes, err := json.Marshal(expectedJson)
+				if err != nil {
+					return false, fmt.Errorf("failed to marshal expected JSON: %w", err)
+				}
+
+				// Compare the normalized JSON strings
+				actualValue := string(responseJsonBytes)
+				expectedValueNormalized := string(expectedJsonBytes)
+
+				// Default condition is equality
+				if condition == "" {
+					condition = "=="
+				}
+
+				switch condition {
+				case "==":
+					return actualValue == expectedValueNormalized, nil
+				case "!=":
+					return actualValue != expectedValueNormalized, nil
+				default:
+					return false, fmt.Errorf("unsupported condition '%s' for full JSON comparison: only '==' and '!=' are supported", condition)
+				}
+			}
+
+			// If one or both are not valid JSON, fall back to string comparison
+			// But only allow == and != conditions for non-JSON comparison
+			if condition == "" {
+				condition = "=="
+			}
+
+			switch condition {
+			case "==":
+				return responseBody == expectedValue, nil
+			case "!=":
+				return responseBody != expectedValue, nil
+			default:
+				return false, fmt.Errorf("unsupported condition '%s' for non-JSON comparison: only '==' and '!=' are supported", condition)
+			}
+		}
+
+		// If no expected value, just return the raw response body as string for backward compatibility
+		result = gjson.Result{Type: gjson.String, Str: responseBody}
+	} else {
+		result = gjson.Get(responseBody, jsonQuery)
+		if !result.Exists() {
+			return false, fmt.Errorf("JSON query path not found: %s", jsonQuery)
+		}
+	}
+
+	if expectedValue == "" && condition == "" {
+		return result.Exists(), nil
+	}
+
+	actualValue := result.String()
+
+	// Default condition is equality
+	if condition == "" {
+		condition = "=="
+	}
+
+	switch condition {
+	case "==":
+		return actualValue == expectedValue, nil
+	case "!=":
+		return actualValue != expectedValue, nil
+	case ">":
+		actualFloat, err1 := strconv.ParseFloat(actualValue, 64)
+		expectedFloat, err2 := strconv.ParseFloat(expectedValue, 64)
+		if err1 != nil || err2 != nil {
+			return strings.Compare(actualValue, expectedValue) > 0, nil
+		}
+		return actualFloat > expectedFloat, nil
+	case "<":
+		actualFloat, err1 := strconv.ParseFloat(actualValue, 64)
+		expectedFloat, err2 := strconv.ParseFloat(expectedValue, 64)
+		if err1 != nil || err2 != nil {
+			return strings.Compare(actualValue, expectedValue) < 0, nil
+		}
+		return actualFloat < expectedFloat, nil
+	case ">=":
+		actualFloat, err1 := strconv.ParseFloat(actualValue, 64)
+		expectedFloat, err2 := strconv.ParseFloat(expectedValue, 64)
+		if err1 != nil || err2 != nil {
+			return strings.Compare(actualValue, expectedValue) >= 0, nil
+		}
+		return actualFloat >= expectedFloat, nil
+	case "<=":
+		actualFloat, err1 := strconv.ParseFloat(actualValue, 64)
+		expectedFloat, err2 := strconv.ParseFloat(expectedValue, 64)
+		if err1 != nil || err2 != nil {
+			return strings.Compare(actualValue, expectedValue) <= 0, nil
+		}
+		return actualFloat <= expectedFloat, nil
+	default:
+		return false, fmt.Errorf("unsupported condition: %s", condition)
+	}
 }
 
 func buildProxyTransport(base *http.Transport, proxyModel *Proxy) http.RoundTripper {
@@ -498,6 +644,68 @@ func (h *HTTPExecutor) Execute(ctx context.Context, m *Monitor, proxyModel *Prox
 			StartTime: startTime,
 			EndTime:   endTime,
 			TLSInfo:   tlsInfo,
+		}
+	}
+
+	// Read response body for content validation
+	bodyBytes, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return &Result{
+			Status:    shared.MonitorStatusDown,
+			Message:   fmt.Sprintf("Failed to read response body: %v", err),
+			StartTime: startTime,
+			EndTime:   endTime,
+			TLSInfo:   tlsInfo,
+		}
+	}
+	var responseBody = string(bodyBytes)
+	h.logger.Debugf("Response body length: %d", len(responseBody))
+
+	// Check keyword if specified
+	if cfg.Keyword != "" {
+		if !checkKeyword(responseBody, cfg.Keyword, cfg.InvertKeyword) {
+			var message string
+			if cfg.InvertKeyword {
+				message = fmt.Sprintf("Keyword check failed: keyword '%s' found in response (expected absent)", cfg.Keyword)
+			} else {
+				message = fmt.Sprintf("Keyword check failed: keyword '%s' not found in response", cfg.Keyword)
+			}
+			return &Result{
+				Status:    shared.MonitorStatusDown,
+				Message:   message,
+				StartTime: startTime,
+				EndTime:   endTime,
+				TLSInfo:   tlsInfo,
+			}
+		}
+	}
+
+	// Check JSON query if specified
+	if m.Type == "http-json-query" {
+		isValid, err := checkJsonQuery(responseBody, cfg.JsonQuery, cfg.JsonCondition, cfg.ExpectedValue)
+		if err != nil {
+			return &Result{
+				Status:    shared.MonitorStatusDown,
+				Message:   fmt.Sprintf("JSON query validation error: %v", err),
+				StartTime: startTime,
+				EndTime:   endTime,
+				TLSInfo:   tlsInfo,
+			}
+		}
+		if !isValid {
+			condition := cfg.JsonCondition
+			if condition == "" {
+				condition = "=="
+			}
+			message := fmt.Sprintf("JSON query validation failed: query '%s' with condition '%s' and expected value '%s'",
+				cfg.JsonQuery, condition, cfg.ExpectedValue)
+			return &Result{
+				Status:    shared.MonitorStatusDown,
+				Message:   message,
+				StartTime: startTime,
+				EndTime:   endTime,
+				TLSInfo:   tlsInfo,
+			}
 		}
 	}
 
