@@ -8,7 +8,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/gin-gonic/gin"
+	"github.com/labstack/echo/v5"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
@@ -64,24 +64,27 @@ func (m *MockService) ValidateKey(ctx context.Context, key string) (*Model, erro
 }
 
 func TestMiddlewareProvider_Auth_MissingHeader(t *testing.T) {
-	gin.SetMode(gin.TestMode)
 	mockSvc := new(MockService)
 	middleware := NewMiddlewareProvider(mockSvc)
 
-	w := httptest.NewRecorder()
-	c, _ := gin.CreateTestContext(w)
-	c.Request = httptest.NewRequest("GET", "/", nil)
+	e := echo.New()
+	req := httptest.NewRequest("GET", "/", nil)
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
 	// No X-API-Key header set
 
-	middleware.Auth()(c)
+	next := func(c *echo.Context) error { return nil }
+	err := middleware.Auth()(next)(c)
 
-	assert.Equal(t, http.StatusUnauthorized, w.Code)
-	assert.True(t, c.IsAborted())
+	// In our port, it returns JSON error directly
+	assert.Error(t, err)
 
-	// Check response body directly
+	// Check response (status written by c.JSON inside middleware)
+	assert.Equal(t, http.StatusUnauthorized, rec.Code)
+
 	var resp map[string]interface{}
-	err := json.Unmarshal(w.Body.Bytes(), &resp)
-	assert.NoError(t, err)
+	jsonErr := json.Unmarshal(rec.Body.Bytes(), &resp)
+	assert.NoError(t, jsonErr)
 	assert.Contains(t, resp["message"], "X-API-Key header is required")
 	assert.Nil(t, resp["data"])
 
@@ -89,24 +92,25 @@ func TestMiddlewareProvider_Auth_MissingHeader(t *testing.T) {
 }
 
 func TestMiddlewareProvider_Auth_InvalidPrefix(t *testing.T) {
-	gin.SetMode(gin.TestMode)
 	mockSvc := new(MockService)
 	middleware := NewMiddlewareProvider(mockSvc)
 
-	w := httptest.NewRecorder()
-	c, _ := gin.CreateTestContext(w)
-	c.Request = httptest.NewRequest("GET", "/", nil)
-	c.Request.Header.Set("X-API-Key", "invalid-prefix-token")
+	e := echo.New()
+	req := httptest.NewRequest("GET", "/", nil)
+	req.Header.Set("X-API-Key", "invalid-prefix-token")
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
 
-	middleware.Auth()(c)
+	next := func(c *echo.Context) error { return nil }
+	err := middleware.Auth()(next)(c)
 
-	assert.Equal(t, http.StatusUnauthorized, w.Code)
-	assert.True(t, c.IsAborted())
+	assert.Error(t, err)
+	assert.Equal(t, http.StatusUnauthorized, rec.Code)
 
 	// Check response body directly
 	var resp map[string]interface{}
-	err := json.Unmarshal(w.Body.Bytes(), &resp)
-	assert.NoError(t, err)
+	jsonErr := json.Unmarshal(rec.Body.Bytes(), &resp)
+	assert.NoError(t, jsonErr)
 	assert.Contains(t, resp["message"], "API key required")
 	assert.Nil(t, resp["data"])
 
@@ -114,7 +118,6 @@ func TestMiddlewareProvider_Auth_InvalidPrefix(t *testing.T) {
 }
 
 func TestMiddlewareProvider_Auth_ValidKey(t *testing.T) {
-	gin.SetMode(gin.TestMode)
 	mockSvc := new(MockService)
 	middleware := NewMiddlewareProvider(mockSvc)
 
@@ -127,30 +130,29 @@ func TestMiddlewareProvider_Auth_ValidKey(t *testing.T) {
 
 	mockSvc.On("ValidateKey", mock.Anything, validToken).Return(apiKey, nil)
 
-	w := httptest.NewRecorder()
-	c, _ := gin.CreateTestContext(w)
-	c.Request = httptest.NewRequest("GET", "/", nil)
-	c.Request.Header.Set("X-API-Key", validToken)
+	e := echo.New()
+	req := httptest.NewRequest("GET", "/", nil)
+	req.Header.Set("X-API-Key", validToken)
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
 
-	middleware.Auth()(c)
+	next := func(c *echo.Context) error { return nil }
+	err := middleware.Auth()(next)(c)
 
-	assert.Equal(t, http.StatusOK, w.Code)
-	assert.False(t, c.IsAborted())
+	assert.NoError(t, err)
+	assert.Equal(t, http.StatusOK, rec.Code)
 
 	// Verify context values are set
-	apiKeyId, exists := c.Get("apiKeyId")
-	assert.True(t, exists)
+	apiKeyId := c.Get("apiKeyId")
 	assert.Equal(t, "test-key-id", apiKeyId)
 
-	authType, exists := c.Get("authType")
-	assert.True(t, exists)
+	authType := c.Get("authType")
 	assert.Equal(t, "api_key", authType)
 
 	mockSvc.AssertExpectations(t)
 }
 
 func TestMiddlewareProvider_Auth_ExpiredKey(t *testing.T) {
-	gin.SetMode(gin.TestMode)
 	mockSvc := new(MockService)
 	middleware := NewMiddlewareProvider(mockSvc)
 
@@ -158,20 +160,22 @@ func TestMiddlewareProvider_Auth_ExpiredKey(t *testing.T) {
 
 	mockSvc.On("ValidateKey", mock.Anything, expiredToken).Return(nil, errors.New("API key has expired"))
 
-	w := httptest.NewRecorder()
-	c, _ := gin.CreateTestContext(w)
-	c.Request = httptest.NewRequest("GET", "/", nil)
-	c.Request.Header.Set("X-API-Key", expiredToken)
+	e := echo.New()
+	req := httptest.NewRequest("GET", "/", nil)
+	req.Header.Set("X-API-Key", expiredToken)
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
 
-	middleware.Auth()(c)
+	next := func(c *echo.Context) error { return nil }
+	err := middleware.Auth()(next)(c)
 
-	assert.Equal(t, http.StatusUnauthorized, w.Code)
-	assert.True(t, c.IsAborted())
+	assert.Error(t, err)
+	assert.Equal(t, http.StatusUnauthorized, rec.Code)
 
 	// Check response body directly
 	var resp map[string]interface{}
-	err := json.Unmarshal(w.Body.Bytes(), &resp)
-	assert.NoError(t, err)
+	jsonErr := json.Unmarshal(rec.Body.Bytes(), &resp)
+	assert.NoError(t, jsonErr)
 	assert.Contains(t, resp["message"], "Invalid or expired API key")
 	assert.Nil(t, resp["data"])
 
@@ -179,7 +183,6 @@ func TestMiddlewareProvider_Auth_ExpiredKey(t *testing.T) {
 }
 
 func TestMiddlewareProvider_Auth_InvalidKey(t *testing.T) {
-	gin.SetMode(gin.TestMode)
 	mockSvc := new(MockService)
 	middleware := NewMiddlewareProvider(mockSvc)
 
@@ -187,20 +190,22 @@ func TestMiddlewareProvider_Auth_InvalidKey(t *testing.T) {
 
 	mockSvc.On("ValidateKey", mock.Anything, invalidToken).Return(nil, errors.New("Invalid API key"))
 
-	w := httptest.NewRecorder()
-	c, _ := gin.CreateTestContext(w)
-	c.Request = httptest.NewRequest("GET", "/", nil)
-	c.Request.Header.Set("X-API-Key", invalidToken)
+	e := echo.New()
+	req := httptest.NewRequest("GET", "/", nil)
+	req.Header.Set("X-API-Key", invalidToken)
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
 
-	middleware.Auth()(c)
+	next := func(c *echo.Context) error { return nil }
+	err := middleware.Auth()(next)(c)
 
-	assert.Equal(t, http.StatusUnauthorized, w.Code)
-	assert.True(t, c.IsAborted())
+	assert.Error(t, err)
+	assert.Equal(t, http.StatusUnauthorized, rec.Code)
 
 	// Check response body directly
 	var resp map[string]interface{}
-	err := json.Unmarshal(w.Body.Bytes(), &resp)
-	assert.NoError(t, err)
+	jsonErr := json.Unmarshal(rec.Body.Bytes(), &resp)
+	assert.NoError(t, jsonErr)
 	assert.Contains(t, resp["message"], "Invalid or expired API key")
 	assert.Nil(t, resp["data"])
 
@@ -208,7 +213,6 @@ func TestMiddlewareProvider_Auth_InvalidKey(t *testing.T) {
 }
 
 func TestMiddlewareProvider_Auth_ContextValues(t *testing.T) {
-	gin.SetMode(gin.TestMode)
 	mockSvc := new(MockService)
 	middleware := NewMiddlewareProvider(mockSvc)
 
@@ -221,31 +225,32 @@ func TestMiddlewareProvider_Auth_ContextValues(t *testing.T) {
 
 	mockSvc.On("ValidateKey", mock.Anything, validToken).Return(apiKey, nil)
 
-	w := httptest.NewRecorder()
-	c, _ := gin.CreateTestContext(w)
-	c.Request = httptest.NewRequest("GET", "/", nil)
-	c.Request.Header.Set("X-API-Key", validToken)
+	e := echo.New()
+	req := httptest.NewRequest("GET", "/", nil)
+	req.Header.Set("X-API-Key", validToken)
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
 
-	middleware.Auth()(c)
+	next := func(c *echo.Context) error { return nil }
+	err := middleware.Auth()(next)(c)
+
+	assert.NoError(t, err)
 
 	// Verify specific context values
-	apiKeyId, exists := c.Get("apiKeyId")
-	assert.True(t, exists)
+	apiKeyId := c.Get("apiKeyId")
 	assert.Equal(t, "context-test-key", apiKeyId)
 
-	authType, exists := c.Get("authType")
-	assert.True(t, exists)
+	authType := c.Get("authType")
 	assert.Equal(t, "api_key", authType)
 
-	// Verify no other auth-related context values are set
-	_, jwtExists := c.Get("userId")
-	assert.False(t, jwtExists)
+	// Verify no other auth-related context values are set (Get returns nil if not present)
+	jwtUserId := c.Get("userId")
+	assert.Nil(t, jwtUserId)
 
 	mockSvc.AssertExpectations(t)
 }
 
 func TestMiddlewareProvider_Auth_ServiceError(t *testing.T) {
-	gin.SetMode(gin.TestMode)
 	mockSvc := new(MockService)
 	middleware := NewMiddlewareProvider(mockSvc)
 
@@ -253,20 +258,22 @@ func TestMiddlewareProvider_Auth_ServiceError(t *testing.T) {
 
 	mockSvc.On("ValidateKey", mock.Anything, validToken).Return(nil, errors.New("service error"))
 
-	w := httptest.NewRecorder()
-	c, _ := gin.CreateTestContext(w)
-	c.Request = httptest.NewRequest("GET", "/", nil)
-	c.Request.Header.Set("X-API-Key", validToken)
+	e := echo.New()
+	req := httptest.NewRequest("GET", "/", nil)
+	req.Header.Set("X-API-Key", validToken)
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
 
-	middleware.Auth()(c)
+	next := func(c *echo.Context) error { return nil }
+	err := middleware.Auth()(next)(c)
 
-	assert.Equal(t, http.StatusUnauthorized, w.Code)
-	assert.True(t, c.IsAborted())
+	assert.Error(t, err)
+	assert.Equal(t, http.StatusUnauthorized, rec.Code)
 
 	// Check response body directly
 	var resp map[string]interface{}
-	err := json.Unmarshal(w.Body.Bytes(), &resp)
-	assert.NoError(t, err)
+	jsonErr := json.Unmarshal(rec.Body.Bytes(), &resp)
+	assert.NoError(t, jsonErr)
 	assert.Contains(t, resp["message"], "Invalid or expired API key")
 	assert.Nil(t, resp["data"])
 

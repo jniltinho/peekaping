@@ -84,10 +84,9 @@ func (c *Controller) FindByID(e *echo.Context) error {
 		return e.JSON(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
 	}
 	if page == nil {
-		ctx.JSON(http.StatusNotFound, utils.NewFailResponse("Status page not found"))
-		return
+		return e.JSON(http.StatusNotFound, utils.NewFailResponse("Status page not found"))
 	}
-	ctx.JSON(http.StatusOK, utils.NewSuccessResponse("success", page))
+	return e.JSON(http.StatusOK, utils.NewSuccessResponse("success", page))
 }
 
 // @Router    /status-pages/slug/{slug} [get]
@@ -228,19 +227,17 @@ func (c *Controller) Delete(e *echo.Context) error {
 // @Success   200  {object}  utils.ApiResponse[[]MonitorWithHeartbeatsAndUptimeDTO]
 // @Failure   404  {object}  utils.APIError[any]
 // @Failure   500  {object}  utils.APIError[any]
-func (c *Controller) GetMonitorsBySlug(ctx *gin.Context) {
-	slug := ctx.Param("slug")
+func (c *Controller) GetMonitorsBySlug(e *echo.Context) error {
+	slug := e.Param("slug")
 
 	// First get the status page
-	page, err := c.service.FindBySlug(ctx, slug)
+	page, err := c.service.FindBySlug(e.Request().Context(), slug)
 	if err != nil {
 		c.logger.Errorw("Failed to get status page by slug", "error", err, "slug", slug)
-		ctx.JSON(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
-		return
+		return e.JSON(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
 	}
 	if page == nil {
-		ctx.JSON(http.StatusNotFound, utils.NewFailResponse("Status page not found"))
-		return
+		return e.JSON(http.StatusNotFound, utils.NewFailResponse("Status page not found"))
 	}
 
 	// Get monitors for the status page
@@ -345,8 +342,7 @@ func (c *Controller) GetMonitorsBySlugForHomepage(e *echo.Context) error {
 	monitors, err := c.service.GetMonitorsForStatusPage(e.Request().Context(), page.ID)
 	if err != nil {
 		c.logger.Errorw("Failed to get monitors for status page", "error", err, "statusPageID", page.ID)
-		ctx.JSON(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
-		return
+		return e.JSON(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
 	}
 
 	// Convert monitor_status_page models to monitor models with heartbeats and uptime
@@ -416,5 +412,5 @@ func (c *Controller) GetMonitorsBySlugForHomepage(e *echo.Context) error {
 		monitorModels = append(monitorModels, monitorWithData)
 	}
 
-	ctx.JSON(http.StatusOK, utils.NewSuccessResponse("success", monitorModels))
+	return e.JSON(http.StatusOK, utils.NewSuccessResponse("success", monitorModels))
 }

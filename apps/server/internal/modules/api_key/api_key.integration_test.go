@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/gin-gonic/gin"
+	"github.com/labstack/echo/v5"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/uptrace/bun"
@@ -154,7 +154,6 @@ func TestIntegration_UsageLimitEnforcement(t *testing.T) {
 }
 
 func TestIntegration_MiddlewareWithRealDB(t *testing.T) {
-	gin.SetMode(gin.TestMode)
 	db := setupTestDB(t)
 	repo := NewSQLRepository(db)
 	logger := zap.NewNop().Sugar()
@@ -173,20 +172,22 @@ func TestIntegration_MiddlewareWithRealDB(t *testing.T) {
 	result, err := service.Create(ctx, req)
 	require.NoError(t, err)
 
-	// Test middleware with real HTTP request
-	w := httptest.NewRecorder()
-	c, _ := gin.CreateTestContext(w)
-	c.Request = httptest.NewRequest("GET", "/protected", nil)
-	c.Request.Header.Set("X-API-Key", result.Token)
+	// Test middleware with real HTTP request (Echo)
+	e := echo.New()
+	httpReq := httptest.NewRequest("GET", "/protected", nil)
+	httpReq.Header.Set("X-API-Key", result.Token)
+	rec := httptest.NewRecorder()
+	c := e.NewContext(httpReq, rec)
 
-	middleware.Auth()(c)
+	next := func(c *echo.Context) error { return nil }
+	err = middleware.Auth()(next)(c)
 
-	// Verify middleware succeeded
-	assert.Equal(t, http.StatusOK, w.Code)
-	assert.False(t, c.IsAborted())
+	// Verify middleware succeeded (no error, status OK)
+	assert.NoError(t, err)
+	assert.Equal(t, http.StatusOK, rec.Code)
 
 	// Verify context values
-	apiKeyId, exists := c.Get("apiKeyId")
+	apiKeyId := c.Get("apiKeyId")
 	assert.True(t, exists)
 	assert.Equal(t, result.ID, apiKeyId)
 

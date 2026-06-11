@@ -158,10 +158,11 @@ func (c *Controller) RefreshToken(e *echo.Context) error {
 // @Failure	401	{object}	utils.APIError[any]
 // @Failure	500	{object}	utils.APIError[any]
 func (c *Controller) UpdatePassword(e *echo.Context) error {
-	userId, exists := e.Get("userId")
-	if !exists {
+	userIdIface := e.Get("userId")
+	if userIdIface == nil {
 		return e.JSON(http.StatusUnauthorized, utils.NewFailResponse("Unauthorized"))
 	}
+	userId := userIdIface.(string)
 
 	var dto UpdatePasswordDto
 	if err := e.Bind(&dto); err != nil {
@@ -172,7 +173,7 @@ func (c *Controller) UpdatePassword(e *echo.Context) error {
 		return e.JSON(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
 	}
 
-	err := c.service.UpdatePassword(e.Request().Context(), userId.(string), dto)
+	err := c.service.UpdatePassword(e.Request().Context(), userId, dto)
 	if err != nil {
 		if err.Error() == "current password is incorrect" {
 			return e.JSON(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
@@ -195,7 +196,11 @@ func (c *Controller) UpdatePassword(e *echo.Context) error {
 // @Failure	400 {object} utils.APIError[any]
 // @Failure	500 {object} utils.APIError[any]
 func (c *Controller) SetupTwoFA(e *echo.Context) error {
-	userId, _ := e.Get("userId")
+	userIdIface := e.Get("userId")
+	if userIdIface == nil {
+		return e.JSON(http.StatusUnauthorized, utils.NewFailResponse("Unauthorized"))
+	}
+	userId := userIdIface.(string)
 
 	var dto TwoFASetupRequestDto
 	if err := e.Bind(&dto); err != nil {
@@ -206,7 +211,7 @@ func (c *Controller) SetupTwoFA(e *echo.Context) error {
 		return e.JSON(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
 	}
 
-	secret, provisioningURI, err := c.service.SetupTwoFA(e.Request().Context(), userId.(string), dto.Password)
+	secret, provisioningURI, err := c.service.SetupTwoFA(e.Request().Context(), userId, dto.Password)
 	if err != nil {
 		return e.JSON(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
 	}
@@ -227,7 +232,11 @@ func (c *Controller) SetupTwoFA(e *echo.Context) error {
 // @Failure	400 {object} TwoFAVerifyResponseDto
 // @Failure	500 {object} utils.APIError[any]
 func (c *Controller) VerifyTwoFA(e *echo.Context) error {
-	userId, _ := e.Get("userId")
+	userIdIface := e.Get("userId")
+	if userIdIface == nil {
+		return e.JSON(http.StatusUnauthorized, utils.NewFailResponse("Unauthorized"))
+	}
+	userId := userIdIface.(string)
 
 	var dto TwoFAVerifyRequestDto
 	if err := e.Bind(&dto); err != nil {
@@ -238,7 +247,7 @@ func (c *Controller) VerifyTwoFA(e *echo.Context) error {
 		return e.JSON(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
 	}
 
-	success, err := c.service.VerifyTwoFA(e.Request().Context(), userId.(string), dto.Code)
+	success, err := c.service.VerifyTwoFA(e.Request().Context(), userId, dto.Code)
 	if err != nil {
 		return e.JSON(http.StatusBadRequest, TwoFAVerifyResponseDto{Success: false, Message: err.Error()})
 	}
@@ -257,7 +266,11 @@ func (c *Controller) VerifyTwoFA(e *echo.Context) error {
 // @Failure	400 {object} utils.APIError[any]
 // @Failure	500 {object} utils.APIError[any]
 func (c *Controller) DisableTwoFA(e *echo.Context) error {
-	userId, _ := e.Get("userId")
+	userIdIface := e.Get("userId")
+	if userIdIface == nil {
+		return e.JSON(http.StatusUnauthorized, utils.NewFailResponse("Unauthorized"))
+	}
+	userId := userIdIface.(string)
 
 	var dto TwoFADisableRequestDto
 	if err := e.Bind(&dto); err != nil {
@@ -268,7 +281,7 @@ func (c *Controller) DisableTwoFA(e *echo.Context) error {
 		return e.JSON(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
 	}
 
-	err := c.service.DisableTwoFA(e.Request().Context(), userId.(string), dto.Password)
+	err := c.service.DisableTwoFA(e.Request().Context(), userId, dto.Password)
 	if err != nil {
 		return e.JSON(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
 	}

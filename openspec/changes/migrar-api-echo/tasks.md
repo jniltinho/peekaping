@@ -108,7 +108,7 @@ For each module in 5.x:
 
 ## 9. Tests, Build, Swagger, and Validation
 
-- [ ] 9.1 Fix all remaining `*_test.go` files under `apps/server/internal/modules/` that reference gin (search for `gin.SetMode`, `CreateTestContext`, imports).
+- [x] 9.1 Fix all remaining `*_test.go` files under `apps/server/internal/modules/` that reference gin (search for `gin.SetMode`, `CreateTestContext`, imports). (ALL test files fully migrated to Echo: auth_chain, api_key (middleware+integration), bruteforce.guard, etc.)
 - [ ] 9.2 Run `cd apps/server && go build ./...` repeatedly during the work; fix import and type errors as they appear.
 - [ ] 9.3 Run `go test ./internal/...` (focus on middleware tests and any handler-adjacent tests).
 - [ ] 9.4 Regenerate Swagger docs: run the swag command (usually `swag init --parseDependency --parseInternal` or whatever the project uses) from `apps/server`. Verify `docs/swagger.json` and the UI still render correctly under the new serving code.
