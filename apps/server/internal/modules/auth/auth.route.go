@@ -3,7 +3,7 @@ package auth
 import (
 	"peekaping/internal/modules/bruteforce"
 
-	"github.com/gin-gonic/gin"
+	"github.com/labstack/echo/v4"
 )
 
 type Route struct {
@@ -24,7 +24,7 @@ func NewRoute(
 	}
 }
 
-func (r *Route) ConnectRoute(router *gin.RouterGroup, controller *Controller) {
+func (r *Route) ConnectRoute(router *echo.Group, controller *Controller) {
 	auth := router.Group("/auth")
 	auth.POST("/register", controller.Register)
 

@@ -3,7 +3,7 @@ package monitor
 import (
 	"peekaping/internal/modules/middleware"
 
-	"github.com/gin-gonic/gin"
+	"github.com/labstack/echo/v4"
 )
 
 type MonitorRoute struct {
@@ -22,7 +22,7 @@ func NewMonitorRoute(
 }
 
 func (uc *MonitorRoute) ConnectRoute(
-	rg *gin.RouterGroup,
+	rg *echo.Group,
 	monitorController *MonitorController,
 ) {
 	router := rg.Group("monitors")

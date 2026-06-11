@@ -3,13 +3,14 @@ package utils
 import (
 	"strconv"
 
-	"github.com/gin-gonic/gin"
+	"github.com/labstack/echo/v4"
 )
 
 // GetQueryInt extracts an integer query parameter from the context.
 // If the parameter is not provided or invalid, it returns the default value.
-func GetQueryInt(ctx *gin.Context, key string, defaultValue int) (int, error) {
-	valueStr := ctx.Query(key)
+// Ported from Gin to Echo (QueryParam instead of Query).
+func GetQueryInt(c echo.Context, key string, defaultValue int) (int, error) {
+	valueStr := c.QueryParam(key)
 	if valueStr == "" {
 		return defaultValue, nil
 	}
@@ -24,8 +25,9 @@ func GetQueryInt(ctx *gin.Context, key string, defaultValue int) (int, error) {
 
 // GetQueryBool extracts a boolean query parameter from the context.
 // If the parameter is not provided, it returns nil.
-func GetQueryBool(ctx *gin.Context, key string) (*bool, error) {
-	valueStr := ctx.Query(key)
+// Ported from Gin to Echo.
+func GetQueryBool(c echo.Context, key string) (*bool, error) {
+	valueStr := c.QueryParam(key)
 	if valueStr == "" {
 		return nil, nil
 	}

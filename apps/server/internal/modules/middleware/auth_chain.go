@@ -6,7 +6,7 @@ import (
 	"peekaping/internal/modules/auth"
 	"peekaping/internal/utils"
 
-	"github.com/gin-gonic/gin"
+	"github.com/labstack/echo/v4"
 	"go.uber.org/zap"
 )
 
@@ -38,25 +38,26 @@ func NewAuthChain(
 // The middleware automatically routes requests based on header presence:
 // - If X-API-Key header is present: routes to API key authentication
 // - Otherwise: routes to JWT authentication (expects Authorization header with Bearer token)
-func (ac *AuthChain) AllAuth() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		apiKeyHeader := c.GetHeader("X-API-Key")
-		authHeader := c.GetHeader("Authorization")
+func (ac *AuthChain) AllAuth() echo.MiddlewareFunc {
+	return func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c echo.Context) error {
+			apiKeyHeader := c.Request().Header.Get("X-API-Key")
+			authHeader := c.Request().Header.Get("Authorization")
 
-		if apiKeyHeader != "" {
-			// Route to API key authentication
-			ac.logger.Debugw("Routing to API key authentication", "ip", c.ClientIP(), "path", c.Request.URL.Path, "keyPrefix", apiKeyHeader[:min(len(apiKeyHeader), 10)]+"...")
-			ac.apiKeyMiddleware.Auth()(c)
-		} else if authHeader != "" {
-			// Route to JWT authentication
-			ac.logger.Debugw("Routing to JWT authentication", "ip", c.ClientIP(), "path", c.Request.URL.Path, "tokenPrefix", authHeader[:min(len(authHeader), 10)]+"...")
-			ac.jwtMiddleware.Auth()(c)
-		} else {
-			// No authentication headers provided
-			ac.logger.Warnw("Missing authentication headers", "ip", c.ClientIP(), "path", c.Request.URL.Path)
-			c.JSON(http.StatusUnauthorized, utils.NewFailResponse("Authentication required: provide either X-API-Key header or Authorization header"))
-			c.Abort()
-			return
+			if apiKeyHeader != "" {
+				// Route to API key authentication
+				ac.logger.Debugw("Routing to API key authentication", "ip", c.RealIP(), "path", c.Request().URL.Path, "keyPrefix", apiKeyHeader[:min(len(apiKeyHeader), 10)]+"...")
+				// Call the inner middleware (which returns a MiddlewareFunc)
+				return ac.apiKeyMiddleware.Auth()(next)(c)
+			} else if authHeader != "" {
+				// Route to JWT authentication
+				ac.logger.Debugw("Routing to JWT authentication", "ip", c.RealIP(), "path", c.Request().URL.Path, "tokenPrefix", authHeader[:min(len(authHeader), 10)]+"...")
+				return ac.jwtMiddleware.Auth()(next)(c)
+			} else {
+				// No authentication headers provided
+				ac.logger.Warnw("Missing authentication headers", "ip", c.RealIP(), "path", c.Request().URL.Path)
+				return c.JSON(http.StatusUnauthorized, utils.NewFailResponse("Authentication required: provide either X-API-Key header or Authorization header"))
+			}
 		}
 	}
 }

@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/gin-gonic/gin"
+	"github.com/labstack/echo/v4"
 	"go.uber.org/zap"
 )
 
@@ -25,7 +25,7 @@ type Service interface {
 	Reset(ctx context.Context, key string) error
 }
 
-type KeyExtractor func(*gin.Context) (string, error)
+type KeyExtractor func(echo.Context) (string, error)
 
 type Config struct {
 	MaxAttempts int
@@ -34,7 +34,7 @@ type Config struct {
 	// Which HTTP statuses of the wrapped handler mean "authentication failed"
 	FailureStatuses []int
 	// Optional custom blocked response (otherwise 429 with Retry-After)
-	OnBlocked func(c *gin.Context, retryAfter time.Duration)
+	OnBlocked func(c echo.Context, retryAfter time.Duration)
 }
 
 type Guard struct {
@@ -66,60 +66,62 @@ func New(cfg Config, service Service, ke KeyExtractor, logger *zap.SugaredLogger
 	}
 }
 
-func (g *Guard) Middleware() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		key, err := g.keyExtractor(c)
-		if err != nil || key == "" {
-			// If we cannot extract key, we fallback to IP only.
-			key = c.ClientIP()
-		}
-
-		ctx := c.Request.Context()
-
-		locked, until, err := g.service.IsLocked(ctx, key)
-		if err != nil {
-			// Fail safe: pass, log/monitor
-			g.logger.Errorw("failed to check if locked", "error", err)
-			c.Next()
-			return
-		}
-		if locked {
-			// Fix race condition: recalculate retry time to avoid negative values
-			retryAfter := time.Until(until)
-			if retryAfter <= 0 {
-				// Lock expired between check and now, allow request to proceed
-				g.logger.Debugw("lock expired, allowing request", "key", key)
-				c.Next()
-				return
+func (g *Guard) Middleware() echo.MiddlewareFunc {
+	return func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c echo.Context) error {
+			key, err := g.keyExtractor(c)
+			if err != nil || key == "" {
+				// If we cannot extract key, we fallback to IP only.
+				key = c.RealIP()
 			}
-			g.block(c, retryAfter)
-			return
-		}
 
-		c.Next()
+			ctx := c.Request().Context()
 
-		// After handler runs, decide success/failure by status
-		status := c.Writer.Status()
-		if g.isFailure(status) {
-			now := time.Now()
-			// OnFailure atomically handles counting and locking
-			locked, until, err := g.service.OnFailure(ctx, key, now, g.cfg.Window, g.cfg.MaxAttempts, g.cfg.Lockout)
+			locked, until, err := g.service.IsLocked(ctx, key)
 			if err != nil {
-				// Log error but don't fail the request - the auth failure should still be returned
-				g.logger.Errorw("failed to record failure", "key", key, "error", err)
-			} else if locked {
-				// If we just got locked, we could optionally notify the client
-				// For now, just let the request complete normally
-				g.logger.Infow("account locked due to too many failures", "key", key, "until", until)
+				// Fail safe: pass, log/monitor
+				g.logger.Errorw("failed to check if locked", "error", err)
+				return next(c)
 			}
-			return
-		}
+			if locked {
+				// Fix race condition: recalculate retry time to avoid negative values
+				retryAfter := time.Until(until)
+				if retryAfter <= 0 {
+					// Lock expired between check and now, allow request to proceed
+					g.logger.Debugw("lock expired, allowing request", "key", key)
+					return next(c)
+				}
+				g.block(c, retryAfter)
+				return nil
+			}
 
-		// Only reset on explicit success statuses (200-299), not on other statuses like 400, 500
-		if status >= 200 && status < 300 {
-			if err := g.service.Reset(ctx, key); err != nil {
-				g.logger.Errorw("failed to reset bruteforce state", "key", key, "error", err)
+			if err := next(c); err != nil {
+				// If the handler errored, we still want to evaluate status for brute force
+				// but we will return the error after.
 			}
+
+			// After handler runs, decide success/failure by status
+			status := c.Response().Status
+			if g.isFailure(status) {
+				now := time.Now()
+				// OnFailure atomically handles counting and locking
+				locked, until, err := g.service.OnFailure(ctx, key, now, g.cfg.Window, g.cfg.MaxAttempts, g.cfg.Lockout)
+				if err != nil {
+					// Log error but don't fail the request - the auth failure should still be returned
+					g.logger.Errorw("failed to record failure", "key", key, "error", err)
+				} else if locked {
+					g.logger.Infow("account locked due to too many failures", "key", key, "until", until)
+				}
+				return nil // do not swallow original error if any; but for now follow original "return after record"
+			}
+
+			// Only reset on explicit success statuses (200-299), not on other statuses like 400, 500
+			if status >= 200 && status < 300 {
+				if err := g.service.Reset(ctx, key); err != nil {
+					g.logger.Errorw("failed to reset bruteforce state", "key", key, "error", err)
+				}
+			}
+			return nil
 		}
 	}
 }

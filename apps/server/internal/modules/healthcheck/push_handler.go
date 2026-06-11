@@ -12,7 +12,7 @@ import (
 
 	"peekaping/internal/modules/shared"
 
-	"github.com/gin-gonic/gin"
+	"github.com/labstack/echo/v4"
 	"go.uber.org/zap"
 )
 
@@ -49,36 +49,37 @@ type PushIngesterPayload struct {
 }
 
 func RegisterPushEndpoint(
-	router *gin.RouterGroup,
+	router *echo.Group,
 	monitorService monitor.Service,
 	heartbeatService heartbeat.Service,
 	queueService queue.Service,
 	logger *zap.SugaredLogger,
 ) {
-	router.GET("/push/:token", func(ctx *gin.Context) {
-		token := ctx.Param("token")
+	router.GET("/push/:token", func(c echo.Context) error {
+		token := c.Param("token")
 
-		// pingStr := ctx.DefaultQuery("ping", "0")
-
-		monitor, err := monitorService.FindOneByPushToken(ctx, token)
+		monitor, err := monitorService.FindOneByPushToken(c.Request().Context(), token)
 		if err != nil {
 			logger.Errorw("Failed to find monitor with push token", "error", err)
-			ctx.JSON(http.StatusNotFound, utils.NewFailResponse("Monitor not found for pushToken"))
-			return
+			return c.JSON(http.StatusNotFound, utils.NewFailResponse("Monitor not found for pushToken"))
 		}
 		if monitor == nil {
 			logger.Errorw("Monitor not found for push token", "pushToken", token)
-			ctx.JSON(http.StatusNotFound, utils.NewFailResponse("Monitor not found for pushToken"))
-			return
+			return c.JSON(http.StatusNotFound, utils.NewFailResponse("Monitor not found for pushToken"))
 		}
 		if !monitor.Active {
 			logger.Errorw("Monitor is not active", "monitor", monitor)
-			ctx.JSON(http.StatusBadRequest, utils.NewFailResponse("Monitor is not active"))
-			return
+			return c.JSON(http.StatusBadRequest, utils.NewFailResponse("Monitor is not active"))
 		}
 
-		msg := ctx.DefaultQuery("msg", "OK")
-		statusStr := ctx.DefaultQuery("status", "1")
+		msg := c.QueryParam("msg")
+		if msg == "" {
+			msg = "OK"
+		}
+		statusStr := c.QueryParam("status")
+		if statusStr == "" {
+			statusStr = "1"
+		}
 
 		// Parse status
 		statusInt, err := strconv.Atoi(statusStr)
@@ -118,20 +119,18 @@ func RegisterPushEndpoint(
 		}
 
 		// Use EnqueueUnique to prevent duplicate push heartbeat ingestion
-		// The unique key includes monitor ID and timestamp to prevent duplicate submissions
 		uniqueKey := fmt.Sprintf("ingest:push:%s:%d", monitor.ID, now.UnixNano())
 		ttl := 5 * time.Minute // Short TTL for push monitors to allow frequent updates
 
-		_, err = queueService.EnqueueUnique(ctx, "monitor:ingest", payload, uniqueKey, ttl, opts)
+		_, err = queueService.EnqueueUnique(c.Request().Context(), "monitor:ingest", payload, uniqueKey, ttl, opts)
 		if err != nil {
 			logger.Errorw("Failed to enqueue push heartbeat to ingester",
 				"monitor_id", monitor.ID,
 				"error", err,
 			)
-			ctx.JSON(http.StatusInternalServerError, utils.NewFailResponse("Failed to process push heartbeat"))
-			return
+			return c.JSON(http.StatusInternalServerError, utils.NewFailResponse("Failed to process push heartbeat"))
 		}
 
-		ctx.JSON(http.StatusOK, gin.H{"ok": "true"})
+		return c.JSON(http.StatusOK, map[string]any{"ok": "true"})
 	})
 }

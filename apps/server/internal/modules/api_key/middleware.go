@@ -5,7 +5,7 @@ import (
 	"peekaping/internal/utils"
 	"strings"
 
-	"github.com/gin-gonic/gin"
+	"github.com/labstack/echo/v4"
 )
 
 // MiddlewareProvider holds API key middleware functions
@@ -22,35 +22,31 @@ func NewMiddlewareProvider(service Service) *MiddlewareProvider {
 
 // Auth is a middleware that verifies API key authentication
 // This should be used as the final middleware in a chain for API key-only endpoints
-func (p *MiddlewareProvider) Auth() gin.HandlerFunc {
-	return func(c *gin.Context) {
-	// Get the X-API-Key header
-	authHeader := c.GetHeader("X-API-Key")
-	if authHeader == "" {
-		c.JSON(http.StatusUnauthorized, utils.NewFailResponse("X-API-Key header is required"))
-		c.Abort()
-		return
-	}
+func (p *MiddlewareProvider) Auth() echo.MiddlewareFunc {
+	return func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c echo.Context) error {
+			// Get the X-API-Key header
+			authHeader := c.Request().Header.Get("X-API-Key")
+			if authHeader == "" {
+				return c.JSON(http.StatusUnauthorized, utils.NewFailResponse("X-API-Key header is required"))
+			}
 
-		// Only accept API keys
-		if !strings.HasPrefix(authHeader, ApiKeyPrefix) {
-			c.JSON(http.StatusUnauthorized, utils.NewFailResponse("API key required"))
-			c.Abort()
-			return
+			// Only accept API keys
+			if !strings.HasPrefix(authHeader, ApiKeyPrefix) {
+				return c.JSON(http.StatusUnauthorized, utils.NewFailResponse("API key required"))
+			}
+
+			// Validate the API key
+			apiKey, err := p.service.ValidateKey(c.Request().Context(), authHeader)
+			if err != nil {
+				return c.JSON(http.StatusUnauthorized, utils.NewFailResponse("Invalid or expired API key"))
+			}
+
+			// Set API key information in the context
+			c.Set("apiKeyId", apiKey.ID)
+			c.Set("authType", "api_key")
+
+			return next(c)
 		}
-
-		// Validate the API key
-		apiKey, err := p.service.ValidateKey(c.Request.Context(), authHeader)
-		if err != nil {
-			c.JSON(http.StatusUnauthorized, utils.NewFailResponse("Invalid or expired API key"))
-			c.Abort()
-			return
-		}
-
-		// Set API key information in the context
-		c.Set("apiKeyId", apiKey.ID)
-		c.Set("authType", "api_key")
-
-		c.Next()
 	}
 }
