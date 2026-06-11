@@ -1,7 +1,7 @@
 package badge
 
 import (
-	"github.com/gin-gonic/gin"
+	"github.com/labstack/echo/v5"
 )
 
 type Route struct {
@@ -14,7 +14,7 @@ func NewRoute(controller *Controller) *Route {
 	}
 }
 
-func (r *Route) ConnectRoute(rg *gin.RouterGroup, controller *Controller) {
+func (r *Route) ConnectRoute(rg *echo.Group, controller *Controller) {
 	// Badge routes - these are public endpoints
 	badge := rg.Group("badge")
 	{

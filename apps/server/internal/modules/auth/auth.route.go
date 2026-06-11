@@ -3,7 +3,7 @@ package auth
 import (
 	"peekaping/internal/modules/bruteforce"
 
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 )
 
 type Route struct {
@@ -28,7 +28,7 @@ func (r *Route) ConnectRoute(router *echo.Group, controller *Controller) {
 	auth := router.Group("/auth")
 	auth.POST("/register", controller.Register)
 
-	auth.POST("/login", r.bruteforceGuard.Middleware(), controller.Login)
+	auth.POST("/login", r.bruteforceGuard.Middleware()(controller.Login))
 
 	auth.POST("/refresh", controller.RefreshToken)
 

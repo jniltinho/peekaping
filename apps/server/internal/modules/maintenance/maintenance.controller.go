@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"peekaping/internal/utils"
 
-	"github.com/gin-gonic/gin"
+	"github.com/labstack/echo/v5"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.uber.org/zap"
 )
@@ -39,38 +39,27 @@ func NewController(
 // @Failure		400	{object}	utils.APIError[any]
 // @Failure		404	{object}	utils.APIError[any]
 // @Failure		500	{object}	utils.APIError[any]
-func (ic *Controller) FindAll(ctx *gin.Context) {
-	page, err := utils.GetQueryInt(ctx, "page", 0)
+func (ic *Controller) FindAll(e *echo.Context) error {
+	page, err := utils.GetQueryInt(e, "page", 0)
 	if err != nil || page < 0 {
-		ctx.JSON(http.StatusBadRequest, utils.NewFailResponse("Invalid page parameter"))
-		return
+		return e.JSON(http.StatusBadRequest, utils.NewFailResponse("Invalid page parameter"))
 	}
 
-	limit, err := utils.GetQueryInt(ctx, "limit", 10)
+	limit, err := utils.GetQueryInt(e, "limit", 10)
 	if err != nil || limit < 1 {
-		ctx.JSON(http.StatusBadRequest, utils.NewFailResponse("Invalid limit parameter"))
-		return
+		return e.JSON(http.StatusBadRequest, utils.NewFailResponse("Invalid limit parameter"))
 	}
 
-	q := ctx.Query("q")
-	strategy := ctx.Query("strategy")
+	q := e.QueryParam("q")
+	strategy := e.QueryParam("strategy")
 
-	filter := bson.M{}
-	if q != "" {
-		filter["$or"] = bson.A{
-			bson.M{"title": bson.M{"$regex": q, "$options": "i"}},
-			bson.M{"description": bson.M{"$regex": q, "$options": "i"}},
-		}
-	}
-
-	entities, err := ic.service.FindAll(ctx, page, limit, q, strategy)
+	entities, err := ic.service.FindAll(e.Request().Context(), page, limit, q, strategy)
 	if err != nil {
 		ic.logger.Errorw("Failed to fetch maintenances", "error", err)
-		ctx.JSON(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
-		return
+		return e.JSON(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
 	}
 
-	ctx.JSON(http.StatusOK, utils.NewSuccessResponse("success", entities))
+	return e.JSON(http.StatusOK, utils.NewSuccessResponse("success", entities))
 }
 
 // @Router		/maintenances [post]

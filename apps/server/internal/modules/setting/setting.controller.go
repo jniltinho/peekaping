@@ -7,7 +7,7 @@ import (
 
 	"regexp"
 
-	"github.com/gin-gonic/gin"
+	"github.com/labstack/echo/v5"
 	"go.uber.org/zap"
 )
 
@@ -38,23 +38,20 @@ func NewController(
 // @Success	200	{object}	utils.ApiResponse[Model]
 // @Failure	404	{object}	utils.APIError[any]
 // @Failure	500	{object}	utils.APIError[any]
-func (ic *Controller) GetByKey(ctx *gin.Context) {
-	key := ctx.Param("key")
+func (ic *Controller) GetByKey(e *echo.Context) error {
+	key := e.Param("key")
 	if !screamingSnakeCase.MatchString(key) {
-		ctx.JSON(http.StatusBadRequest, utils.NewFailResponse("Key must be SCREAMING_SNAKE_CASE (A-Z, 0-9, _)."))
-		return
+		return e.JSON(http.StatusBadRequest, utils.NewFailResponse("Key must be SCREAMING_SNAKE_CASE (A-Z, 0-9, _)."))
 	}
-	entity, err := ic.service.GetByKey(ctx, key)
+	entity, err := ic.service.GetByKey(e.Request().Context(), key)
 	if err != nil {
 		ic.logger.Errorw("Failed to fetch setting by key", "error", err)
-		ctx.JSON(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
-		return
+		return e.JSON(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
 	}
 	if entity == nil {
-		ctx.JSON(http.StatusNotFound, utils.NewFailResponse("Setting not found"))
-		return
+		return e.JSON(http.StatusNotFound, utils.NewFailResponse("Setting not found"))
 	}
-	ctx.JSON(http.StatusOK, utils.NewSuccessResponse("success", entity))
+	return e.JSON(http.StatusOK, utils.NewSuccessResponse("success", entity))
 }
 
 // @Router	/settings/key/{key} [put]
@@ -69,29 +66,25 @@ func (ic *Controller) GetByKey(ctx *gin.Context) {
 // @Success	200	{object}	utils.ApiResponse[Model]
 // @Failure	400	{object}	utils.APIError[any]
 // @Failure	500	{object}	utils.APIError[any]
-func (ic *Controller) SetByKey(ctx *gin.Context) {
+func (ic *Controller) SetByKey(e *echo.Context) error {
 	fmt.Println("SetByKey")
-	key := ctx.Param("key")
+	key := e.Param("key")
 	if !screamingSnakeCase.MatchString(key) {
-		ctx.JSON(http.StatusBadRequest, utils.NewFailResponse("Key must be SCREAMING_SNAKE_CASE (A-Z, 0-9, _)."))
-		return
+		return e.JSON(http.StatusBadRequest, utils.NewFailResponse("Key must be SCREAMING_SNAKE_CASE (A-Z, 0-9, _)."))
 	}
 	var entity CreateUpdateDto
-	if err := ctx.ShouldBindJSON(&entity); err != nil {
-		ctx.JSON(http.StatusBadRequest, utils.NewFailResponse("Invalid request body"))
-		return
+	if err := e.Bind(&entity); err != nil {
+		return e.JSON(http.StatusBadRequest, utils.NewFailResponse("Invalid request body"))
 	}
 	if err := utils.Validate.Struct(entity); err != nil {
-		ctx.JSON(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
-		return
+		return e.JSON(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
 	}
-	updated, err := ic.service.SetByKey(ctx, key, &entity)
+	updated, err := ic.service.SetByKey(e.Request().Context(), key, &entity)
 	if err != nil {
 		ic.logger.Errorw("Failed to set setting by key", "error", err)
-		ctx.JSON(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
-		return
+		return e.JSON(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
 	}
-	ctx.JSON(http.StatusOK, utils.NewSuccessResponse("setting set successfully", updated))
+	return e.JSON(http.StatusOK, utils.NewSuccessResponse("setting set successfully", updated))
 }
 
 // @Router	/settings/key/{key} [delete]
@@ -104,17 +97,15 @@ func (ic *Controller) SetByKey(ctx *gin.Context) {
 // @Success	200	{object}	utils.ApiResponse[any]
 // @Failure	404	{object}	utils.APIError[any]
 // @Failure	500	{object}	utils.APIError[any]
-func (ic *Controller) DeleteByKey(ctx *gin.Context) {
-	key := ctx.Param("key")
+func (ic *Controller) DeleteByKey(e *echo.Context) error {
+	key := e.Param("key")
 	if !screamingSnakeCase.MatchString(key) {
-		ctx.JSON(http.StatusBadRequest, utils.NewFailResponse("Key must be SCREAMING_SNAKE_CASE (A-Z, 0-9, _)."))
-		return
+		return e.JSON(http.StatusBadRequest, utils.NewFailResponse("Key must be SCREAMING_SNAKE_CASE (A-Z, 0-9, _)."))
 	}
-	err := ic.service.DeleteByKey(ctx, key)
+	err := ic.service.DeleteByKey(e.Request().Context(), key)
 	if err != nil {
 		ic.logger.Errorw("Failed to delete setting by key", "error", err)
-		ctx.JSON(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
-		return
+		return e.JSON(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
 	}
-	ctx.JSON(http.StatusOK, utils.NewSuccessResponse[any]("Setting deleted successfully", nil))
+	return e.JSON(http.StatusOK, utils.NewSuccessResponse[any]("Setting deleted successfully", nil))
 }

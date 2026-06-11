@@ -3,7 +3,7 @@ package status_page
 import (
 	"peekaping/internal/modules/middleware"
 
-	"github.com/gin-gonic/gin"
+	"github.com/labstack/echo/v5"
 )
 
 type Route struct {
@@ -18,7 +18,7 @@ func NewRoute(controller *Controller, middleware *middleware.AuthChain) *Route {
 	}
 }
 
-func (r *Route) ConnectRoute(rg *gin.RouterGroup, controller *Controller) {
+func (r *Route) ConnectRoute(rg *echo.Group, controller *Controller) {
 	// Public routes
 	sp := rg.Group("status-pages")
 	sp.GET("/slug/:slug", r.controller.FindBySlug)

@@ -6,7 +6,7 @@ import (
 	"peekaping/internal/utils"
 	"strconv"
 
-	"github.com/gin-gonic/gin"
+	"github.com/labstack/echo/v5"
 	"go.uber.org/zap"
 )
 
@@ -23,11 +23,11 @@ func NewController(service Service, logger *zap.SugaredLogger) *Controller {
 }
 
 // parseQueryOptions parses badge options from query parameters
-func (c *Controller) parseQueryOptions(ctx *gin.Context) *BadgeOptions {
+func (c *Controller) parseQueryOptions(e *echo.Context) *BadgeOptions {
 	options := DefaultBadgeOptions()
 
 	// Parse style
-	if style := ctx.Query("style"); style != "" {
+	if style := e.QueryParam("style"); style != "" {
 		switch style {
 		case "flat", "flat-square", "plastic", "for-the-badge", "social":
 			options.Style = BadgeStyle(style)
@@ -35,51 +35,51 @@ func (c *Controller) parseQueryOptions(ctx *gin.Context) *BadgeOptions {
 	}
 
 	// Parse common options
-	if color := ctx.Query("color"); color != "" {
+	if color := e.QueryParam("color"); color != "" {
 		options.Color = color
 	}
-	if labelColor := ctx.Query("labelColor"); labelColor != "" {
+	if labelColor := e.QueryParam("labelColor"); labelColor != "" {
 		options.LabelColor = labelColor
 	}
 
 	// Parse status badge options
-	if upLabel := ctx.Query("upLabel"); upLabel != "" {
+	if upLabel := e.QueryParam("upLabel"); upLabel != "" {
 		options.UpLabel = upLabel
 	}
-	if downLabel := ctx.Query("downLabel"); downLabel != "" {
+	if downLabel := e.QueryParam("downLabel"); downLabel != "" {
 		options.DownLabel = downLabel
 	}
-	if upColor := ctx.Query("upColor"); upColor != "" {
+	if upColor := e.QueryParam("upColor"); upColor != "" {
 		options.UpColor = upColor
 	}
-	if downColor := ctx.Query("downColor"); downColor != "" {
+	if downColor := e.QueryParam("downColor"); downColor != "" {
 		options.DownColor = downColor
 	}
 
 	// Parse text customization options
-	if labelPrefix := ctx.Query("labelPrefix"); labelPrefix != "" {
+	if labelPrefix := e.QueryParam("labelPrefix"); labelPrefix != "" {
 		options.LabelPrefix = labelPrefix
 	}
-	if label := ctx.Query("label"); label != "" {
+	if label := e.QueryParam("label"); label != "" {
 		options.Label = label
 	}
-	if labelSuffix := ctx.Query("labelSuffix"); labelSuffix != "" {
+	if labelSuffix := e.QueryParam("labelSuffix"); labelSuffix != "" {
 		options.LabelSuffix = labelSuffix
 	}
-	if prefix := ctx.Query("prefix"); prefix != "" {
+	if prefix := e.QueryParam("prefix"); prefix != "" {
 		options.Prefix = prefix
 	}
-	if suffix := ctx.Query("suffix"); suffix != "" {
+	if suffix := e.QueryParam("suffix"); suffix != "" {
 		options.Suffix = suffix
 	}
 
 	// Parse certificate expiry options
-	if warnDays := ctx.Query("warnDays"); warnDays != "" {
+	if warnDays := e.QueryParam("warnDays"); warnDays != "" {
 		if days, err := strconv.Atoi(warnDays); err == nil && days > 0 {
 			options.WarnDays = days
 		}
 	}
-	if downDays := ctx.Query("downDays"); downDays != "" {
+	if downDays := e.QueryParam("downDays"); downDays != "" {
 		if days, err := strconv.Atoi(downDays); err == nil && days >= 0 {
 			options.DownDays = days
 		}
@@ -102,37 +102,33 @@ func (c *Controller) parseQueryOptions(ctx *gin.Context) *BadgeOptions {
 // @Failure		400	{object}	utils.APIError[any]
 // @Failure		404	{object}	utils.APIError[any]
 // @Failure		500	{object}	utils.APIError[any]
-func (c *Controller) GetStatusBadge(ctx *gin.Context) {
-	monitorID := ctx.Param("monitorId")
+func (c *Controller) GetStatusBadge(e *echo.Context) error {
+	monitorID := e.Param("monitorId")
 	if monitorID == "" {
-		ctx.JSON(http.StatusBadRequest, utils.NewFailResponse("Monitor ID is required"))
-		return
+		return e.JSON(http.StatusBadRequest, utils.NewFailResponse("Monitor ID is required"))
 	}
 
 	// Check if monitor is public (published on a status page)
-	isPublic, err := c.service.IsMonitorPublic(ctx, monitorID)
+	isPublic, err := c.service.IsMonitorPublic(e.Request().Context(), monitorID)
 	if err != nil {
 		c.logger.Errorw("Failed to check if monitor is public", "error", err, "monitorID", monitorID)
-		ctx.JSON(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
-		return
+		return e.JSON(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
 	}
 	if !isPublic {
-		ctx.JSON(http.StatusNotFound, utils.NewFailResponse("Monitor not found or not public"))
-		return
+		return e.JSON(http.StatusNotFound, utils.NewFailResponse("Monitor not found or not public"))
 	}
 
-	options := c.parseQueryOptions(ctx)
+	options := c.parseQueryOptions(e)
 
-	svg, err := c.service.GenerateStatusBadge(ctx, monitorID, options)
+	svg, err := c.service.GenerateStatusBadge(e.Request().Context(), monitorID, options)
 	if err != nil {
 		c.logger.Errorw("Failed to generate status badge", "error", err, "monitorID", monitorID)
-		ctx.JSON(http.StatusInternalServerError, utils.NewFailResponse("Failed to generate badge"))
-		return
+		return e.JSON(http.StatusInternalServerError, utils.NewFailResponse("Failed to generate badge"))
 	}
 
-	ctx.Header("Content-Type", "image/svg+xml")
-	ctx.Header("Cache-Control", "no-cache, no-store, must-revalidate")
-	ctx.String(http.StatusOK, svg)
+	e.Response().Header().Set("Content-Type", "image/svg+xml")
+	e.Response().Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
+	return e.String(http.StatusOK, svg)
 }
 
 // @Router		/badge/{monitorId}/uptime/{duration} [get]
@@ -149,14 +145,13 @@ func (c *Controller) GetStatusBadge(ctx *gin.Context) {
 // @Failure		400	{object}	utils.APIError[any]
 // @Failure		404	{object}	utils.APIError[any]
 // @Failure		500	{object}	utils.APIError[any]
-func (c *Controller) GetUptimeBadge(ctx *gin.Context) {
-	monitorID := ctx.Param("monitorId")
+func (c *Controller) GetUptimeBadge(e *echo.Context) error {
+	monitorID := e.Param("monitorId")
 	if monitorID == "" {
-		ctx.JSON(http.StatusBadRequest, utils.NewFailResponse("Monitor ID is required"))
-		return
+		return e.JSON(http.StatusBadRequest, utils.NewFailResponse("Monitor ID is required"))
 	}
 
-	durationStr := ctx.Param("duration")
+	durationStr := e.Param("duration")
 	duration, err := strconv.Atoi(durationStr)
 	fmt.Println("duration", duration)
 	if err != nil || duration <= 0 {
@@ -164,29 +159,26 @@ func (c *Controller) GetUptimeBadge(ctx *gin.Context) {
 	}
 
 	// Check if monitor is public
-	isPublic, err := c.service.IsMonitorPublic(ctx, monitorID)
+	isPublic, err := c.service.IsMonitorPublic(e.Request().Context(), monitorID)
 	if err != nil {
 		c.logger.Errorw("Failed to check if monitor is public", "error", err, "monitorID", monitorID)
-		ctx.JSON(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
-		return
+		return e.JSON(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
 	}
 	if !isPublic {
-		ctx.JSON(http.StatusNotFound, utils.NewFailResponse("Monitor not found or not public"))
-		return
+		return e.JSON(http.StatusNotFound, utils.NewFailResponse("Monitor not found or not public"))
 	}
 
-	options := c.parseQueryOptions(ctx)
+	options := c.parseQueryOptions(e)
 
-	svg, err := c.service.GenerateUptimeBadge(ctx, monitorID, duration, options)
+	svg, err := c.service.GenerateUptimeBadge(e.Request().Context(), monitorID, duration, options)
 	if err != nil {
 		c.logger.Errorw("Failed to generate uptime badge", "error", err, "monitorID", monitorID)
-		ctx.JSON(http.StatusInternalServerError, utils.NewFailResponse("Failed to generate badge"))
-		return
+		return e.JSON(http.StatusInternalServerError, utils.NewFailResponse("Failed to generate badge"))
 	}
 
-	ctx.Header("Content-Type", "image/svg+xml")
-	ctx.Header("Cache-Control", "no-cache, no-store, must-revalidate")
-	ctx.String(http.StatusOK, svg)
+	e.Response().Header().Set("Content-Type", "image/svg+xml")
+	e.Response().Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
+	return e.String(http.StatusOK, svg)
 }
 
 // @Router		/badge/{monitorId}/ping/{duration} [get]
@@ -203,43 +195,39 @@ func (c *Controller) GetUptimeBadge(ctx *gin.Context) {
 // @Failure		400	{object}	utils.APIError[any]
 // @Failure		404	{object}	utils.APIError[any]
 // @Failure		500	{object}	utils.APIError[any]
-func (c *Controller) GetPingBadge(ctx *gin.Context) {
-	monitorID := ctx.Param("monitorId")
+func (c *Controller) GetPingBadge(e *echo.Context) error {
+	monitorID := e.Param("monitorId")
 	if monitorID == "" {
-		ctx.JSON(http.StatusBadRequest, utils.NewFailResponse("Monitor ID is required"))
-		return
+		return e.JSON(http.StatusBadRequest, utils.NewFailResponse("Monitor ID is required"))
 	}
 
-	durationStr := ctx.Param("duration")
+	durationStr := e.Param("duration")
 	duration, err := strconv.Atoi(durationStr)
 	if err != nil || duration <= 0 {
 		duration = 24 // Default to 24 hours
 	}
 
 	// Check if monitor is public
-	isPublic, err := c.service.IsMonitorPublic(ctx, monitorID)
+	isPublic, err := c.service.IsMonitorPublic(e.Request().Context(), monitorID)
 	if err != nil {
 		c.logger.Errorw("Failed to check if monitor is public", "error", err, "monitorID", monitorID)
-		ctx.JSON(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
-		return
+		return e.JSON(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
 	}
 	if !isPublic {
-		ctx.JSON(http.StatusNotFound, utils.NewFailResponse("Monitor not found or not public"))
-		return
+		return e.JSON(http.StatusNotFound, utils.NewFailResponse("Monitor not found or not public"))
 	}
 
-	options := c.parseQueryOptions(ctx)
+	options := c.parseQueryOptions(e)
 
-	svg, err := c.service.GeneratePingBadge(ctx, monitorID, duration, options)
+	svg, err := c.service.GeneratePingBadge(e.Request().Context(), monitorID, duration, options)
 	if err != nil {
 		c.logger.Errorw("Failed to generate ping badge", "error", err, "monitorID", monitorID)
-		ctx.JSON(http.StatusInternalServerError, utils.NewFailResponse("Failed to generate badge"))
-		return
+		return e.JSON(http.StatusInternalServerError, utils.NewFailResponse("Failed to generate badge"))
 	}
 
-	ctx.Header("Content-Type", "image/svg+xml")
-	ctx.Header("Cache-Control", "no-cache, no-store, must-revalidate")
-	ctx.String(http.StatusOK, svg)
+	e.Response().Header().Set("Content-Type", "image/svg+xml")
+	e.Response().Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
+	return e.String(http.StatusOK, svg)
 }
 
 // @Router		/badge/{monitorId}/cert-exp [get]
@@ -255,37 +243,33 @@ func (c *Controller) GetPingBadge(ctx *gin.Context) {
 // @Failure		400	{object}	utils.APIError[any]
 // @Failure		404	{object}	utils.APIError[any]
 // @Failure		500	{object}	utils.APIError[any]
-func (c *Controller) GetCertExpBadge(ctx *gin.Context) {
-	monitorID := ctx.Param("monitorId")
+func (c *Controller) GetCertExpBadge(e *echo.Context) error {
+	monitorID := e.Param("monitorId")
 	if monitorID == "" {
-		ctx.JSON(http.StatusBadRequest, utils.NewFailResponse("Monitor ID is required"))
-		return
+		return e.JSON(http.StatusBadRequest, utils.NewFailResponse("Monitor ID is required"))
 	}
 
 	// Check if monitor is public
-	isPublic, err := c.service.IsMonitorPublic(ctx, monitorID)
+	isPublic, err := c.service.IsMonitorPublic(e.Request().Context(), monitorID)
 	if err != nil {
 		c.logger.Errorw("Failed to check if monitor is public", "error", err, "monitorID", monitorID)
-		ctx.JSON(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
-		return
+		return e.JSON(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
 	}
 	if !isPublic {
-		ctx.JSON(http.StatusNotFound, utils.NewFailResponse("Monitor not found or not public"))
-		return
+		return e.JSON(http.StatusNotFound, utils.NewFailResponse("Monitor not found or not public"))
 	}
 
-	options := c.parseQueryOptions(ctx)
+	options := c.parseQueryOptions(e)
 
-	svg, err := c.service.GenerateCertExpBadge(ctx, monitorID, options)
+	svg, err := c.service.GenerateCertExpBadge(e.Request().Context(), monitorID, options)
 	if err != nil {
 		c.logger.Errorw("Failed to generate cert-exp badge", "error", err, "monitorID", monitorID)
-		ctx.JSON(http.StatusInternalServerError, utils.NewFailResponse("Failed to generate badge"))
-		return
+		return e.JSON(http.StatusInternalServerError, utils.NewFailResponse("Failed to generate badge"))
 	}
 
-	ctx.Header("Content-Type", "image/svg+xml")
-	ctx.Header("Cache-Control", "no-cache, no-store, must-revalidate")
-	ctx.String(http.StatusOK, svg)
+	e.Response().Header().Set("Content-Type", "image/svg+xml")
+	e.Response().Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
+	return e.String(http.StatusOK, svg)
 }
 
 // @Router		/badge/{monitorId}/response [get]
@@ -301,35 +285,31 @@ func (c *Controller) GetCertExpBadge(ctx *gin.Context) {
 // @Failure		400	{object}	utils.APIError[any]
 // @Failure		404	{object}	utils.APIError[any]
 // @Failure		500	{object}	utils.APIError[any]
-func (c *Controller) GetResponseBadge(ctx *gin.Context) {
-	monitorID := ctx.Param("monitorId")
+func (c *Controller) GetResponseBadge(e *echo.Context) error {
+	monitorID := e.Param("monitorId")
 	if monitorID == "" {
-		ctx.JSON(http.StatusBadRequest, utils.NewFailResponse("Monitor ID is required"))
-		return
+		return e.JSON(http.StatusBadRequest, utils.NewFailResponse("Monitor ID is required"))
 	}
 
 	// Check if monitor is public
-	isPublic, err := c.service.IsMonitorPublic(ctx, monitorID)
+	isPublic, err := c.service.IsMonitorPublic(e.Request().Context(), monitorID)
 	if err != nil {
 		c.logger.Errorw("Failed to check if monitor is public", "error", err, "monitorID", monitorID)
-		ctx.JSON(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
-		return
+		return e.JSON(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
 	}
 	if !isPublic {
-		ctx.JSON(http.StatusNotFound, utils.NewFailResponse("Monitor not found or not public"))
-		return
+		return e.JSON(http.StatusNotFound, utils.NewFailResponse("Monitor not found or not public"))
 	}
 
-	options := c.parseQueryOptions(ctx)
+	options := c.parseQueryOptions(e)
 
-	svg, err := c.service.GenerateResponseBadge(ctx, monitorID, options)
+	svg, err := c.service.GenerateResponseBadge(e.Request().Context(), monitorID, options)
 	if err != nil {
 		c.logger.Errorw("Failed to generate response badge", "error", err, "monitorID", monitorID)
-		ctx.JSON(http.StatusInternalServerError, utils.NewFailResponse("Failed to generate badge"))
-		return
+		return e.JSON(http.StatusInternalServerError, utils.NewFailResponse("Failed to generate badge"))
 	}
 
-	ctx.Header("Content-Type", "image/svg+xml")
-	ctx.Header("Cache-Control", "no-cache, no-store, must-revalidate")
-	ctx.String(http.StatusOK, svg)
+	e.Response().Header().Set("Content-Type", "image/svg+xml")
+	e.Response().Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
+	return e.String(http.StatusOK, svg)
 }

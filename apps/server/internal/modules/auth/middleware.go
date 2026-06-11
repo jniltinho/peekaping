@@ -5,7 +5,7 @@ import (
 	"peekaping/internal/utils"
 	"strings"
 
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 )
 
 // MiddlewareProvider holds all middleware functions
@@ -23,7 +23,7 @@ func NewMiddlewareProvider(tokenMaker *TokenMaker) *MiddlewareProvider {
 // Auth is a middleware that verifies JWT access tokens only
 func (p *MiddlewareProvider) Auth() echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
-		return func(c echo.Context) error {
+		return func(c *echo.Context) error {
 			// Get the Authorization header
 			authHeader := c.Request().Header.Get("Authorization")
 			if authHeader == "" {

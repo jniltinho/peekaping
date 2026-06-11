@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"peekaping/internal/utils"
 
-	"github.com/gin-gonic/gin"
+	"github.com/labstack/echo/v5"
 	"go.uber.org/zap"
 )
 
@@ -38,29 +38,26 @@ func NewController(
 // @Failure		400	{object}	utils.APIError[any]
 // @Failure		404	{object}	utils.APIError[any]
 // @Failure		500	{object}	utils.APIError[any]
-func (ic *Controller) FindAll(ctx *gin.Context) {
-	page, err := utils.GetQueryInt(ctx, "page", 0)
+func (ic *Controller) FindAll(e *echo.Context) error {
+	page, err := utils.GetQueryInt(e, "page", 0)
 	if err != nil || page < 0 {
-		ctx.JSON(http.StatusBadRequest, utils.NewFailResponse("Invalid page parameter"))
-		return
+		return e.JSON(http.StatusBadRequest, utils.NewFailResponse("Invalid page parameter"))
 	}
 
-	limit, err := utils.GetQueryInt(ctx, "limit", 10)
+	limit, err := utils.GetQueryInt(e, "limit", 10)
 	if err != nil || limit < 1 {
-		ctx.JSON(http.StatusBadRequest, utils.NewFailResponse("Invalid limit parameter"))
-		return
+		return e.JSON(http.StatusBadRequest, utils.NewFailResponse("Invalid limit parameter"))
 	}
 
-	q := ctx.Query("q")
+	q := e.QueryParam("q")
 
-	entities, err := ic.service.FindAll(ctx, page, limit, q)
+	entities, err := ic.service.FindAll(e.Request().Context(), page, limit, q)
 	if err != nil {
 		ic.logger.Errorw("Failed to fetch proxies", "error", err)
-		ctx.JSON(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
-		return
+		return e.JSON(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
 	}
 
-	ctx.JSON(http.StatusOK, utils.NewSuccessResponse("success", entities))
+	return e.JSON(http.StatusOK, utils.NewSuccessResponse("success", entities))
 }
 
 // @Router		/proxies [post]
@@ -74,26 +71,23 @@ func (ic *Controller) FindAll(ctx *gin.Context) {
 // @Success		201	{object}	utils.ApiResponse[Model]
 // @Failure		400	{object}	utils.APIError[any]
 // @Failure		500	{object}	utils.APIError[any]
-func (ic *Controller) Create(ctx *gin.Context) {
+func (ic *Controller) Create(e *echo.Context) error {
 	var entity *CreateUpdateDto
-	if err := ctx.ShouldBindJSON(&entity); err != nil {
-		ctx.JSON(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
-		return
+	if err := e.Bind(&entity); err != nil {
+		return e.JSON(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
 	}
 
 	if err := utils.Validate.Struct(entity); err != nil {
-		ctx.JSON(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
-		return
+		return e.JSON(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
 	}
 
-	created, err := ic.service.Create(ctx, entity)
+	created, err := ic.service.Create(e.Request().Context(), entity)
 	if err != nil {
 		ic.logger.Errorw("Failed to create proxy", "error", err)
-		ctx.JSON(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
-		return
+		return e.JSON(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
 	}
 
-	ctx.JSON(http.StatusCreated, utils.NewSuccessResponse("Proxy created successfully", created))
+	return e.JSON(http.StatusCreated, utils.NewSuccessResponse("Proxy created successfully", created))
 }
 
 // @Router		/proxies/{id} [get]
@@ -106,22 +100,20 @@ func (ic *Controller) Create(ctx *gin.Context) {
 // @Failure		400	{object}	utils.APIError[any]
 // @Failure		404	{object}	utils.APIError[any]
 // @Failure		500	{object}	utils.APIError[any]
-func (ic *Controller) FindByID(ctx *gin.Context) {
-	id := ctx.Param("id")
+func (ic *Controller) FindByID(e *echo.Context) error {
+	id := e.Param("id")
 
-	entity, err := ic.service.FindByID(ctx, id)
+	entity, err := ic.service.FindByID(e.Request().Context(), id)
 	if err != nil {
 		ic.logger.Errorw("Failed to fetch proxy", "error", err)
-		ctx.JSON(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
-		return
+		return e.JSON(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
 	}
 
 	if entity == nil {
-		ctx.JSON(http.StatusNotFound, utils.NewFailResponse("Proxy not found"))
-		return
+		return e.JSON(http.StatusNotFound, utils.NewFailResponse("Proxy not found"))
 	}
 
-	ctx.JSON(http.StatusOK, utils.NewSuccessResponse("success", entity))
+	return e.JSON(http.StatusOK, utils.NewSuccessResponse("success", entity))
 }
 
 // @Router		/proxies/{id} [put]
@@ -136,28 +128,25 @@ func (ic *Controller) FindByID(ctx *gin.Context) {
 // @Failure		400	{object}	utils.APIError[any]
 // @Failure		404	{object}	utils.APIError[any]
 // @Failure		500	{object}	utils.APIError[any]
-func (ic *Controller) UpdateFull(ctx *gin.Context) {
-	id := ctx.Param("id")
+func (ic *Controller) UpdateFull(e *echo.Context) error {
+	id := e.Param("id")
 
 	var entity CreateUpdateDto
-	if err := ctx.ShouldBindJSON(&entity); err != nil {
-		ctx.JSON(http.StatusBadRequest, utils.NewFailResponse("Invalid request body"))
-		return
+	if err := e.Bind(&entity); err != nil {
+		return e.JSON(http.StatusBadRequest, utils.NewFailResponse("Invalid request body"))
 	}
 
 	if err := utils.Validate.Struct(entity); err != nil {
-		ctx.JSON(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
-		return
+		return e.JSON(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
 	}
 
-	updated, err := ic.service.UpdateFull(ctx, id, &entity)
+	updated, err := ic.service.UpdateFull(e.Request().Context(), id, &entity)
 	if err != nil {
 		ic.logger.Errorw("Failed to update proxy", "error", err)
-		ctx.JSON(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
-		return
+		return e.JSON(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
 	}
 
-	ctx.JSON(http.StatusOK, utils.NewSuccessResponse("proxy updated successfully", updated))
+	return e.JSON(http.StatusOK, utils.NewSuccessResponse("proxy updated successfully", updated))
 }
 
 // @Router		/proxies/{id} [patch]
@@ -172,23 +161,21 @@ func (ic *Controller) UpdateFull(ctx *gin.Context) {
 // @Failure		400	{object}	utils.APIError[any]
 // @Failure		404	{object}	utils.APIError[any]
 // @Failure		500	{object}	utils.APIError[any]
-func (ic *Controller) UpdatePartial(ctx *gin.Context) {
-	id := ctx.Param("id")
+func (ic *Controller) UpdatePartial(e *echo.Context) error {
+	id := e.Param("id")
 
 	var entity PartialUpdateDto
-	if err := ctx.ShouldBindJSON(&entity); err != nil {
-		ctx.JSON(http.StatusBadRequest, utils.NewFailResponse("Invalid request body"))
-		return
+	if err := e.Bind(&entity); err != nil {
+		return e.JSON(http.StatusBadRequest, utils.NewFailResponse("Invalid request body"))
 	}
 
-	updated, err := ic.service.UpdatePartial(ctx, id, &entity)
+	updated, err := ic.service.UpdatePartial(e.Request().Context(), id, &entity)
 	if err != nil {
 		ic.logger.Errorw("Failed to update proxy", "error", err)
-		ctx.JSON(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
-		return
+		return e.JSON(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
 	}
 
-	ctx.JSON(http.StatusOK, utils.NewSuccessResponse("proxy updated successfully", updated))
+	return e.JSON(http.StatusOK, utils.NewSuccessResponse("proxy updated successfully", updated))
 }
 
 // @Router		/proxies/{id} [delete]
@@ -201,15 +188,14 @@ func (ic *Controller) UpdatePartial(ctx *gin.Context) {
 // @Failure		400	{object}	utils.APIError[any]
 // @Failure		404	{object}	utils.APIError[any]
 // @Failure		500	{object}	utils.APIError[any]
-func (ic *Controller) Delete(ctx *gin.Context) {
-	id := ctx.Param("id")
+func (ic *Controller) Delete(e *echo.Context) error {
+	id := e.Param("id")
 
-	err := ic.service.Delete(ctx, id)
+	err := ic.service.Delete(e.Request().Context(), id)
 	if err != nil {
 		ic.logger.Errorw("Failed to delete proxy", "error", err)
-		ctx.JSON(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
-		return
+		return e.JSON(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
 	}
 
-	ctx.JSON(http.StatusOK, utils.NewSuccessResponse[any]("Proxy deleted successfully", nil))
+	return e.JSON(http.StatusOK, utils.NewSuccessResponse[any]("Proxy deleted successfully", nil))
 }

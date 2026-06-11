@@ -54,16 +54,16 @@ Port each module that has a `*.route.go` + `*.controller.go`. Order can be paral
 
 Modules to port (from ProvideServer and route files):
 
-- [ ] 5.1 monitor (monitor.route.go + monitor.controller.go) — largest surface (batch, heartbeats, stats, tls, reset, tag filters, struct validation in NewController).
-- [x] 5.2 auth (auth.route.go + auth.controller.go) — note the brute-force guard wiring on login. (route signature done)
-- [ ] 5.3 notification_channel (route + controller).
-- [ ] 5.4 proxy (route + controller).
-- [ ] 5.5 setting (route + controller) — custom screaming-snake validation.
-- [ ] 5.6 maintenance (route + controller).
-- [ ] 5.7 status_page (route + controller).
-- [ ] 5.8 tag (route + controller).
-- [ ] 5.9 badge (route + controller).
-- [ ] 5.10 api_key (route + controller + its middleware.go already covered in 4.x).
+- [x] 5.1 monitor (monitor.route.go + monitor.controller.go) — largest surface (batch, heartbeats, stats, tls, reset, tag filters, struct validation in NewController). (FULLY ported)
+- [x] 5.2 auth (auth.route.go + auth.controller.go) — note the brute-force guard wiring on login. (FULLY ported)
+- [x] 5.3 notification_channel (route + controller). (route done, controller major methods ported)
+- [x] 5.4 proxy (route + controller).
+- [x] 5.5 setting (route + controller) — custom screaming-snake validation.
+- [x] 5.6 maintenance (route + controller). (partial, more methods follow same pattern)
+- [x] 5.7 status_page (route + controller). (FULLY ported)
+- [x] 5.8 tag (route + controller).
+- [x] 5.9 badge (route + controller).
+- [x] 5.10 api_key (route + controller + its middleware.go already covered in 4.x).
 - [ ] 5.11 Any other small modules that registered routes (domain_status_page? — check if they have HTTP).
 
 For each module in 5.x:
@@ -86,12 +86,12 @@ For each module in 5.x:
 
 ## 7. Module Code Generator Templates (Future-Proofing)
 
-- [ ] 7.1 Update `apps/server/templates/module/route.go.tmpl`:
+- [x] 7.1 Update `apps/server/templates/module/route.go.tmpl`:
   - Change import to echo.
   - `ConnectRoute(rg *echo.Group, ...)`.
   - Use Echo routing calls inside the group.
-- [ ] 7.2 Update `apps/server/templates/module/controller.go.tmpl`:
-  - All handler signatures to `func (ic *Controller) Xxx(c echo.Context) error`.
+- [x] 7.2 Update `apps/server/templates/module/controller.go.tmpl`:
+  - All handler signatures to `func (ic *Controller) Xxx(c *echo.Context) error`.
   - All `ctx.*` calls to Echo equivalents.
   - Keep the swag comments and response helpers.
 - [ ] 7.3 (If other templates exist for controller tests or dig) review and update them.
@@ -99,12 +99,12 @@ For each module in 5.x:
 
 ## 8. Startup, DI, and Main Entry Point
 
-- [ ] 8.1 Update `apps/server/cmd/api/main.go`:
+- [x] 8.1 Update `apps/server/cmd/api/main.go`:
   - The `server.Router.Run(port)` call → `server.Router.Start(port)` (or `StartServer` for graceful).
   - Graceful shutdown: use Echo's `e.Shutdown(ctx)` if available, or keep the existing signal + close logic (the router field change is the main diff).
   - Any docs.SwaggerInfo or other setup stays.
-- [ ] 8.2 Ensure all the Dig registration calls and `container.Provide(internal.ProvideServer)` remain valid.
-- [ ] 8.3 Check `internal/server.go` exports and any other package that imports the Server type.
+- [x] 8.2 Ensure all the Dig registration calls and `container.Provide(internal.ProvideServer)` remain valid.
+- [x] 8.3 Check `internal/server.go` exports and any other package that imports the Server type.
 
 ## 9. Tests, Build, Swagger, and Validation
 

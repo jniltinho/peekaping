@@ -40,6 +40,7 @@ import (
 	"peekaping/internal/utils"
 	"peekaping/internal/version"
 	"syscall"
+	"time"
 
 	"go.uber.org/dig"
 	"go.uber.org/zap"
@@ -205,7 +206,7 @@ func main() {
 		// Start server in a goroutine
 		go func() {
 			logger.Infof("Starting server on port %s", port)
-			if err := server.Router.Run(port); err != nil {
+			if err := server.Router.Start(port); err != nil {
 				logger.Fatalf("Failed to start server: %v", err)
 			}
 		}()
@@ -213,6 +214,14 @@ func main() {
 		// Wait for shutdown signal
 		<-sigChan
 		logger.Info("Shutdown signal received, starting graceful shutdown...")
+
+		// Graceful shutdown for Echo
+		shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+		if err := server.Router.Shutdown(shutdownCtx); err != nil {
+			logger.Errorw("Echo server shutdown error", "error", err)
+		}
+
 		// Close event bus
 		if err := eventBus.Close(); err != nil {
 			logger.Errorw("Failed to close event bus", "error", err)

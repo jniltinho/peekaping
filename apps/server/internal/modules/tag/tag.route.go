@@ -3,7 +3,7 @@ package tag
 import (
 	"peekaping/internal/modules/middleware"
 
-	"github.com/gin-gonic/gin"
+	"github.com/labstack/echo/v5"
 )
 
 type Route struct {
@@ -22,7 +22,7 @@ func NewRoute(
 }
 
 func (r *Route) ConnectRoute(
-	rg *gin.RouterGroup,
+	rg *echo.Group,
 	controller *Controller,
 ) {
 	router := rg.Group("tags")

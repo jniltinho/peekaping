@@ -6,19 +6,19 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/gin-gonic/gin"
+	"github.com/labstack/echo/v5"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/zap"
 )
 
 // TestAuthChain is a test-specific version that allows us to inject mock handlers
 type TestAuthChain struct {
-	jwtMiddleware    gin.HandlerFunc
-	apiKeyMiddleware gin.HandlerFunc
+	jwtMiddleware    echo.MiddlewareFunc
+	apiKeyMiddleware echo.MiddlewareFunc
 	logger           *zap.SugaredLogger
 }
 
-func NewTestAuthChain(jwtHandler, apiKeyHandler gin.HandlerFunc, logger *zap.SugaredLogger) *TestAuthChain {
+func NewTestAuthChain(jwtHandler, apiKeyHandler echo.MiddlewareFunc, logger *zap.SugaredLogger) *TestAuthChain {
 	return &TestAuthChain{
 		jwtMiddleware:    jwtHandler,
 		apiKeyMiddleware: apiKeyHandler,
@@ -27,25 +27,25 @@ func NewTestAuthChain(jwtHandler, apiKeyHandler gin.HandlerFunc, logger *zap.Sug
 }
 
 // AllAuth creates a middleware that supports both JWT and API key authentication
-func (ac *TestAuthChain) AllAuth() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		apiKeyHeader := c.GetHeader("X-API-Key")
-		authHeader := c.GetHeader("Authorization")
+func (ac *TestAuthChain) AllAuth() echo.MiddlewareFunc {
+	return func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c *echo.Context) error {
+			apiKeyHeader := c.Request().Header.Get("X-API-Key")
+			authHeader := c.Request().Header.Get("Authorization")
 
-		if apiKeyHeader != "" {
-			// Route to API key authentication
-			ac.logger.Infow("Routing to API key authentication", "ip", c.ClientIP(), "path", c.Request.URL.Path, "keyPrefix", apiKeyHeader[:min(len(apiKeyHeader), 10)]+"...")
-			ac.apiKeyMiddleware(c)
-		} else if authHeader != "" {
-			// Route to JWT authentication
-			ac.logger.Infow("Routing to JWT authentication", "ip", c.ClientIP(), "path", c.Request.URL.Path, "tokenPrefix", authHeader[:min(len(authHeader), 10)]+"...")
-			ac.jwtMiddleware(c)
-		} else {
-			// No authentication headers provided
-			ac.logger.Debugw("Missing authentication headers", "ip", c.ClientIP(), "path", c.Request.URL.Path)
-			c.JSON(http.StatusUnauthorized, gin.H{"success": false, "message": "Authentication required: provide either X-API-Key header or Authorization header"})
-			c.Abort()
-			return
+			if apiKeyHeader != "" {
+				// Route to API key authentication
+				ac.logger.Infow("Routing to API key authentication", "ip", c.RealIP(), "path", c.Request().URL.Path, "keyPrefix", apiKeyHeader[:min(len(apiKeyHeader), 10)]+"...")
+				return ac.apiKeyMiddleware(next)(c)
+			} else if authHeader != "" {
+				// Route to JWT authentication
+				ac.logger.Infow("Routing to JWT authentication", "ip", c.RealIP(), "path", c.Request().URL.Path, "tokenPrefix", authHeader[:min(len(authHeader), 10)]+"...")
+				return ac.jwtMiddleware(next)(c)
+			} else {
+				// No authentication headers provided
+				ac.logger.Debugw("Missing authentication headers", "ip", c.RealIP(), "path", c.Request().URL.Path)
+				return c.JSON(http.StatusUnauthorized, map[string]any{"success": false, "message": "Authentication required: provide either X-API-Key header or Authorization header"})
+			}
 		}
 	}
 }

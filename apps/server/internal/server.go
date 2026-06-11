@@ -20,8 +20,8 @@ import (
 	"peekaping/internal/modules/websocket"
 	"peekaping/internal/version"
 
-	"github.com/labstack/echo/v4"
-	"github.com/labstack/echo/v4/middleware"
+	"github.com/labstack/echo/v5"
+	"github.com/labstack/echo/v5/middleware"
 	"go.uber.org/zap"
 )
 
@@ -31,7 +31,7 @@ import (
 // @Produce      json
 // @Success      200  {object}  map[string]string  "{"version": "1.2.3"}"
 // @Router       /version [get]
-func versionHandler(c echo.Context) error {
+func versionHandler(c *echo.Context) error {
 	return c.JSON(http.StatusOK, map[string]string{"version": version.Version})
 }
 
@@ -41,7 +41,7 @@ func versionHandler(c echo.Context) error {
 // @Produce      json
 // @Success      200  {object}  map[string]string  "{"status": "success"}"
 // @Router       /health [get]
-func healthHandler(c echo.Context) error {
+func healthHandler(c *echo.Context) error {
 	return c.JSON(http.StatusOK, map[string]string{"status": "success"})
 }
 
@@ -126,7 +126,7 @@ func ProvideServer(
 	// We removed gin-swagger. For now serve a basic handler.
 	// Full interactive Swagger UI can be added later by mounting static assets
 	// or adding a small echo-swagger dependency. The generated doc.json is still produced by swag.
-	e.GET("/swagger/*", func(c echo.Context) error {
+	e.GET("/swagger/*", func(c *echo.Context) error {
 		path := c.Param("*")
 		if path == "doc.json" || path == "doc.json/" {
 			// The actual spec is generated into docs/swagger.json by swag.
@@ -141,7 +141,7 @@ func ProvideServer(
 
 	// WebSocket / socket.io compatibility shims (raw writer/request delegation)
 	// Works the same way with Echo's access to underlying http objects.
-	e.Any("/socket.io/*f", func(c echo.Context) error {
+	e.Any("/socket.io/*f", func(c *echo.Context) error {
 		wsServer.ServeHTTP(c.Response().Writer, c.Request())
 		return nil
 	})

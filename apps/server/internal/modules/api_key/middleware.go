@@ -5,7 +5,7 @@ import (
 	"peekaping/internal/utils"
 	"strings"
 
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 )
 
 // MiddlewareProvider holds API key middleware functions
@@ -24,7 +24,7 @@ func NewMiddlewareProvider(service Service) *MiddlewareProvider {
 // This should be used as the final middleware in a chain for API key-only endpoints
 func (p *MiddlewareProvider) Auth() echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
-		return func(c echo.Context) error {
+		return func(c *echo.Context) error {
 			// Get the X-API-Key header
 			authHeader := c.Request().Header.Get("X-API-Key")
 			if authHeader == "" {

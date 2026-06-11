@@ -3,7 +3,7 @@ package api_key
 import (
 	"peekaping/internal/modules/auth"
 
-	"github.com/gin-gonic/gin"
+	"github.com/labstack/echo/v5"
 )
 
 type Route struct {
@@ -21,7 +21,7 @@ func NewRoute(
 	}
 }
 
-func (r *Route) ConnectRoute(router *gin.RouterGroup, controller *Controller) {
+func (r *Route) ConnectRoute(router *echo.Group, controller *Controller) {
 	apiKeys := router.Group("api-keys")
 
 	// Config endpoint doesn't require authentication

@@ -10,9 +10,29 @@ import (
 	"strings"
 	"time"
 
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 	"go.uber.org/zap"
 )
+
+// statusRecorder wraps ResponseWriter to capture the final status code.
+// Needed because in Echo v5, c.Response() returns http.ResponseWriter directly
+// (no .Status field like in v4).
+type statusRecorder struct {
+	http.ResponseWriter
+	status int
+}
+
+func (r *statusRecorder) WriteHeader(statusCode int) {
+	r.status = statusCode
+	r.ResponseWriter.WriteHeader(statusCode)
+}
+
+func (r *statusRecorder) Write(b []byte) (int, error) {
+	if r.status == 0 {
+		r.status = http.StatusOK
+	}
+	return r.ResponseWriter.Write(b)
+}
 
 // Service interface for bruteforce protection
 type Service interface {
@@ -25,7 +45,7 @@ type Service interface {
 	Reset(ctx context.Context, key string) error
 }
 
-type KeyExtractor func(echo.Context) (string, error)
+type KeyExtractor func(*echo.Context) (string, error)
 
 type Config struct {
 	MaxAttempts int
@@ -34,7 +54,7 @@ type Config struct {
 	// Which HTTP statuses of the wrapped handler mean "authentication failed"
 	FailureStatuses []int
 	// Optional custom blocked response (otherwise 429 with Retry-After)
-	OnBlocked func(c echo.Context, retryAfter time.Duration)
+	OnBlocked func(c *echo.Context, retryAfter time.Duration)
 }
 
 type Guard struct {
@@ -68,7 +88,7 @@ func New(cfg Config, service Service, ke KeyExtractor, logger *zap.SugaredLogger
 
 func (g *Guard) Middleware() echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
-		return func(c echo.Context) error {
+		return func(c *echo.Context) error {
 			key, err := g.keyExtractor(c)
 			if err != nil || key == "" {
 				// If we cannot extract key, we fallback to IP only.
@@ -95,13 +115,18 @@ func (g *Guard) Middleware() echo.MiddlewareFunc {
 				return nil
 			}
 
-			if err := next(c); err != nil {
-				// If the handler errored, we still want to evaluate status for brute force
-				// but we will return the error after.
-			}
+			// Wrap the response writer so we can capture the status written by the handler
+			// (required for Echo v5 where c.Response() returns plain http.ResponseWriter)
+			rec := &statusRecorder{ResponseWriter: c.Response(), status: 0}
+			c.SetResponse(rec)
+
+			err = next(c)
 
 			// After handler runs, decide success/failure by status
-			status := c.Response().Status
+			status := rec.status
+			if status == 0 {
+				status = http.StatusOK
+			}
 			if g.isFailure(status) {
 				now := time.Now()
 				// OnFailure atomically handles counting and locking
@@ -117,11 +142,11 @@ func (g *Guard) Middleware() echo.MiddlewareFunc {
 
 			// Only reset on explicit success statuses (200-299), not on other statuses like 400, 500
 			if status >= 200 && status < 300 {
-				if err := g.service.Reset(ctx, key); err != nil {
-					g.logger.Errorw("failed to reset bruteforce state", "key", key, "error", err)
+				if resetErr := g.service.Reset(ctx, key); resetErr != nil {
+					g.logger.Errorw("failed to reset bruteforce state", "key", key, "error", resetErr)
 				}
 			}
-			return nil
+			return err
 		}
 	}
 }
@@ -135,7 +160,7 @@ func (g *Guard) isFailure(status int) bool {
 	return false
 }
 
-func (g *Guard) block(c *gin.Context, retryAfter time.Duration) {
+func (g *Guard) block(c *echo.Context, retryAfter time.Duration) {
 	if g.cfg.OnBlocked != nil {
 		g.cfg.OnBlocked(c, retryAfter)
 		return
@@ -146,8 +171,8 @@ func (g *Guard) block(c *gin.Context, retryAfter time.Duration) {
 		retryAfter = 0
 	}
 
-	c.Header("Retry-After", fmt.Sprintf("%.0f", retryAfter.Seconds()))
-	c.AbortWithStatusJSON(http.StatusTooManyRequests, gin.H{
+	c.Response().Header().Set("Retry-After", fmt.Sprintf("%.0f", retryAfter.Seconds()))
+	_ = c.JSON(http.StatusTooManyRequests, map[string]any{
 		"success":     false,
 		"message":     "too many attempts, try later",
 		"retry_after": int(retryAfter.Seconds()),
@@ -157,21 +182,22 @@ func (g *Guard) block(c *gin.Context, retryAfter time.Duration) {
 // KeyByIPAndBodyField makes a key "<ip>:<lower(username)>"
 // It safely reads the field from JSON body without consuming it by preserving the original body.
 func KeyByIPAndBodyField(field string) KeyExtractor {
-	return func(c *gin.Context) (string, error) {
-		ip := c.ClientIP()
+	return func(c *echo.Context) (string, error) {
+		ip := c.RealIP()
 
 		// Only process JSON requests
-		if c.GetHeader("Content-Type") == "application/json" || strings.Contains(c.GetHeader("Content-Type"), "application/json") {
+		contentType := c.Request().Header.Get("Content-Type")
+		if contentType == "application/json" || strings.Contains(contentType, "application/json") {
 			// Read body safely without consuming it
-			if c.Request.Body != nil {
-				bodyBytes, err := io.ReadAll(c.Request.Body)
+			if c.Request().Body != nil {
+				bodyBytes, err := io.ReadAll(c.Request().Body)
 				if err != nil {
 					// On error, fallback to IP only
 					return ip, nil
 				}
 
 				// Restore the body for subsequent handlers
-				c.Request.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
+				c.Request().Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
 
 				// Try to parse JSON and extract field
 				var m map[string]any
@@ -185,9 +211,9 @@ func KeyByIPAndBodyField(field string) KeyExtractor {
 			}
 		}
 
-		// For form requests, try PostForm (this doesn't interfere with JSON parsing)
-		if c.Request.Header.Get("Content-Type") == "application/x-www-form-urlencoded" {
-			if v := c.PostForm(field); v != "" {
+		// For form requests, try FormValue (Echo equivalent)
+		if contentType == "application/x-www-form-urlencoded" {
+			if v := c.FormValue(field); v != "" {
 				return fmt.Sprintf("%s:%s", ip, strings.ToLower(v)), nil
 			}
 		}

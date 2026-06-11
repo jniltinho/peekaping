@@ -6,7 +6,7 @@ import (
 	"peekaping/internal/modules/auth"
 	"peekaping/internal/utils"
 
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 	"go.uber.org/zap"
 )
 
@@ -40,7 +40,7 @@ func NewAuthChain(
 // - Otherwise: routes to JWT authentication (expects Authorization header with Bearer token)
 func (ac *AuthChain) AllAuth() echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
-		return func(c echo.Context) error {
+		return func(c *echo.Context) error {
 			apiKeyHeader := c.Request().Header.Get("X-API-Key")
 			authHeader := c.Request().Header.Get("Authorization")
 

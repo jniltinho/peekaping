@@ -12,7 +12,7 @@ import (
 
 	"peekaping/internal/modules/shared"
 
-	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v5"
 	"go.uber.org/zap"
 )
 
@@ -55,7 +55,7 @@ func RegisterPushEndpoint(
 	queueService queue.Service,
 	logger *zap.SugaredLogger,
 ) {
-	router.GET("/push/:token", func(c echo.Context) error {
+	router.GET("/push/:token", func(c *echo.Context) error {
 		token := c.Param("token")
 
 		monitor, err := monitorService.FindOneByPushToken(c.Request().Context(), token)
