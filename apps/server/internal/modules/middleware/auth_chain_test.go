@@ -13,16 +13,16 @@ import (
 
 // TestAuthChain is a test-specific version that allows us to inject mock handlers
 type TestAuthChain struct {
-	jwtMiddleware    echo.MiddlewareFunc
-	apiKeyMiddleware echo.MiddlewareFunc
-	logger           *zap.SugaredLogger
+	jwtHandler    echo.HandlerFunc
+	apiKeyHandler echo.HandlerFunc
+	logger        *zap.SugaredLogger
 }
 
-func NewTestAuthChain(jwtHandler, apiKeyHandler echo.MiddlewareFunc, logger *zap.SugaredLogger) *TestAuthChain {
+func NewTestAuthChain(jwtHandler, apiKeyHandler echo.HandlerFunc, logger *zap.SugaredLogger) *TestAuthChain {
 	return &TestAuthChain{
-		jwtMiddleware:    jwtHandler,
-		apiKeyMiddleware: apiKeyHandler,
-		logger:           logger.Named("[auth_chain]"),
+		jwtHandler:    jwtHandler,
+		apiKeyHandler: apiKeyHandler,
+		logger:        logger.Named("[auth_chain]"),
 	}
 }
 
@@ -36,11 +36,11 @@ func (ac *TestAuthChain) AllAuth() echo.MiddlewareFunc {
 			if apiKeyHeader != "" {
 				// Route to API key authentication
 				ac.logger.Infow("Routing to API key authentication", "ip", c.RealIP(), "path", c.Request().URL.Path, "keyPrefix", apiKeyHeader[:min(len(apiKeyHeader), 10)]+"...")
-				return ac.apiKeyMiddleware(next)(c)
+				return ac.apiKeyHandler(c)
 			} else if authHeader != "" {
 				// Route to JWT authentication
 				ac.logger.Infow("Routing to JWT authentication", "ip", c.RealIP(), "path", c.Request().URL.Path, "tokenPrefix", authHeader[:min(len(authHeader), 10)]+"...")
-				return ac.jwtMiddleware(next)(c)
+				return ac.jwtHandler(c)
 			} else {
 				// No authentication headers provided
 				ac.logger.Debugw("Missing authentication headers", "ip", c.RealIP(), "path", c.Request().URL.Path)
@@ -88,17 +88,15 @@ func TestAuthChain_AllAuth_RoutesToAPIKey(t *testing.T) {
 	assert.False(t, jwtCalled)
 
 	// Verify context values
-	authType, exists := c.Get("authType")
-	assert.True(t, exists)
+	authType := c.Get("authType")
 	assert.Equal(t, "api_key", authType)
 
-	apiKeyId, exists := c.Get("apiKeyId")
-	assert.True(t, exists)
+	apiKeyId := c.Get("apiKeyId")
 	assert.Equal(t, "test-api-key-id", apiKeyId)
 
 	// Verify JWT context is not set
-	_, jwtExists := c.Get("userId")
-	assert.False(t, jwtExists)
+	jwtUserId := c.Get("userId")
+	assert.Nil(t, jwtUserId)
 }
 
 func TestAuthChain_AllAuth_RoutesToJWT(t *testing.T) {
@@ -139,17 +137,15 @@ func TestAuthChain_AllAuth_RoutesToJWT(t *testing.T) {
 	assert.False(t, apiKeyCalled)
 
 	// Verify context values
-	authType, exists := c.Get("authType")
-	assert.True(t, exists)
+	authType := c.Get("authType")
 	assert.Equal(t, "jwt", authType)
 
-	userId, exists := c.Get("userId")
-	assert.True(t, exists)
+	userId := c.Get("userId")
 	assert.Equal(t, "test-user-id", userId)
 
 	// Verify API key context is not set
-	_, apiKeyExists := c.Get("apiKeyId")
-	assert.False(t, apiKeyExists)
+	apiKeyId := c.Get("apiKeyId")
+	assert.Nil(t, apiKeyId)
 }
 
 func TestAuthChain_AllAuth_BothHeaders(t *testing.T) {
@@ -191,12 +187,10 @@ func TestAuthChain_AllAuth_BothHeaders(t *testing.T) {
 	assert.False(t, jwtCalled)
 
 	// Verify API key context values
-	authType, exists := c.Get("authType")
-	assert.True(t, exists)
+	authType := c.Get("authType")
 	assert.Equal(t, "api_key", authType)
 
-	apiKeyId, exists := c.Get("apiKeyId")
-	assert.True(t, exists)
+	apiKeyId := c.Get("apiKeyId")
 	assert.Equal(t, "test-api-key-id", apiKeyId)
 }
 
@@ -343,8 +337,7 @@ func TestAuthChain_AllAuth_JWTWithEmptyAPIKey(t *testing.T) {
 	assert.True(t, jwtCalled)
 
 	// Verify JWT context values
-	authType, exists := c.Get("authType")
-	assert.True(t, exists)
+	authType := c.Get("authType")
 	assert.Equal(t, "jwt", authType)
 }
 
