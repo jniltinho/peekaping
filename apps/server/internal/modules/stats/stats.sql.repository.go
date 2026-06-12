@@ -85,7 +85,18 @@ func (r *SQLRepositoryImpl) GetOrCreateStat(ctx context.Context, monitorID strin
 			UpdatedAt:   time.Now().UTC(),
 		}
 
-		_, err = r.db.NewInsert().Model(sm).Exec(ctx)
+		// Use Ignore to handle concurrent inserts racing on the same bucket
+		_, err = r.db.NewInsert().Model(sm).Ignore().Exec(ctx)
+		if err != nil {
+			return nil, err
+		}
+
+		// Re-fetch in case the insert was skipped due to a concurrent insert
+		sm = new(sqlModel)
+		err = r.db.NewSelect().
+			Model(sm).
+			Where("monitor_id = ? AND stat_ts = ?", monitorID, timestamp).
+			Scan(ctx)
 		if err != nil {
 			return nil, err
 		}
@@ -131,7 +142,8 @@ func (r *SQLRepositoryImpl) UpsertStat(ctx context.Context, stat *Stat, period S
 		}
 		sm.CreatedAt = time.Now().UTC()
 
-		_, err = r.db.NewInsert().Model(sm).Exec(ctx)
+		// Use Ignore to handle concurrent inserts racing on the same bucket
+		_, err = r.db.NewInsert().Model(sm).Ignore().Exec(ctx)
 		if err != nil {
 			return err
 		}

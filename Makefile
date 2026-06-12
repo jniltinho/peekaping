@@ -47,6 +47,23 @@ run-bundle-sqlite: ## Run peekaping-bundle-sqlite:dev container with Redis queue
 		-e ENGINE_USE_REDIS=true \
 		peekaping-bundle-sqlite:dev
 
+.PHONY: run-bundle-postgres
+run-bundle-postgres: ## Run peekaping-bundle-postgres:dev container with Redis queue enabled
+	docker run --rm --name peekaping -p 8383:8383 \
+		-v peekaping-postgres-data:/var/lib/postgresql/data \
+		-e TZ=America/Sao_Paulo \
+		-e MODE=dev \
+		-e DB_TYPE=postgres \
+		-e DB_HOST=localhost \
+		-e DB_PORT=5432 \
+		-e DB_NAME=peekaping \
+		-e DB_USER=peekaping \
+		-e DB_PASS=password \
+		-e ENGINE_WORKERS=10 \
+		-e ENGINE_SCHEDULER_INTERVAL=10s \
+		-e ENGINE_USE_REDIS=true \
+		peekaping-bundle-postgres:dev
+
 .PHONY: run-bundle-mysql
 run-bundle-mysql: ## Run peekaping-bundle-mysql:dev container with Redis queue enabled
 	docker run --rm --name peekaping -p 8383:8383 \
