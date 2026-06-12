@@ -18,6 +18,4 @@ services:
       - ./.data/mysql:/var/lib/mysql
       # Application logs persistence
       - ./.data/logs:/var/log/supervisor
-      # Optional: Custom Caddyfile override
-      # - ./custom-Caddyfile:/etc/caddy/Caddyfile:ro
     container_name: peekaping-bundle-mysql

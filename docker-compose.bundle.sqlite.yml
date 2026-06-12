@@ -16,6 +16,4 @@ services:
       - ./.data/sqlite:/app/data
       # Application logs persistence
       - ./.data/logs:/var/log/supervisor
-      # Optional: Custom Caddyfile override
-      # - ./custom-Caddyfile:/etc/caddy/Caddyfile:ro
     container_name: peekaping-bundle-sqlite
