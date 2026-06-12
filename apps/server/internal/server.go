@@ -37,6 +37,7 @@ func ProvideServer(
 	monitorRoute *monitor.MonitorRoute,
 	monitorController *monitor.MonitorController,
 	authRoute *auth.Route,
+	authUsersRoute *auth.UsersRoute,
 	authController *auth.Controller,
 	wsServer *websocket.Server,
 	notificationChannelRoute *notification_channel.Route,
@@ -84,6 +85,7 @@ func ProvideServer(
 
 	monitorRoute.ConnectRoute(api, monitorController)
 	authRoute.ConnectRoute(api, authController)
+	authUsersRoute.ConnectRoute(api, authController)
 	notificationChannelRoute.ConnectRoute(api, notificationChannelController)
 	proxyRoute.ConnectRoute(api, proxyController)
 	settingRoute.ConnectRoute(api, settingController)

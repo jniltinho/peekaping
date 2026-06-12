@@ -1,6 +1,7 @@
 import { Route, Navigate } from "react-router-dom";
 import MonitorsPage from "@/app/monitors/page";
 import NewMonitor from "@/app/monitors/new/page";
+import UsersPage from "@/app/users/page";
 import SettingsPage from "@/app/settings/page";
 import ProxiesPage from "@/app/proxies/page";
 import NewProxy from "@/app/proxies/new/page";
@@ -56,6 +57,9 @@ export const protectedRoutes = [
   <Route path="/tags" element={<TagsPage />} />,
   <Route path="/tags/new" element={<NewTag />} />,
   <Route path="/tags/:id/edit" element={<EditTag />} />,
+
+  // User management routes
+  <Route path="/users" element={<UsersPage />} />,
 
   // Default redirect
   <Route path="*" element={<Navigate to="/monitors" replace />} />

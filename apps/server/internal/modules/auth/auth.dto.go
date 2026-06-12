@@ -82,3 +82,24 @@ type TwoFADisableRequestDto struct {
 	Email    string `json:"email" validate:"required,email"`
 	Password string `json:"password" validate:"required"`
 }
+
+type CreateAdminDto struct {
+	Email    string `json:"email" validate:"required,email"`
+	Password string `json:"password" validate:"required,password"`
+}
+
+type SetActiveDto struct {
+	Active bool `json:"active"`
+}
+
+type RegistrationStatusResponse struct {
+	Enabled bool `json:"enabled"`
+}
+
+type RegistrationStatusDto struct {
+	Enabled bool `json:"enabled"`
+}
+
+type ResetPasswordDto struct {
+	Password string `json:"password" validate:"required,password"`
+}

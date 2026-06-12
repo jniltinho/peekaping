@@ -104,6 +104,20 @@ func (r *SQLRepositoryImpl) FindByID(ctx context.Context, id string) (*Model, er
 	return toDomainModelFromSQL(sm), nil
 }
 
+func (r *SQLRepositoryImpl) FindAll(ctx context.Context) ([]*Model, error) {
+	var sms []sqlModel
+	err := r.db.NewSelect().Model(&sms).OrderExpr("created_at ASC").Scan(ctx)
+	if err != nil {
+		return nil, err
+	}
+	models := make([]*Model, len(sms))
+	for i, sm := range sms {
+		sm := sm
+		models[i] = toDomainModelFromSQL(&sm)
+	}
+	return models, nil
+}
+
 func (r *SQLRepositoryImpl) FindAllCount(ctx context.Context) (int64, error) {
 	count, err := r.db.NewSelect().Model((*sqlModel)(nil)).Count(ctx)
 	return int64(count), err
@@ -147,5 +161,10 @@ func (r *SQLRepositoryImpl) Update(ctx context.Context, id string, entity *Updat
 	query = query.Set("updated_at = ?", time.Now().UTC())
 
 	_, err := query.Exec(ctx)
+	return err
+}
+
+func (r *SQLRepositoryImpl) Delete(ctx context.Context, id string) error {
+	_, err := r.db.NewDelete().Model((*sqlModel)(nil)).Where("id = ?", id).Exec(ctx)
 	return err
 }

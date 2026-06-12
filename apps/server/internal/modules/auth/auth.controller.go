@@ -79,7 +79,10 @@ func (c *Controller) Register(e *echo.Context) error {
 	response, err := c.service.Register(e.Request().Context(), dto)
 	if err != nil {
 		c.logger.Errorw("Failed to register admin", "error", err)
-		if err.Error() == "admin already exists" {
+		if err.Error() == "registration disabled" {
+			return e.JSON(http.StatusForbidden, utils.NewFailResponse(err.Error()))
+		}
+		if err.Error() == "admin with this email already exists" {
 			return e.JSON(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
 		}
 		return e.JSON(http.StatusInternalServerError, utils.NewFailResponse(err.Error()))
@@ -286,4 +289,208 @@ func (c *Controller) DisableTwoFA(e *echo.Context) error {
 		return e.JSON(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
 	}
 	return e.JSON(http.StatusOK, utils.NewSuccessResponse[any]("2FA disabled successfully", nil))
+}
+
+// @Router		/users [get]
+// @Summary		List all admin users
+// @Tags		Users
+// @Produce		json
+// @Security	JwtAuth
+// @Security	ApiKeyAuth
+// @Success		200	{object}	utils.ApiResponse[[]Model]
+// @Failure		401	{object}	utils.APIError[any]
+// @Failure		500	{object}	utils.APIError[any]
+func (c *Controller) ListUsers(e *echo.Context) error {
+	users, err := c.service.FindAll(e.Request().Context())
+	if err != nil {
+		c.logger.Errorw("Failed to list users", "error", err)
+		return e.JSON(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
+	}
+	return e.JSON(http.StatusOK, utils.NewSuccessResponse("success", users))
+}
+
+// @Router		/users [post]
+// @Summary		Create a new admin user
+// @Tags		Users
+// @Produce		json
+// @Accept		json
+// @Security	JwtAuth
+// @Security	ApiKeyAuth
+// @Param		body	body	CreateAdminDto	true	"Create admin data"
+// @Success		201	{object}	utils.ApiResponse[Model]
+// @Failure		400	{object}	utils.APIError[any]
+// @Failure		401	{object}	utils.APIError[any]
+// @Failure		500	{object}	utils.APIError[any]
+func (c *Controller) CreateUser(e *echo.Context) error {
+	var dto CreateAdminDto
+	if err := e.Bind(&dto); err != nil {
+		return e.JSON(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
+	}
+	if err := c.validateWithDetails(dto); err != nil {
+		return e.JSON(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
+	}
+	user, err := c.service.CreateAdmin(e.Request().Context(), dto)
+	if err != nil {
+		if err.Error() == "admin with this email already exists" {
+			return e.JSON(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
+		}
+		c.logger.Errorw("Failed to create user", "error", err)
+		return e.JSON(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
+	}
+	return e.JSON(http.StatusCreated, utils.NewSuccessResponse("User created successfully", user))
+}
+
+// @Router		/users/{id} [delete]
+// @Summary		Delete an admin user
+// @Tags		Users
+// @Produce		json
+// @Security	JwtAuth
+// @Security	ApiKeyAuth
+// @Param		id	path	string	true	"User ID"
+// @Success		200	{object}	utils.ApiResponse[any]
+// @Failure		400	{object}	utils.APIError[any]
+// @Failure		401	{object}	utils.APIError[any]
+// @Failure		500	{object}	utils.APIError[any]
+func (c *Controller) DeleteUser(e *echo.Context) error {
+	callerID, ok := e.Get("userId").(string)
+	if !ok || callerID == "" {
+		return e.JSON(http.StatusUnauthorized, utils.NewFailResponse("Unauthorized"))
+	}
+	targetID := e.Param("id")
+
+	err := c.service.DeleteAdmin(e.Request().Context(), callerID, targetID)
+	if err != nil {
+		if err.Error() == "cannot delete your own account" || err.Error() == "cannot delete the last admin" {
+			return e.JSON(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
+		}
+		c.logger.Errorw("Failed to delete user", "error", err)
+		return e.JSON(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
+	}
+	return e.JSON(http.StatusOK, utils.NewSuccessResponse[any]("User deleted successfully", nil))
+}
+
+// @Router		/users/{id}/active [patch]
+// @Summary		Set user active status
+// @Tags		Users
+// @Produce		json
+// @Accept		json
+// @Security	JwtAuth
+// @Security	ApiKeyAuth
+// @Param		id		path	string		true	"User ID"
+// @Param		body	body	SetActiveDto	true	"Active status"
+// @Success		200	{object}	utils.ApiResponse[Model]
+// @Failure		400	{object}	utils.APIError[any]
+// @Failure		401	{object}	utils.APIError[any]
+// @Failure		500	{object}	utils.APIError[any]
+func (c *Controller) SetUserActive(e *echo.Context) error {
+	callerID, ok := e.Get("userId").(string)
+	if !ok || callerID == "" {
+		return e.JSON(http.StatusUnauthorized, utils.NewFailResponse("Unauthorized"))
+	}
+	targetID := e.Param("id")
+
+	var dto SetActiveDto
+	if err := e.Bind(&dto); err != nil {
+		return e.JSON(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
+	}
+
+	user, err := c.service.SetActive(e.Request().Context(), callerID, targetID, dto.Active)
+	if err != nil {
+		if err.Error() == "cannot change your own active status" {
+			return e.JSON(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
+		}
+		c.logger.Errorw("Failed to set user active status", "error", err)
+		return e.JSON(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
+	}
+	return e.JSON(http.StatusOK, utils.NewSuccessResponse("User updated successfully", user))
+}
+
+// @Router		/auth/registration-status [get]
+// @Summary		Get public registration status (no auth required)
+// @Tags		Auth
+// @Produce		json
+// @Success		200	{object}	utils.ApiResponse[RegistrationStatusResponse]
+// @Failure		500	{object}	utils.APIError[any]
+func (c *Controller) GetPublicRegistrationStatus(e *echo.Context) error {
+	enabled, err := c.service.GetRegistrationEnabled(e.Request().Context())
+	if err != nil {
+		c.logger.Errorw("Failed to get registration status", "error", err)
+		return e.JSON(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
+	}
+	return e.JSON(http.StatusOK, utils.NewSuccessResponse("success", RegistrationStatusResponse{Enabled: enabled}))
+}
+
+// @Router		/settings/registration [get]
+// @Summary		Get registration enabled status
+// @Tags		Settings
+// @Produce		json
+// @Security	JwtAuth
+// @Security	ApiKeyAuth
+// @Success		200	{object}	utils.ApiResponse[RegistrationStatusResponse]
+// @Failure		401	{object}	utils.APIError[any]
+// @Failure		500	{object}	utils.APIError[any]
+func (c *Controller) GetRegistrationStatus(e *echo.Context) error {
+	enabled, err := c.service.GetRegistrationEnabled(e.Request().Context())
+	if err != nil {
+		c.logger.Errorw("Failed to get registration status", "error", err)
+		return e.JSON(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
+	}
+	return e.JSON(http.StatusOK, utils.NewSuccessResponse("success", RegistrationStatusResponse{Enabled: enabled}))
+}
+
+// @Router		/users/{id}/password [put]
+// @Summary		Reset admin user password
+// @Tags		Users
+// @Produce		json
+// @Accept		json
+// @Security	JwtAuth
+// @Param		id		path	string			true	"User ID"
+// @Param		body	body	ResetPasswordDto	true	"New password"
+// @Success		200	{object}	utils.ApiResponse[any]
+// @Failure		400	{object}	utils.APIError[any]
+// @Failure		401	{object}	utils.APIError[any]
+// @Failure		500	{object}	utils.APIError[any]
+func (c *Controller) ResetUserPassword(e *echo.Context) error {
+	targetID := e.Param("id")
+
+	var dto ResetPasswordDto
+	if err := e.Bind(&dto); err != nil {
+		return e.JSON(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
+	}
+	if err := c.validateWithDetails(dto); err != nil {
+		return e.JSON(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
+	}
+
+	err := c.service.ResetAdminPassword(e.Request().Context(), targetID, dto.Password)
+	if err != nil {
+		c.logger.Errorw("Failed to reset user password", "error", err)
+		return e.JSON(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
+	}
+	return e.JSON(http.StatusOK, utils.NewSuccessResponse[any]("Password reset successfully", nil))
+}
+
+// @Router		/settings/registration [put]
+// @Summary		Set registration enabled status
+// @Tags		Settings
+// @Produce		json
+// @Accept		json
+// @Security	JwtAuth
+// @Security	ApiKeyAuth
+// @Param		body	body	RegistrationStatusDto	true	"Registration status"
+// @Success		200	{object}	utils.ApiResponse[any]
+// @Failure		400	{object}	utils.APIError[any]
+// @Failure		401	{object}	utils.APIError[any]
+// @Failure		500	{object}	utils.APIError[any]
+func (c *Controller) UpdateRegistrationStatus(e *echo.Context) error {
+	var dto RegistrationStatusDto
+	if err := e.Bind(&dto); err != nil {
+		return e.JSON(http.StatusBadRequest, utils.NewFailResponse(err.Error()))
+	}
+
+	err := c.service.SetRegistrationEnabled(e.Request().Context(), dto.Enabled)
+	if err != nil {
+		c.logger.Errorw("Failed to update registration status", "error", err)
+		return e.JSON(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
+	}
+	return e.JSON(http.StatusOK, utils.NewSuccessResponse[any]("Registration status updated", nil))
 }

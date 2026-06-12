@@ -3,6 +3,7 @@ package auth
 import (
 	"context"
 	"errors"
+	"peekaping/internal/modules/shared"
 	"time"
 
 	"github.com/pquerna/otp/totp"
@@ -16,6 +17,19 @@ type Service interface {
 	RefreshToken(ctx context.Context, refreshToken string) (*LoginResponse, error)
 	UpdatePassword(ctx context.Context, userId string, dto UpdatePasswordDto) error
 
+	// Admin CRUD
+	FindAll(ctx context.Context) ([]*Model, error)
+	CreateAdmin(ctx context.Context, dto CreateAdminDto) (*Model, error)
+	DeleteAdmin(ctx context.Context, callerID, targetID string) error
+	SetActive(ctx context.Context, callerID, targetID string, active bool) (*Model, error)
+
+	// Registration toggle
+	GetRegistrationEnabled(ctx context.Context) (bool, error)
+	SetRegistrationEnabled(ctx context.Context, enabled bool) error
+
+	// Password reset by admin
+	ResetAdminPassword(ctx context.Context, targetID, newPassword string) error
+
 	// 2FA methods
 	SetupTwoFA(ctx context.Context, userId, password string) (secret string, provisioningURI string, err error)
 	VerifyTwoFA(ctx context.Context, userId, code string) (bool, error)
@@ -23,32 +37,35 @@ type Service interface {
 }
 
 type ServiceImpl struct {
-	repo       Repository
-	tokenMaker *TokenMaker
-	logger     *zap.SugaredLogger
+	repo           Repository
+	tokenMaker     *TokenMaker
+	logger         *zap.SugaredLogger
+	settingService shared.SettingService
 }
 
 func NewService(
 	repo Repository,
 	tokenMaker *TokenMaker,
 	logger *zap.SugaredLogger,
+	settingService shared.SettingService,
 ) Service {
 	return &ServiceImpl{
-		repo:       repo,
-		tokenMaker: tokenMaker,
-		logger:     logger.Named("[auth-service]"),
+		repo:           repo,
+		tokenMaker:     tokenMaker,
+		logger:         logger.Named("[auth-service]"),
+		settingService: settingService,
 	}
 }
 
 func (s *ServiceImpl) Register(ctx context.Context, dto RegisterDto) (*LoginResponse, error) {
-	count, err := s.repo.FindAllCount(ctx)
+	enabled, err := s.GetRegistrationEnabled(ctx)
 	if err != nil {
 		return nil, err
 	}
-
-	if count > 0 {
-		return nil, errors.New("admin already exists")
+	if !enabled {
+		return nil, errors.New("registration disabled")
 	}
+
 	// Check if admin with this email already exists
 	existingAdmin, err := s.repo.FindByEmail(ctx, dto.Email)
 	if err == nil && existingAdmin != nil {
@@ -109,6 +126,10 @@ func (s *ServiceImpl) Login(ctx context.Context, dto LoginDto) (*LoginResponse, 
 	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(dto.Password))
 	if err != nil {
 		return nil, errors.New("invalid credentials")
+	}
+
+	if !user.Active {
+		return nil, errors.New("Account is disabled")
 	}
 
 	// Enforce 2FA if enabled
@@ -302,4 +323,91 @@ func (s *ServiceImpl) DisableTwoFA(ctx context.Context, userId, password string)
 	}
 
 	return nil
+}
+
+func (s *ServiceImpl) FindAll(ctx context.Context) ([]*Model, error) {
+	return s.repo.FindAll(ctx)
+}
+
+func (s *ServiceImpl) CreateAdmin(ctx context.Context, dto CreateAdminDto) (*Model, error) {
+	existing, err := s.repo.FindByEmail(ctx, dto.Email)
+	if err == nil && existing != nil {
+		return nil, errors.New("admin with this email already exists")
+	}
+
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(dto.Password), bcrypt.DefaultCost)
+	if err != nil {
+		return nil, err
+	}
+
+	user := &Model{
+		Email:     dto.Email,
+		Password:  string(hashedPassword),
+		Active:    true,
+		CreatedAt: time.Now().UTC(),
+		UpdatedAt: time.Now().UTC(),
+	}
+
+	return s.repo.Create(ctx, user)
+}
+
+func (s *ServiceImpl) DeleteAdmin(ctx context.Context, callerID, targetID string) error {
+	if callerID == targetID {
+		return errors.New("cannot delete your own account")
+	}
+
+	count, err := s.repo.FindAllCount(ctx)
+	if err != nil {
+		return err
+	}
+	if count <= 1 {
+		return errors.New("cannot delete the last admin")
+	}
+
+	return s.repo.Delete(ctx, targetID)
+}
+
+func (s *ServiceImpl) SetActive(ctx context.Context, callerID, targetID string, active bool) (*Model, error) {
+	if callerID == targetID {
+		return nil, errors.New("cannot change your own active status")
+	}
+
+	err := s.repo.Update(ctx, targetID, &UpdateModel{Active: &active})
+	if err != nil {
+		return nil, err
+	}
+
+	return s.repo.FindByID(ctx, targetID)
+}
+
+func (s *ServiceImpl) GetRegistrationEnabled(ctx context.Context) (bool, error) {
+	setting, err := s.settingService.GetByKey(ctx, "REGISTRATION_ENABLED")
+	if err != nil {
+		return false, err
+	}
+	if setting == nil {
+		return true, nil
+	}
+	return setting.Value == "true", nil
+}
+
+func (s *ServiceImpl) ResetAdminPassword(ctx context.Context, targetID, newPassword string) error {
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(newPassword), bcrypt.DefaultCost)
+	if err != nil {
+		return err
+	}
+	password := string(hashedPassword)
+	return s.repo.Update(ctx, targetID, &UpdateModel{Password: &password})
+}
+
+func (s *ServiceImpl) SetRegistrationEnabled(ctx context.Context, enabled bool) error {
+	value := "false"
+	if enabled {
+		value = "true"
+	}
+	_, err := s.settingService.SetByKey(ctx, "REGISTRATION_ENABLED", &shared.SettingCreateUpdateDto{
+		Value: value,
+		Type:  "bool",
+	})
+	return err
 }

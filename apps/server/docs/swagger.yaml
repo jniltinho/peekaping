@@ -94,6 +94,16 @@ definitions:
         minLength: 1
         type: string
     type: object
+  auth.CreateAdminDto:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    required:
+    - email
+    - password
+    type: object
   auth.LoginDto:
     properties:
       email:
@@ -146,6 +156,28 @@ definitions:
     required:
     - email
     - password
+    type: object
+  auth.RegistrationStatusDto:
+    properties:
+      enabled:
+        type: boolean
+    type: object
+  auth.RegistrationStatusResponse:
+    properties:
+      enabled:
+        type: boolean
+    type: object
+  auth.ResetPasswordDto:
+    properties:
+      password:
+        type: string
+    required:
+    - password
+    type: object
+  auth.SetActiveDto:
+    properties:
+      active:
+        type: boolean
     type: object
   auth.TwoFADisableRequestDto:
     description: TwoFADisableRequestDto is used to request 2FA disable
@@ -1166,6 +1198,18 @@ definitions:
     - data
     - message
     type: object
+  utils.ApiResponse-array_auth_Model:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/auth.Model'
+        type: array
+      message:
+        type: string
+    required:
+    - data
+    - message
+    type: object
   utils.ApiResponse-array_heartbeat_Model:
     properties:
       data:
@@ -1266,6 +1310,26 @@ definitions:
     properties:
       data:
         $ref: '#/definitions/auth.LoginResponse'
+      message:
+        type: string
+    required:
+    - data
+    - message
+    type: object
+  utils.ApiResponse-auth_Model:
+    properties:
+      data:
+        $ref: '#/definitions/auth.Model'
+      message:
+        type: string
+    required:
+    - data
+    - message
+    type: object
+  utils.ApiResponse-auth_RegistrationStatusResponse:
+    properties:
+      data:
+        $ref: '#/definitions/auth.RegistrationStatusResponse'
       message:
         type: string
     required:
@@ -1773,6 +1837,22 @@ paths:
           schema:
             $ref: '#/definitions/utils.APIError'
       summary: Register new admin
+      tags:
+      - Auth
+  /auth/registration-status:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.ApiResponse-auth_RegistrationStatusResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.APIError'
+      summary: Get public registration status (no auth required)
       tags:
       - Auth
   /badge/{monitorId}/cert-exp:
@@ -3313,6 +3393,64 @@ paths:
       summary: Set setting by key
       tags:
       - Settings
+  /settings/registration:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.ApiResponse-auth_RegistrationStatusResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.APIError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.APIError'
+      security:
+      - JwtAuth: []
+      - ApiKeyAuth: []
+      summary: Get registration enabled status
+      tags:
+      - Settings
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: Registration status
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/auth.RegistrationStatusDto'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.ApiResponse-any'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.APIError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.APIError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.APIError'
+      security:
+      - JwtAuth: []
+      - ApiKeyAuth: []
+      summary: Set registration enabled status
+      tags:
+      - Settings
   /status-pages:
     get:
       parameters:
@@ -3797,6 +3935,178 @@ paths:
       summary: Update tag
       tags:
       - Tags
+  /users:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.ApiResponse-array_auth_Model'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.APIError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.APIError'
+      security:
+      - JwtAuth: []
+      - ApiKeyAuth: []
+      summary: List all admin users
+      tags:
+      - Users
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Create admin data
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/auth.CreateAdminDto'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/utils.ApiResponse-auth_Model'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.APIError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.APIError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.APIError'
+      security:
+      - JwtAuth: []
+      - ApiKeyAuth: []
+      summary: Create a new admin user
+      tags:
+      - Users
+  /users/{id}:
+    delete:
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.ApiResponse-any'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.APIError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.APIError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.APIError'
+      security:
+      - JwtAuth: []
+      - ApiKeyAuth: []
+      summary: Delete an admin user
+      tags:
+      - Users
+  /users/{id}/active:
+    patch:
+      consumes:
+      - application/json
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Active status
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/auth.SetActiveDto'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.ApiResponse-auth_Model'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.APIError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.APIError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.APIError'
+      security:
+      - JwtAuth: []
+      - ApiKeyAuth: []
+      summary: Set user active status
+      tags:
+      - Users
+  /users/{id}/password:
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: New password
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/auth.ResetPasswordDto'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.ApiResponse-any'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.APIError'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.APIError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.APIError'
+      security:
+      - JwtAuth: []
+      summary: Reset admin user password
+      tags:
+      - Users
   /version:
     get:
       description: Returns the current server version

@@ -11,6 +11,7 @@ func RegisterDependencies(container *dig.Container, cfg *config.Config) {
 	utils.RegisterRepository(container, NewSQLRepository)
 
 	container.Provide(NewRoute)
+	container.Provide(NewUsersRoute)
 	container.Provide(NewTokenMaker)
 	container.Provide(NewService)
 	container.Provide(NewController)

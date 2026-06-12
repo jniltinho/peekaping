@@ -19,8 +19,11 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { postAuthLoginMutation } from "@/api/@tanstack/react-query.gen";
-import { useMutation } from "@tanstack/react-query";
+import {
+  postAuthLoginMutation,
+  getAuthRegistrationStatusOptions,
+} from "@/api/@tanstack/react-query.gen";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { isAxiosError } from "axios";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -48,6 +51,12 @@ export function LoginForm({
 }: React.ComponentPropsWithoutRef<"div">) {
   const { t } = useLocalizedTranslation();
   const [serverError, setServerError] = React.useState<string | null>(null);
+
+  const { data: regData } = useQuery({
+    ...getAuthRegistrationStatusOptions(),
+    staleTime: 5 * 60 * 1000,
+  });
+  const registrationEnabled = regData?.data?.enabled ?? true;
 
   const setTokens = useAuthStore(
     (state: {
@@ -186,15 +195,17 @@ export function LoginForm({
                   {t("auth.login.submit")}
                 </Button>
 
-                <div className="text-center text-sm text-muted-foreground">
-                  {t("auth.login.no_account")}{" "}
-                  <Link
-                    to="/register"
-                    className="font-medium text-primary hover:underline"
-                  >
-                    {t("auth.login.sign_up")}
-                  </Link>
-                </div>
+                {registrationEnabled && (
+                  <div className="text-center text-sm text-muted-foreground">
+                    {t("auth.login.no_account")}{" "}
+                    <Link
+                      to="/register"
+                      className="font-medium text-primary hover:underline"
+                    >
+                      {t("auth.login.sign_up")}
+                    </Link>
+                  </div>
+                )}
               </form>
             </Form>
           </CardContent>

@@ -1,6 +1,7 @@
 package monitor
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"net/http"
@@ -493,6 +494,9 @@ func (ic *MonitorController) FindByMonitorIDPaginated(e *echo.Context) error {
 
 	results, err := ic.monitorService.GetHeartbeats(e.Request().Context(), id, limit, page, importantPtr, reverse)
 	if err != nil {
+		if errors.Is(err, context.Canceled) {
+			return nil
+		}
 		ic.logger.Errorw("Failed to get heartbeats", "error", err)
 		return e.JSON(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
 	}
@@ -584,6 +588,9 @@ func (ic *MonitorController) GetUptimeStats(e *echo.Context) error {
 
 	stats, err := ic.monitorService.GetUptimeStats(e.Request().Context(), id)
 	if err != nil {
+		if errors.Is(err, context.Canceled) {
+			return nil
+		}
 		ic.logger.Errorw("Failed to get uptime stats (short)", "error", err)
 		return e.JSON(http.StatusInternalServerError, utils.NewFailResponse("Internal server error"))
 	}
