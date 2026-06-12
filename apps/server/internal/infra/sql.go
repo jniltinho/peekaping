@@ -39,7 +39,7 @@ func ProvideSQLDB(
 
 	case "mysql":
 		// MySQL connection
-		dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?parseTime=true",
+		dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?parseTime=true&loc=UTC",
 			cfg.DBUser, cfg.DBPass, cfg.DBHost, cfg.DBPort, cfg.DBName)
 
 		sqldb, err = sql.Open("mysql", dsn)
@@ -53,7 +53,7 @@ func ProvideSQLDB(
 
 	case "mariadb":
 		// MariaDB connection (MySQL wire protocol compatible)
-		dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?parseTime=true",
+		dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?parseTime=true&loc=UTC",
 			cfg.DBUser, cfg.DBPass, cfg.DBHost, cfg.DBPort, cfg.DBName)
 
 		sqldb, err = sql.Open("mysql", dsn)

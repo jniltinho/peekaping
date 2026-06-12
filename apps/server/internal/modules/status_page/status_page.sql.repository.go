@@ -67,8 +67,8 @@ func NewSQLRepository(db *bun.DB) Repository {
 func (r *SQLRepositoryImpl) Create(ctx context.Context, statusPage *Model) (*Model, error) {
 	sm := toSQLModel(statusPage)
 	sm.ID = uuid.New().String()
-	sm.CreatedAt = time.Now()
-	sm.UpdatedAt = time.Now()
+	sm.CreatedAt = time.Now().UTC()
+	sm.UpdatedAt = time.Now().UTC()
 
 	_, err := r.db.NewInsert().Model(sm).Returning("*").Exec(ctx)
 	if err != nil {
@@ -174,7 +174,7 @@ func (r *SQLRepositoryImpl) Update(ctx context.Context, id string, statusPage *U
 	}
 
 	// Always set updated_at
-	query = query.Set("updated_at = ?", time.Now())
+	query = query.Set("updated_at = ?", time.Now().UTC())
 
 	_, err := query.Exec(ctx)
 	return err

@@ -60,8 +60,8 @@ func (r *SQLRepositoryImpl) Create(ctx context.Context, dto *CreateDto) (*Model,
 		ID:        uuid.New().String(),
 		MonitorID: dto.MonitorID,
 		InfoJSON:  dto.InfoJSON,
-		CreatedAt: time.Now(),
-		UpdatedAt: time.Now(),
+		CreatedAt: time.Now().UTC(),
+		UpdatedAt: time.Now().UTC(),
 	}
 
 	_, err := r.db.NewInsert().
@@ -78,7 +78,7 @@ func (r *SQLRepositoryImpl) Create(ctx context.Context, dto *CreateDto) (*Model,
 func (r *SQLRepositoryImpl) Update(ctx context.Context, monitorID string, dto *UpdateDto) (*Model, error) {
 	sm := &sqlModel{
 		InfoJSON:  dto.InfoJSON,
-		UpdatedAt: time.Now(),
+		UpdatedAt: time.Now().UTC(),
 	}
 
 	_, err := r.db.NewUpdate().
@@ -96,23 +96,34 @@ func (r *SQLRepositoryImpl) Update(ctx context.Context, monitorID string, dto *U
 }
 
 func (r *SQLRepositoryImpl) Upsert(ctx context.Context, monitorID string, infoJSON string) (*Model, error) {
-	sm := &sqlModel{
-		ID:        uuid.New().String(),
-		MonitorID: monitorID,
-		InfoJSON:  infoJSON,
-		CreatedAt: time.Now(),
-		UpdatedAt: time.Now(),
-	}
+	now := time.Now().UTC()
 
-	_, err := r.db.NewInsert().
-		Model(sm).
-		On("CONFLICT (monitor_id) DO UPDATE").
-		Set("info_json = EXCLUDED.info_json").
-		Set("updated_at = EXCLUDED.updated_at").
+	result, err := r.db.NewUpdate().
+		Model((*sqlModel)(nil)).
+		Where("monitor_id = ?", monitorID).
+		Set("info_json = ?", infoJSON).
+		Set("updated_at = ?", now).
 		Exec(ctx)
-
 	if err != nil {
 		return nil, err
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return nil, err
+	}
+
+	if rowsAffected == 0 {
+		sm := &sqlModel{
+			ID:        uuid.New().String(),
+			MonitorID: monitorID,
+			InfoJSON:  infoJSON,
+			CreatedAt: now,
+			UpdatedAt: now,
+		}
+		if _, err = r.db.NewInsert().Model(sm).Exec(ctx); err != nil {
+			return nil, err
+		}
 	}
 
 	return r.GetByMonitorID(ctx, monitorID)
@@ -128,7 +139,7 @@ func (r *SQLRepositoryImpl) Delete(ctx context.Context, monitorID string) error 
 }
 
 func (r *SQLRepositoryImpl) CleanupOldRecords(ctx context.Context, olderThanDays int) error {
-	cutoffDate := time.Now().AddDate(0, 0, -olderThanDays)
+	cutoffDate := time.Now().UTC().AddDate(0, 0, -olderThanDays)
 
 	_, err := r.db.NewDelete().
 		Model((*sqlModel)(nil)).

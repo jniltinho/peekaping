@@ -41,8 +41,8 @@ func (r *SQLRepositoryImpl) Create(ctx context.Context, entity *CreateUpdateDto)
 		ID:           uuid.New().String(),
 		MonitorID:    entity.MonitorID,
 		StatusPageID: entity.StatusPageID,
-		CreatedAt:    time.Now(),
-		UpdatedAt:    time.Now(),
+		CreatedAt:    time.Now().UTC(),
+		UpdatedAt:    time.Now().UTC(),
 	}
 
 	_, err := r.db.NewInsert().Model(sm).Returning("*").Exec(ctx)
@@ -90,7 +90,7 @@ func (r *SQLRepositoryImpl) UpdateFull(ctx context.Context, id string, entity *C
 		ID:           id,
 		MonitorID:    entity.MonitorID,
 		StatusPageID: entity.StatusPageID,
-		UpdatedAt:    time.Now(),
+		UpdatedAt:    time.Now().UTC(),
 	}
 
 	_, err := r.db.NewUpdate().
@@ -124,7 +124,7 @@ func (r *SQLRepositoryImpl) UpdatePartial(ctx context.Context, id string, entity
 	}
 
 	// Always set updated_at
-	query = query.Set("updated_at = ?", time.Now())
+	query = query.Set("updated_at = ?", time.Now().UTC())
 
 	_, err := query.Exec(ctx)
 	if err != nil {
@@ -144,8 +144,8 @@ func (r *SQLRepositoryImpl) AddMonitorToStatusPage(ctx context.Context, statusPa
 		ID:           uuid.New().String(),
 		MonitorID:    monitorID,
 		StatusPageID: statusPageID,
-		CreatedAt:    time.Now(),
-		UpdatedAt:    time.Now(),
+		CreatedAt:    time.Now().UTC(),
+		UpdatedAt:    time.Now().UTC(),
 	}
 
 	_, err := r.db.NewInsert().Model(sm).Returning("*").Exec(ctx)
@@ -220,7 +220,7 @@ func (r *SQLRepositoryImpl) UpdateMonitorOrder(ctx context.Context, statusPageID
 	// In a real implementation, you'd have an order field
 	_, err := r.db.NewUpdate().
 		Model((*sqlModel)(nil)).
-		Set("updated_at = ?", time.Now()).
+		Set("updated_at = ?", time.Now().UTC()).
 		Where("status_page_id = ? AND monitor_id = ?", statusPageID, monitorID).
 		Exec(ctx)
 	if err != nil {
@@ -235,7 +235,7 @@ func (r *SQLRepositoryImpl) UpdateMonitorActiveStatus(ctx context.Context, statu
 	// In a real implementation, you'd have an active field
 	_, err := r.db.NewUpdate().
 		Model((*sqlModel)(nil)).
-		Set("updated_at = ?", time.Now()).
+		Set("updated_at = ?", time.Now().UTC()).
 		Where("status_page_id = ? AND monitor_id = ?", statusPageID, monitorID).
 		Exec(ctx)
 	if err != nil {

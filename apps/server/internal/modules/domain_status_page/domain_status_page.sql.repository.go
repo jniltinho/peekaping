@@ -41,8 +41,8 @@ func (r *SQLRepositoryImpl) Create(ctx context.Context, entity *CreateUpdateDto)
 		ID:           uuid.New().String(),
 		StatusPageID: entity.StatusPageID,
 		Domain:       entity.Domain,
-		CreatedAt:    time.Now(),
-		UpdatedAt:    time.Now(),
+		CreatedAt:    time.Now().UTC(),
+		UpdatedAt:    time.Now().UTC(),
 	}
 
 	_, err := r.db.NewInsert().Model(sm).Returning("*").Exec(ctx)
@@ -94,7 +94,7 @@ func (r *SQLRepositoryImpl) UpdateFull(ctx context.Context, id string, entity *C
 		ID:           id,
 		StatusPageID: entity.StatusPageID,
 		Domain:       entity.Domain,
-		UpdatedAt:    time.Now(),
+		UpdatedAt:    time.Now().UTC(),
 	}
 
 	_, err := r.db.NewUpdate().
@@ -112,7 +112,7 @@ func (r *SQLRepositoryImpl) UpdateFull(ctx context.Context, id string, entity *C
 func (r *SQLRepositoryImpl) UpdatePartial(ctx context.Context, id string, entity *PartialUpdateDto) (*Model, error) {
 	query := r.db.NewUpdate().Model((*sqlModel)(nil)).Where("id = ?", id)
 
-	query = query.Set("updated_at = ?", time.Now())
+	query = query.Set("updated_at = ?", time.Now().UTC())
 
 	if entity.StatusPageID != nil {
 		query = query.Set("status_page_id = ?", *entity.StatusPageID)

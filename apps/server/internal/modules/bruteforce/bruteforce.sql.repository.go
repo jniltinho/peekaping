@@ -105,7 +105,7 @@ func (r *SQLRepositoryImpl) IsLocked(ctx context.Context, key string) (bool, tim
 	var sm sqlModel
 	err := r.db.NewSelect().
 		Model(&sm).
-		Where("lookup_key = ? AND locked_until > ?", key, time.Now()).
+		Where("lookup_key = ? AND locked_until > ?", key, time.Now().UTC()).
 		Scan(ctx)
 
 	if err != nil {

@@ -81,8 +81,8 @@ func (r *SQLRepositoryImpl) GetOrCreateStat(ctx context.Context, monitorID strin
 			Up:          0,
 			Down:        0,
 			Maintenance: 0,
-			CreatedAt:   time.Now(),
-			UpdatedAt:   time.Now(),
+			CreatedAt:   time.Now().UTC(),
+			UpdatedAt:   time.Now().UTC(),
 		}
 
 		_, err = r.db.NewInsert().Model(sm).Exec(ctx)
@@ -98,7 +98,7 @@ func (r *SQLRepositoryImpl) GetOrCreateStat(ctx context.Context, monitorID strin
 
 func (r *SQLRepositoryImpl) UpsertStat(ctx context.Context, stat *Stat, period StatPeriod) error {
 	sm := toSQLModel(stat)
-	sm.UpdatedAt = time.Now()
+	sm.UpdatedAt = time.Now().UTC()
 
 	// Try to update existing record first
 	result, err := r.db.NewUpdate().
@@ -129,7 +129,7 @@ func (r *SQLRepositoryImpl) UpsertStat(ctx context.Context, stat *Stat, period S
 		if sm.ID == "" {
 			sm.ID = uuid.New().String()
 		}
-		sm.CreatedAt = time.Now()
+		sm.CreatedAt = time.Now().UTC()
 
 		_, err = r.db.NewInsert().Model(sm).Exec(ctx)
 		if err != nil {

@@ -72,7 +72,7 @@ func NewSQLRepository(db *bun.DB) Repository {
 func (r *SQLRepositoryImpl) Create(ctx context.Context, heartbeat *Model) (*Model, error) {
 	sm := toSQLModel(heartbeat)
 	sm.ID = uuid.New().String()
-	sm.Time = time.Now()
+	sm.Time = time.Now().UTC()
 
 	_, err := r.db.NewInsert().Model(sm).Exec(ctx)
 	if err != nil {

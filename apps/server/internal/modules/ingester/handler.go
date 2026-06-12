@@ -264,6 +264,12 @@ func (h *IngesterTaskHandler) ProcessHeartbeat(ctx context.Context, payload *Ing
 		return fmt.Errorf("failed to create heartbeat: %w", err)
 	}
 
+	// Always publish heartbeat event so the stats service can aggregate it
+	h.eventBus.Publish(events.Event{
+		Type:    events.HeartbeatEvent,
+		Payload: dbHb,
+	})
+
 	// Publish events
 	if isFirstBeat || previousBeat.Status != hb.Status {
 		h.eventBus.Publish(events.Event{

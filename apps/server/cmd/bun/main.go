@@ -257,7 +257,7 @@ func connectToDatabase(cfg *config.DBConfig) (*bun.DB, error) {
 		db = bun.NewDB(sqldb, pgdialect.New())
 
 	case "mysql":
-		dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?parseTime=true&multiStatements=true",
+		dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?parseTime=true&loc=UTC&multiStatements=true",
 			cfg.DBUser, cfg.DBPass, cfg.DBHost, cfg.DBPort, cfg.DBName)
 		sqldb, err = sql.Open("mysql", dsn)
 		if err != nil {

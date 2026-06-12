@@ -61,8 +61,8 @@ func NewSQLRepository(db *bun.DB) Repository {
 func (r *SQLRepositoryImpl) Create(ctx context.Context, entity *Model) (*Model, error) {
 	sm := toSQLModel(entity)
 	sm.ID = uuid.New().String()
-	sm.CreatedAt = time.Now()
-	sm.UpdatedAt = time.Now()
+	sm.CreatedAt = time.Now().UTC()
+	sm.UpdatedAt = time.Now().UTC()
 
 	_, err := r.db.NewInsert().Model(sm).Returning("*").Exec(ctx)
 	if err != nil {
@@ -110,7 +110,7 @@ func (r *SQLRepositoryImpl) FindAll(ctx context.Context, page int, limit int, q 
 
 func (r *SQLRepositoryImpl) UpdateFull(ctx context.Context, id string, entity *Model) (*Model, error) {
 	sm := toSQLModel(entity)
-	sm.UpdatedAt = time.Now()
+	sm.UpdatedAt = time.Now().UTC()
 
 	_, err := r.db.NewUpdate().
 		Model(sm).
@@ -159,7 +159,7 @@ func (r *SQLRepositoryImpl) UpdatePartial(ctx context.Context, id string, entity
 	}
 
 	// Always set updated_at
-	query = query.Set("updated_at = ?", time.Now())
+	query = query.Set("updated_at = ?", time.Now().UTC())
 
 	_, err := query.Exec(ctx)
 	if err != nil {

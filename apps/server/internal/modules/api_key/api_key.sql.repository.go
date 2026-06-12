@@ -82,8 +82,8 @@ func (r *SQLRepositoryImpl) Create(ctx context.Context, apiKey *CreateModel) (*A
 		ExpiresAt:     apiKey.ExpiresAt,
 		UsageCount:    0,
 		MaxUsageCount: apiKey.MaxUsageCount,
-		CreatedAt:     time.Now(),
-		UpdatedAt:     time.Now(),
+		CreatedAt:     time.Now().UTC(),
+		UpdatedAt:     time.Now().UTC(),
 	}
 
 	_, err := r.db.NewInsert().Model(sm).Returning("*").Exec(ctx)
@@ -143,7 +143,7 @@ func (r *SQLRepositoryImpl) Update(ctx context.Context, id string, update *Updat
 		query = query.Set("max_usage_count = ?", *update.MaxUsageCount)
 	}
 	
-	query = query.Set("updated_at = ?", time.Now())
+	query = query.Set("updated_at = ?", time.Now().UTC())
 	
 	_, err := query.Returning("*").Exec(ctx)
 	if err != nil {
@@ -162,7 +162,7 @@ func (r *SQLRepositoryImpl) Delete(ctx context.Context, id string) error {
 // MARK: UpdateLastUsed
 func (r *SQLRepositoryImpl) UpdateLastUsed(ctx context.Context, id string) error {
 	_, err := r.db.NewUpdate().Model((*sqlModel)(nil)).
-		Set("last_used = ?", time.Now()).
+		Set("last_used = ?", time.Now().UTC()).
 		Set("usage_count = usage_count + 1").
 		Where("id = ?", id).
 		Exec(ctx)
@@ -174,7 +174,7 @@ func (r *SQLRepositoryImpl) UpdateKeyHash(ctx context.Context, id string, keyHas
 	_, err := r.db.NewUpdate().Model((*sqlModel)(nil)).
 		Set("key_hash = ?", keyHash).
 		Set("display_key = ?", displayKey).
-		Set("updated_at = ?", time.Now()).
+		Set("updated_at = ?", time.Now().UTC()).
 		Where("id = ?", id).
 		Exec(ctx)
 	return err

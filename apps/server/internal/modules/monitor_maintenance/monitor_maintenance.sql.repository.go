@@ -49,8 +49,8 @@ func NewSQLRepository(db *bun.DB) Repository {
 func (r *SQLRepositoryImpl) Create(ctx context.Context, model *Model) (*Model, error) {
 	sm := toSQLModel(model)
 	sm.ID = uuid.New().String()
-	sm.CreatedAt = time.Now()
-	sm.UpdatedAt = time.Now()
+	sm.CreatedAt = time.Now().UTC()
+	sm.UpdatedAt = time.Now().UTC()
 
 	_, err := r.db.NewInsert().Model(sm).Returning("*").Exec(ctx)
 	if err != nil {

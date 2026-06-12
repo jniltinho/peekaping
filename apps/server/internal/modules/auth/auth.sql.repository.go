@@ -67,8 +67,8 @@ func (r *SQLRepositoryImpl) Create(ctx context.Context, user *Model) (*Model, er
 		TwoFASecret:    user.TwoFASecret,
 		TwoFAStatus:    user.TwoFAStatus,
 		TwoFALastToken: user.TwoFALastToken,
-		CreatedAt:      time.Now(),
-		UpdatedAt:      time.Now(),
+		CreatedAt:      time.Now().UTC(),
+		UpdatedAt:      time.Now().UTC(),
 	}
 
 	// Let Bun handle ID generation based on the database type
@@ -144,7 +144,7 @@ func (r *SQLRepositoryImpl) Update(ctx context.Context, id string, entity *Updat
 	}
 
 	// Always set updated_at
-	query = query.Set("updated_at = ?", time.Now())
+	query = query.Set("updated_at = ?", time.Now().UTC())
 
 	_, err := query.Exec(ctx)
 	return err

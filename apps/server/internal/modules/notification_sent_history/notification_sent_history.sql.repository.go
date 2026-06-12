@@ -55,13 +55,12 @@ func (r *SQLRepositoryImpl) RecordSent(ctx context.Context, dto *CreateDto) erro
 		Type:      dto.Type,
 		MonitorID: dto.MonitorID,
 		Days:      dto.Days,
-		CreatedAt: time.Now(),
+		CreatedAt: time.Now().UTC(),
 	}
 
-	// Use INSERT ... ON CONFLICT DO NOTHING to handle duplicates gracefully
 	_, err := r.db.NewInsert().
 		Model(sm).
-		On("CONFLICT (type, monitor_id, days) DO NOTHING").
+		Ignore().
 		Exec(ctx)
 
 	return err
@@ -77,7 +76,7 @@ func (r *SQLRepositoryImpl) ClearByMonitorAndType(ctx context.Context, monitorID
 }
 
 func (r *SQLRepositoryImpl) CleanupOldRecords(ctx context.Context, olderThanDays int) error {
-	cutoffDate := time.Now().AddDate(0, 0, -olderThanDays)
+	cutoffDate := time.Now().UTC().AddDate(0, 0, -olderThanDays)
 
 	_, err := r.db.NewDelete().
 		Model((*sqlModel)(nil)).

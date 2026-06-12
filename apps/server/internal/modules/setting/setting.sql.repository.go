@@ -54,7 +54,7 @@ func (r *SQLRepositoryImpl) SetByKey(ctx context.Context, key string, entity *Cr
 		Where("setting_key = ?", key).
 		Set("value = ?", entity.Value).
 		Set("type = ?", entity.Type).
-		Set("updated_at = ?", time.Now()).
+		Set("updated_at = ?", time.Now().UTC()).
 		Exec(ctx)
 
 	if err != nil {
@@ -73,8 +73,8 @@ func (r *SQLRepositoryImpl) SetByKey(ctx context.Context, key string, entity *Cr
 			Key:       key,
 			Value:     entity.Value,
 			Type:      entity.Type,
-			CreatedAt: time.Now(),
-			UpdatedAt: time.Now(),
+			CreatedAt: time.Now().UTC(),
+			UpdatedAt: time.Now().UTC(),
 		}
 
 		_, err = r.db.NewInsert().Model(sm).Exec(ctx)

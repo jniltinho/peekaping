@@ -57,7 +57,7 @@ chmod 600 /app/.env
 
 # Root connects via unix socket (no password needed with MariaDB unix_socket auth).
 mariadb_start() {
-    mysqld --datadir=/var/lib/mysql --port="$DB_PORT" --user=mysql --bind-address=0.0.0.0 &
+    mysqld --datadir=/var/lib/mysql --port="$DB_PORT" --user=mysql --bind-address=0.0.0.0 --default-time-zone=+00:00 &
     echo "Waiting for MariaDB socket..."
     local timeout=60
     while [ $timeout -gt 0 ]; do

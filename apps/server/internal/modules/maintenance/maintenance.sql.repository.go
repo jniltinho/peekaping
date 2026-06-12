@@ -93,8 +93,8 @@ func (r *SQLRepositoryImpl) Create(ctx context.Context, entity *CreateUpdateDto)
 		Cron:          entity.Cron,
 		Timezone:      entity.Timezone,
 		Duration:      entity.Duration,
-		CreatedAt:     time.Now(),
-		UpdatedAt:     time.Now(),
+		CreatedAt:     time.Now().UTC(),
+		UpdatedAt:     time.Now().UTC(),
 	}
 
 	_, err := r.db.NewInsert().Model(sm).Returning("*").Exec(ctx)
@@ -166,7 +166,7 @@ func (r *SQLRepositoryImpl) UpdateFull(ctx context.Context, id string, entity *C
 		Cron:          entity.Cron,
 		Timezone:      entity.Timezone,
 		Duration:      entity.Duration,
-		UpdatedAt:     time.Now(),
+		UpdatedAt:     time.Now().UTC(),
 	}
 
 	_, err := r.db.NewUpdate().
@@ -250,7 +250,7 @@ func (r *SQLRepositoryImpl) UpdatePartial(ctx context.Context, id string, entity
 	}
 
 	// Always set updated_at
-	query = query.Set("updated_at = ?", time.Now())
+	query = query.Set("updated_at = ?", time.Now().UTC())
 
 	_, err := query.Exec(ctx)
 	if err != nil {
@@ -269,7 +269,7 @@ func (r *SQLRepositoryImpl) SetActive(ctx context.Context, id string, active boo
 	_, err := r.db.NewUpdate().
 		Model((*sqlModel)(nil)).
 		Set("active = ?", active).
-		Set("updated_at = ?", time.Now()).
+		Set("updated_at = ?", time.Now().UTC()).
 		Where("id = ?", id).
 		Exec(ctx)
 	if err != nil {

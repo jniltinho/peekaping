@@ -58,7 +58,7 @@ func (s *ServiceImpl) AggregateHeartbeat(ctx context.Context, hb *HeartbeatPaylo
 	}
 
 	for _, p := range periods {
-		bucketTime := time.Unix(hb.Time, 0).Truncate(p.Bucket)
+		bucketTime := time.Unix(hb.Time, 0).UTC().Truncate(p.Bucket)
 
 		stat, err := s.repo.GetOrCreateStat(ctx, hb.MonitorID, bucketTime, p.Period)
 		if err != nil {
