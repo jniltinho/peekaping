@@ -14,7 +14,7 @@ docker run -d --restart=always \
   -e DB_NAME=/app/data/peekaping.db \
   -v $(pwd)/.data/sqlite:/app/data \
   --name peekaping \
-  0xfurai/peekaping-bundle-sqlite:latest
+  jniltinho/peekaping-bundle-sqlite:latest
 ```
 To add custom caddy file add
 ```
@@ -98,7 +98,7 @@ services:
       start_period: 5s
 
   migrate:
-    image: 0xfurai/peekaping-migrate:latest
+    image: jniltinho/peekaping-migrate:latest
     restart: "no"
     env_file:
       - .env
@@ -106,7 +106,7 @@ services:
       - ./.data/sqlite:/app/data
 
   api:
-    image: 0xfurai/peekaping-api:latest
+    image: jniltinho/peekaping-api:latest
     restart: unless-stopped
     env_file:
       - .env
@@ -131,7 +131,7 @@ services:
       start_period: 5s
 
   producer:
-    image: 0xfurai/peekaping-producer:latest
+    image: jniltinho/peekaping-producer:latest
     restart: unless-stopped
     env_file:
       - .env
@@ -146,7 +146,7 @@ services:
       - appnet
 
   worker:
-    image: 0xfurai/peekaping-worker:latest
+    image: jniltinho/peekaping-worker:latest
     restart: unless-stopped
     env_file:
       - .env
@@ -157,7 +157,7 @@ services:
       - appnet
 
   ingester:
-    image: 0xfurai/peekaping-ingester:latest
+    image: jniltinho/peekaping-ingester:latest
     restart: unless-stopped
     env_file:
       - .env
@@ -172,7 +172,7 @@ services:
       - appnet
 
   web:
-    image: 0xfurai/peekaping-web:latest
+    image: jniltinho/peekaping-web:latest
     depends_on:
       api:
         condition: service_healthy
@@ -273,8 +273,8 @@ Once all containers are running:
 
 Peekaping provides official Docker images:
 
-- **Server**: [`0xfurai/peekaping-server`](https://hub.docker.com/r/0xfurai/peekaping-server)
-- **Web**: [`0xfurai/peekaping-web`](https://hub.docker.com/r/0xfurai/peekaping-web)
+- **Server**: [`jniltinho/peekaping-server`](https://hub.docker.com/r/jniltinho/peekaping-server)
+- **Web**: [`jniltinho/peekaping-web`](https://hub.docker.com/r/jniltinho/peekaping-web)
 
 ### Image Tags
 

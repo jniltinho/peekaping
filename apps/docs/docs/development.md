@@ -7,7 +7,7 @@ Welcome to the Peekaping development guide! Follow these steps to get your local
 ## 1. Clone the Repository
 
 ```bash
-git clone https://github.com/0xfurai/peekaping.git
+git clone https://github.com/jniltinho/peekaping.git
 cd peekaping
 ```
 

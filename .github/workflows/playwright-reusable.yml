@@ -64,12 +64,12 @@ jobs:
         cp docker-compose.prod.${{ matrix.database }}.yml docker-compose.test.${{ matrix.database }}.yml
 
         # Replace container tags with the specified version
-        sed -i 's|0xfurai/peekaping-api:latest|0xfurai/peekaping-api:${{ inputs.container-tag }}|g' docker-compose.test.${{ matrix.database }}.yml
-        sed -i 's|0xfurai/peekaping-producer:latest|0xfurai/peekaping-producer:${{ inputs.container-tag }}|g' docker-compose.test.${{ matrix.database }}.yml
-        sed -i 's|0xfurai/peekaping-worker:latest|0xfurai/peekaping-worker:${{ inputs.container-tag }}|g' docker-compose.test.${{ matrix.database }}.yml
-        sed -i 's|0xfurai/peekaping-ingester:latest|0xfurai/peekaping-ingester:${{ inputs.container-tag }}|g' docker-compose.test.${{ matrix.database }}.yml
-        sed -i 's|0xfurai/peekaping-web:latest|0xfurai/peekaping-web:${{ inputs.container-tag }}|g' docker-compose.test.${{ matrix.database }}.yml
-        sed -i 's|0xfurai/peekaping-migrate:latest|0xfurai/peekaping-migrate:${{ inputs.container-tag }}|g' docker-compose.test.${{ matrix.database }}.yml
+        sed -i 's|jniltinho/peekaping-api:latest|jniltinho/peekaping-api:${{ inputs.container-tag }}|g' docker-compose.test.${{ matrix.database }}.yml
+        sed -i 's|jniltinho/peekaping-producer:latest|jniltinho/peekaping-producer:${{ inputs.container-tag }}|g' docker-compose.test.${{ matrix.database }}.yml
+        sed -i 's|jniltinho/peekaping-worker:latest|jniltinho/peekaping-worker:${{ inputs.container-tag }}|g' docker-compose.test.${{ matrix.database }}.yml
+        sed -i 's|jniltinho/peekaping-ingester:latest|jniltinho/peekaping-ingester:${{ inputs.container-tag }}|g' docker-compose.test.${{ matrix.database }}.yml
+        sed -i 's|jniltinho/peekaping-web:latest|jniltinho/peekaping-web:${{ inputs.container-tag }}|g' docker-compose.test.${{ matrix.database }}.yml
+        sed -i 's|jniltinho/peekaping-migrate:latest|jniltinho/peekaping-migrate:${{ inputs.container-tag }}|g' docker-compose.test.${{ matrix.database }}.yml
 
         echo "=== Modified docker-compose file ==="
         cat docker-compose.test.${{ matrix.database }}.yml

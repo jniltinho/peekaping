@@ -7,7 +7,7 @@
 
 ![PostgreSQL](https://img.shields.io/badge/postgresql-%23336791.svg?style=flat&logo=postgresql&logoColor=white)
 ![SQLite](https://img.shields.io/badge/sqlite-%2307405e.svg?style=flat&logo=sqlite&logoColor=white)
-![Docker Pulls](https://img.shields.io/docker/pulls/0xfurai/peekaping-web)
+![Docker Pulls](https://img.shields.io/docker/pulls/jniltinho/peekaping-web)
 
 **A modern, self-hosted uptime monitoring solution**
 
@@ -55,7 +55,7 @@ docker run -d --restart=always \
   -e DB_NAME=/app/data/peekaping.db \
   -v $(pwd)/.data/sqlite:/app/data \
   --name peekaping \
-  0xfurai/peekaping-bundle-sqlite:latest
+  jniltinho/peekaping-bundle-sqlite:latest
 ```
 
 Peekaping also supports [PostgreSQL](./docs/self-hosting/docker-with-postgres.md) and [MySQL/MariaDB](./docs/self-hosting/docker-with-mysql.md).

@@ -20,7 +20,7 @@ docker run -d --restart=always \
   -e DB_PASS=secure_test_password_123 \
   -v $(pwd)/.data/mysql:/var/lib/mysql \
   --name peekaping \
-  0xfurai/peekaping-bundle-mysql:latest
+  jniltinho/peekaping-bundle-mysql:latest
 ```
 
 To add custom caddy file add
@@ -130,7 +130,7 @@ services:
       start_period: 5s
 
   migrate:
-    image: 0xfurai/peekaping-migrate:latest
+    image: jniltinho/peekaping-migrate:latest
     restart: "no"
     env_file:
       - .env
@@ -141,7 +141,7 @@ services:
       - appnet
 
   api:
-    image: 0xfurai/peekaping-api:latest
+    image: jniltinho/peekaping-api:latest
     restart: unless-stopped
     env_file:
       - .env
@@ -164,7 +164,7 @@ services:
       start_period: 5s
 
   producer:
-    image: 0xfurai/peekaping-producer:latest
+    image: jniltinho/peekaping-producer:latest
     restart: unless-stopped
     env_file:
       - .env
@@ -177,7 +177,7 @@ services:
       - appnet
 
   worker:
-    image: 0xfurai/peekaping-worker:latest
+    image: jniltinho/peekaping-worker:latest
     restart: unless-stopped
     env_file:
       - .env
@@ -188,7 +188,7 @@ services:
       - appnet
 
   ingester:
-    image: 0xfurai/peekaping-ingester:latest
+    image: jniltinho/peekaping-ingester:latest
     restart: unless-stopped
     env_file:
       - .env
@@ -201,7 +201,7 @@ services:
       - appnet
 
   web:
-    image: 0xfurai/peekaping-web:latest
+    image: jniltinho/peekaping-web:latest
     depends_on:
       api:
         condition: service_healthy

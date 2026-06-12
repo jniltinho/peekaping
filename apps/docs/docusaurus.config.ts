@@ -44,7 +44,7 @@ const config: Config = {
           routeBasePath: "/",
           sidebarPath: "./sidebars.ts",
           // Remove this to remove the "edit this page" links.
-          editUrl: "https://github.com/0xfurai/peekaping/tree/main/apps/docs",
+          editUrl: "https://github.com/jniltinho/peekaping/tree/main/apps/docs",
         },
         blog: false,
         theme: {
@@ -75,7 +75,7 @@ const config: Config = {
           label: "Docs",
         },
         {
-          href: "https://github.com/0xfurai/peekaping",
+          href: "https://github.com/jniltinho/peekaping",
           label: "GitHub",
           position: "right",
         },
@@ -98,7 +98,7 @@ const config: Config = {
           items: [
             {
               label: "GitHub",
-              href: "https://github.com/0xfurai/peekaping",
+              href: "https://github.com/jniltinho/peekaping",
             },
           ],
         },

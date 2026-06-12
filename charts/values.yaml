@@ -27,7 +27,7 @@ api:
   apparmor:
     enabled: false
   image:
-    repository: 0xfurai/peekaping-api
+    repository: jniltinho/peekaping-api
     tag: latest
     pullPolicy: IfNotPresent
   service:
@@ -60,7 +60,7 @@ engine:
   apparmor:
     enabled: false
   image:
-    repository: 0xfurai/peekaping-engine
+    repository: jniltinho/peekaping-engine
     tag: latest
     pullPolicy: IfNotPresent
   resources:
@@ -77,7 +77,7 @@ worker:
   apparmor:
     enabled: false
   image:
-    repository: 0xfurai/peekaping-worker
+    repository: jniltinho/peekaping-worker
     tag: latest
     pullPolicy: IfNotPresent
   resources:
@@ -93,7 +93,7 @@ web:
   apparmor:
     enabled: false
   image:
-    repository: 0xfurai/peekaping-web
+    repository: jniltinho/peekaping-web
     tag: latest
     pullPolicy: IfNotPresent
   service:
@@ -125,7 +125,7 @@ migrate:
   apparmor:
     enabled: false
   image:
-    repository: 0xfurai/peekaping-migrate
+    repository: jniltinho/peekaping-migrate
     tag: "latest"
     pullPolicy: IfNotPresent
   resources:

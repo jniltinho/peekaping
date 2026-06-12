@@ -12,7 +12,7 @@ Create a `docker-compose.yml`:
 ```yaml
 services:
   peekaping:
-    image: 0xfurai/peekaping-bundle-mysql:latest
+    image: jniltinho/peekaping-bundle-mysql:latest
     restart: unless-stopped
     ports:
       - "8383:8383"

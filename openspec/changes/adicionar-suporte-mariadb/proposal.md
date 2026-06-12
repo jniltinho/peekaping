@@ -34,7 +34,7 @@ The application core (config validation + Bun SQL provider) already contains par
 - CI / test scripts if any DB-specific matrix exists (e.g. test_utils/ similar to mssql).
 
 **Downstream**:
-- Users gain `docker run ... 0xfurai/peekaping-bundle-mysql:latest` (or mariadb image tag) and compose-based setups.
+- Users gain `docker run ... jniltinho/peekaping-bundle-mysql:latest` (or mariadb image tag) and compose-based setups.
 - Documentation site will have a new "Docker + MySQL" page.
 - Future maintenance must keep the four DB families in sync for bundle + docs.
 

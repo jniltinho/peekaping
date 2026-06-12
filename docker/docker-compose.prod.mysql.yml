@@ -36,7 +36,7 @@ services:
       start_period: 5s
 
   migrate:
-    image: 0xfurai/peekaping-migrate:latest
+    image: jniltinho/peekaping-migrate:latest
     restart: "no"
     env_file:
       - .env
@@ -47,7 +47,7 @@ services:
       - appnet
 
   api:
-    image: 0xfurai/peekaping-api:latest
+    image: jniltinho/peekaping-api:latest
     restart: unless-stopped
     ports:
       - "8383:8383"
@@ -70,7 +70,7 @@ services:
       start_period: 5s
 
   engine:
-    image: 0xfurai/peekaping-engine:latest
+    image: jniltinho/peekaping-engine:latest
     restart: unless-stopped
     env_file:
       - .env

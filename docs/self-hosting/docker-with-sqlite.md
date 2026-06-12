@@ -10,7 +10,7 @@ docker run -d --restart=always \
   -e DB_NAME=/app/data/peekaping.db \
   -v $(pwd)/.data/sqlite:/app/data \
   --name peekaping \
-  0xfurai/peekaping-bundle-sqlite:latest
+  jniltinho/peekaping-bundle-sqlite:latest
 ```
 
 Open `http://localhost:8383` in your browser.
@@ -22,7 +22,7 @@ Create a `docker-compose.yml`:
 ```yaml
 services:
   peekaping:
-    image: 0xfurai/peekaping-bundle-sqlite:latest
+    image: jniltinho/peekaping-bundle-sqlite:latest
     restart: unless-stopped
     ports:
       - "8383:8383"
