@@ -11,7 +11,7 @@ import (
 type sqlModel struct {
 	bun.BaseModel `bun:"table:login_state,alias:ls"`
 
-	Key         string     `bun:"key,pk"`
+	Key         string     `bun:"lookup_key,pk"`
 	FailCount   int        `bun:"fail_count,notnull"`
 	FirstFailAt time.Time  `bun:"first_fail_at,notnull"`
 	LockedUntil *time.Time `bun:"locked_until,nullzero"`
@@ -48,7 +48,7 @@ func (r *SQLRepositoryImpl) FindByKey(ctx context.Context, key string) (*Model, 
 	var sm sqlModel
 	err := r.db.NewSelect().
 		Model(&sm).
-		Where("key = ?", key).
+		Where("lookup_key = ?", key).
 		Scan(ctx)
 
 	if err != nil {
@@ -75,7 +75,7 @@ func (r *SQLRepositoryImpl) Create(ctx context.Context, model *Model) (*Model, e
 func (r *SQLRepositoryImpl) Update(ctx context.Context, key string, updateModel *UpdateModel) error {
 	query := r.db.NewUpdate().
 		Model((*sqlModel)(nil)).
-		Where("key = ?", key)
+		Where("lookup_key = ?", key)
 
 	if updateModel.FailCount != nil {
 		query = query.Set("fail_count = ?", *updateModel.FailCount)
@@ -95,7 +95,7 @@ func (r *SQLRepositoryImpl) Update(ctx context.Context, key string, updateModel 
 func (r *SQLRepositoryImpl) Delete(ctx context.Context, key string) error {
 	_, err := r.db.NewDelete().
 		Model((*sqlModel)(nil)).
-		Where("key = ?", key).
+		Where("lookup_key = ?", key).
 		Exec(ctx)
 	return err
 }
@@ -105,7 +105,7 @@ func (r *SQLRepositoryImpl) IsLocked(ctx context.Context, key string) (bool, tim
 	var sm sqlModel
 	err := r.db.NewSelect().
 		Model(&sm).
-		Where("key = ? AND locked_until > ?", key, time.Now()).
+		Where("lookup_key = ? AND locked_until > ?", key, time.Now()).
 		Scan(ctx)
 
 	if err != nil {
@@ -131,7 +131,7 @@ func (r *SQLRepositoryImpl) OnFailure(ctx context.Context, key string, now time.
 		var sm sqlModel
 		err := tx.NewSelect().
 			Model(&sm).
-			Where("key = ?", key).
+			Where("lookup_key = ?", key).
 			For("UPDATE").
 			Scan(ctx)
 
@@ -172,7 +172,7 @@ func (r *SQLRepositoryImpl) OnFailure(ctx context.Context, key string, now time.
 
 		_, err = tx.NewUpdate().
 			Model(&sm).
-			Where("key = ?", key).
+			Where("lookup_key = ?", key).
 			Exec(ctx)
 
 		return err

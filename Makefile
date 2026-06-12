@@ -23,15 +23,15 @@ help: ## Show this help message
 
 .PHONY: build-bundle-sqlite
 build-bundle-sqlite: ## Build bundle SQLite image (peekaping-bundle-sqlite:dev)
-	docker build --no-cache -f Dockerfile.bundle.sqlite -t peekaping-bundle-sqlite:dev .
+	docker build -f Dockerfile.bundle.sqlite -t peekaping-bundle-sqlite:dev .
 
 .PHONY: build-bundle-postgres
 build-bundle-postgres: ## Build bundle PostgreSQL image (peekaping-bundle-postgres:dev)
-	docker build --no-cache -f Dockerfile.bundle.postgres -t peekaping-bundle-postgres:dev .
+	docker build -f Dockerfile.bundle.postgres -t peekaping-bundle-postgres:dev .
 
 .PHONY: build-bundle-mysql
 build-bundle-mysql: ## Build bundle MySQL image (peekaping-bundle-mysql:dev)
-	docker build --no-cache -f Dockerfile.bundle.mysql -t peekaping-bundle-mysql:dev .
+	docker build -f Dockerfile.bundle.mysql -t peekaping-bundle-mysql:dev .
 
 
 # ── Run bundle ────────────────────────────────────────────────────────────────
@@ -46,6 +46,23 @@ run-bundle-sqlite: ## Run peekaping-bundle-sqlite:dev container with Redis queue
 		-e ENGINE_SCHEDULER_INTERVAL=10s \
 		-e ENGINE_USE_REDIS=true \
 		peekaping-bundle-sqlite:dev
+
+.PHONY: run-bundle-mysql
+run-bundle-mysql: ## Run peekaping-bundle-mysql:dev container with Redis queue enabled
+	docker run --rm --name peekaping -p 8383:8383 \
+		-v peekaping-mysql-data:/var/lib/mysql \
+		-e TZ=America/Sao_Paulo \
+		-e MODE=dev \
+		-e DB_TYPE=mysql \
+		-e DB_HOST=localhost \
+		-e DB_PORT=3306 \
+		-e DB_NAME=peekaping \
+		-e DB_USER=peekaping \
+		-e DB_PASS=password \
+		-e ENGINE_WORKERS=10 \
+		-e ENGINE_SCHEDULER_INTERVAL=10s \
+		-e ENGINE_USE_REDIS=true \
+		peekaping-bundle-mysql:dev
 
 
 # ── Docker ────────────────────────────────────────────────────────────────────

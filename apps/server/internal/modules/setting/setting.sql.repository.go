@@ -10,7 +10,7 @@ import (
 type sqlModel struct {
 	bun.BaseModel `bun:"table:settings,alias:s"`
 
-	Key       string    `bun:"key,pk"`
+	Key       string    `bun:"setting_key,pk"`
 	Value     string    `bun:"value,notnull"`
 	Type      string    `bun:"type,notnull"`
 	CreatedAt time.Time `bun:"created_at,nullzero,notnull,default:current_timestamp"`
@@ -37,7 +37,7 @@ func NewSQLRepository(db *bun.DB) Repository {
 
 func (r *SQLRepositoryImpl) GetByKey(ctx context.Context, key string) (*Model, error) {
 	sm := new(sqlModel)
-	err := r.db.NewSelect().Model(sm).Where("key = ?", key).Scan(ctx)
+	err := r.db.NewSelect().Model(sm).Where("setting_key = ?", key).Scan(ctx)
 	if err != nil {
 		if err.Error() == "sql: no rows in result set" {
 			return nil, nil
@@ -51,7 +51,7 @@ func (r *SQLRepositoryImpl) SetByKey(ctx context.Context, key string, entity *Cr
 	// Try to update existing record first
 	result, err := r.db.NewUpdate().
 		Model((*sqlModel)(nil)).
-		Where("key = ?", key).
+		Where("setting_key = ?", key).
 		Set("value = ?", entity.Value).
 		Set("type = ?", entity.Type).
 		Set("updated_at = ?", time.Now()).
@@ -85,7 +85,7 @@ func (r *SQLRepositoryImpl) SetByKey(ctx context.Context, key string, entity *Cr
 
 	// Fetch and return the final record
 	sm := new(sqlModel)
-	err = r.db.NewSelect().Model(sm).Where("key = ?", key).Scan(ctx)
+	err = r.db.NewSelect().Model(sm).Where("setting_key = ?", key).Scan(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -94,6 +94,6 @@ func (r *SQLRepositoryImpl) SetByKey(ctx context.Context, key string, entity *Cr
 }
 
 func (r *SQLRepositoryImpl) DeleteByKey(ctx context.Context, key string) error {
-	_, err := r.db.NewDelete().Model((*sqlModel)(nil)).Where("key = ?", key).Exec(ctx)
+	_, err := r.db.NewDelete().Model((*sqlModel)(nil)).Where("setting_key = ?", key).Exec(ctx)
 	return err
 }

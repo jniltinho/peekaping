@@ -4,10 +4,10 @@
 
 -- Login state table to track failures and locks atomically
 CREATE TABLE IF NOT EXISTS login_state (
-    key           TEXT PRIMARY KEY,
+    lookup_key    VARCHAR(255) PRIMARY KEY,
     fail_count    INT          NOT NULL,
-    first_fail_at TIMESTAMPTZ  NOT NULL,
-    locked_until  TIMESTAMPTZ
+    first_fail_at TIMESTAMP  NOT NULL,
+    locked_until  TIMESTAMP
 );
 
 -- Create index for efficient expiration queries

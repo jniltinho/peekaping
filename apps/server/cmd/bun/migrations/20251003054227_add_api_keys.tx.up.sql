@@ -6,12 +6,12 @@ CREATE TABLE IF NOT EXISTS api_keys (
     name VARCHAR(255) NOT NULL,
     key_hash VARCHAR(255), -- Can be NULL initially for two-phase creation
     display_key VARCHAR(20) DEFAULT 'pk_****', -- Can be NULL initially for two-phase creation
-    last_used TIMESTAMPTZ,
-    expires_at TIMESTAMPTZ,
+    last_used TIMESTAMP,
+    expires_at TIMESTAMP,
     usage_count INTEGER NOT NULL DEFAULT 0,
     max_usage_count INTEGER,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Create index for faster lookups

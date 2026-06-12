@@ -13,7 +13,7 @@ type sqlModel struct {
 
 	ID          string    `bun:"id,pk"`
 	MonitorID   string    `bun:"monitor_id,notnull"`
-	Timestamp   time.Time `bun:"timestamp,notnull"`
+	Timestamp   time.Time `bun:"stat_ts,notnull"`
 	Ping        float64   `bun:"ping,notnull,default:0"`
 	PingMin     float64   `bun:"ping_min,notnull,default:0"`
 	PingMax     float64   `bun:"ping_max,notnull,default:0"`
@@ -66,7 +66,7 @@ func (r *SQLRepositoryImpl) GetOrCreateStat(ctx context.Context, monitorID strin
 	// Try to find existing stat
 	err := r.db.NewSelect().
 		Model(sm).
-		Where("monitor_id = ? AND timestamp = ?", monitorID, timestamp).
+		Where("monitor_id = ? AND stat_ts = ?", monitorID, timestamp).
 		Scan(ctx)
 
 	if err != nil && err.Error() == "sql: no rows in result set" {
@@ -85,7 +85,7 @@ func (r *SQLRepositoryImpl) GetOrCreateStat(ctx context.Context, monitorID strin
 			UpdatedAt:   time.Now(),
 		}
 
-		_, err = r.db.NewInsert().Model(sm).Returning("*").Exec(ctx)
+		_, err = r.db.NewInsert().Model(sm).Exec(ctx)
 		if err != nil {
 			return nil, err
 		}
@@ -103,7 +103,7 @@ func (r *SQLRepositoryImpl) UpsertStat(ctx context.Context, stat *Stat, period S
 	// Try to update existing record first
 	result, err := r.db.NewUpdate().
 		Model(sm).
-		Where("monitor_id = ? AND timestamp = ?", sm.MonitorID, sm.Timestamp).
+		Where("monitor_id = ? AND stat_ts = ?", sm.MonitorID, sm.Timestamp).
 		Set("ping = ?", sm.Ping).
 		Set("ping_min = ?", sm.PingMin).
 		Set("ping_max = ?", sm.PingMax).
@@ -144,8 +144,8 @@ func (r *SQLRepositoryImpl) FindStatsByMonitorIDAndTimeRange(ctx context.Context
 	var sms []*sqlModel
 	err := r.db.NewSelect().
 		Model(&sms).
-		Where("monitor_id = ? AND timestamp BETWEEN ? AND ?", monitorID, since, until).
-		Order("timestamp ASC").
+		Where("monitor_id = ? AND stat_ts BETWEEN ? AND ?", monitorID, since, until).
+		Order("stat_ts ASC").
 		Scan(ctx)
 	if err != nil {
 		return nil, err

@@ -22,7 +22,7 @@ type sqlModel struct {
 	DownCount int       `bun:"down_count"`
 	Retries   int       `bun:"retries"`
 	Important bool      `bun:"important,notnull,default:false"`
-	Time      time.Time `bun:"time,nullzero,notnull,default:current_timestamp"`
+	Time      time.Time `bun:"check_time,nullzero,notnull,default:current_timestamp"`
 	EndTime   time.Time `bun:"end_time,nullzero"`
 	Notified  bool      `bun:"notified,notnull,default:false"`
 }
@@ -74,7 +74,7 @@ func (r *SQLRepositoryImpl) Create(ctx context.Context, heartbeat *Model) (*Mode
 	sm.ID = uuid.New().String()
 	sm.Time = time.Now()
 
-	_, err := r.db.NewInsert().Model(sm).Returning("*").Exec(ctx)
+	_, err := r.db.NewInsert().Model(sm).Exec(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -98,7 +98,7 @@ func (r *SQLRepositoryImpl) FindAll(ctx context.Context, page int, limit int) ([
 	var sms []*sqlModel
 	err := r.db.NewSelect().
 		Model(&sms).
-		Order("time DESC").
+		Order("check_time DESC").
 		Limit(limit).
 		Offset(page * limit).
 		Scan(ctx)
@@ -118,7 +118,7 @@ func (r *SQLRepositoryImpl) FindActive(ctx context.Context) ([]*Model, error) {
 	err := r.db.NewSelect().
 		Model(&sms).
 		Where("status = ?", int(shared.MonitorStatusUp)).
-		Order("time DESC").
+		Order("check_time DESC").
 		Scan(ctx)
 	if err != nil {
 		return nil, err
@@ -154,7 +154,7 @@ func (r *SQLRepositoryImpl) FindByMonitorIDPaginated(
 		query = query.Where("important = ?", *important)
 	}
 
-	query = query.Order("time DESC")
+	query = query.Order("check_time DESC")
 
 	var sms []*sqlModel
 	err := query.Scan(ctx, &sms)
@@ -196,7 +196,7 @@ func (r *SQLRepositoryImpl) FindUptimeStatsByMonitorID(
 			Model((*sqlModel)(nil)).
 			ColumnExpr("COUNT(*) as total").
 			ColumnExpr("COUNT(CASE WHEN status = ? THEN 1 END) as up", 1).
-			Where("monitor_id = ? AND time >= ?", monitorID, since).
+			Where("monitor_id = ? AND check_time >= ?", monitorID, since).
 			Scan(ctx, &result)
 
 		if err != nil {
@@ -216,7 +216,7 @@ func (r *SQLRepositoryImpl) FindUptimeStatsByMonitorID(
 func (r *SQLRepositoryImpl) DeleteOlderThan(ctx context.Context, cutoff time.Time) (int64, error) {
 	result, err := r.db.NewDelete().
 		Model((*sqlModel)(nil)).
-		Where("time < ?", cutoff).
+		Where("check_time < ?", cutoff).
 		Exec(ctx)
 	if err != nil {
 		return 0, err

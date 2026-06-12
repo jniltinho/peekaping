@@ -17,7 +17,7 @@ type sqlModel struct {
 	ID             string               `bun:"id,pk"`
 	Type           string               `bun:"type,notnull"`
 	Name           string               `bun:"name,notnull"`
-	Interval       int                  `bun:"interval,notnull"`
+	Interval       int                  `bun:"check_interval,notnull"`
 	Timeout        int                  `bun:"timeout,notnull"`
 	MaxRetries     int                  `bun:"max_retries,notnull"`
 	RetryInterval  int                  `bun:"retry_interval,notnull"`
@@ -97,7 +97,7 @@ func (r *SQLRepositoryImpl) Create(ctx context.Context, monitor *Model) (*Model,
 	sm.CreatedAt = time.Now()
 	sm.UpdatedAt = time.Now()
 
-	_, err := r.db.NewInsert().Model(sm).Returning("*").Exec(ctx)
+	_, err := r.db.NewInsert().Model(sm).Exec(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -266,7 +266,7 @@ func (r *SQLRepositoryImpl) UpdatePartial(ctx context.Context, id string, monito
 		hasUpdates = true
 	}
 	if monitor.Interval != nil {
-		query = query.Set("interval = ?", *monitor.Interval)
+		query = query.Set("check_interval = ?", *monitor.Interval)
 		hasUpdates = true
 	}
 	if monitor.Timeout != nil {
