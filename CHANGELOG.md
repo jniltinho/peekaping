@@ -8,8 +8,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- MySQL/MariaDB database support alongside existing PostgreSQL and SQLite
+- Unified `engine` binary replacing separate `producer`, `worker`, and `ingester` processes
+- Frontend embedded into the Go API binary via `//go:embed`, eliminating the Caddy reverse-proxy container from bundle images
+- Swagger UI now fully served at `/swagger/` using `swaggo/http-swagger`
+- `embed-web` Makefile target to build and embed the frontend locally without Docker
 
 ### Changed
+- HTTP framework migrated from Gin to Echo v5
+- Go version bumped to 1.26 across all Dockerfiles and tooling config
+- Bundle Docker images (`bundle-postgres`, `bundle-sqlite`, `bundle-mysql`) no longer include a Caddy service; the Go API serves both the REST endpoints and the SPA
+- Makefile simplified: all Docker targets now use `docker-compose.bundle.*.yml`; dev/prod compose variants removed
 
 ### Fixed
 
