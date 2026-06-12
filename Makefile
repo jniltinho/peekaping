@@ -34,6 +34,20 @@ build-bundle-mysql: ## Build bundle MySQL image (peekaping-bundle-mysql:dev)
 	docker build --no-cache -f Dockerfile.bundle.mysql -t peekaping-bundle-mysql:dev .
 
 
+# ── Run bundle ────────────────────────────────────────────────────────────────
+
+.PHONY: run-bundle-sqlite
+run-bundle-sqlite: ## Run peekaping-bundle-sqlite:dev container with Redis queue enabled
+	docker run --rm --name peekaping -p 8383:8383 \
+		-v peekaping-data:/app/data \
+		-e TZ=America/Sao_Paulo \
+		-e MODE=dev \
+		-e ENGINE_WORKERS=10 \
+		-e ENGINE_SCHEDULER_INTERVAL=10s \
+		-e ENGINE_USE_REDIS=true \
+		peekaping-bundle-sqlite:dev
+
+
 # ── Docker ────────────────────────────────────────────────────────────────────
 
 .PHONY: docker-postgres

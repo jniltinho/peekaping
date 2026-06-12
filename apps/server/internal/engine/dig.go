@@ -12,6 +12,7 @@ import (
 	"peekaping/internal/modules/monitor_maintenance"
 	"peekaping/internal/modules/proxy"
 
+	"github.com/redis/go-redis/v9"
 	"go.uber.org/dig"
 	"go.uber.org/zap"
 )
@@ -19,15 +20,15 @@ import (
 // RegisterDependencies wires all engine components into the Uber Dig container.
 func RegisterDependencies(container *dig.Container, cfg Config) {
 	// Queues — created once and shared between scheduler, workers, and ingester.
-	container.Provide(func() Queue {
+	container.Provide(func(client *redis.Client) Queue {
 		if cfg.UseRedis {
-			return &RedisQueue{}
+			return NewRedisQueue(client)
 		}
 		return NewMemoryQueue(cfg.QueueBuffer)
 	})
-	container.Provide(func() ResultQueue {
+	container.Provide(func(client *redis.Client) ResultQueue {
 		if cfg.UseRedis {
-			return &RedisResultQueue{}
+			return NewRedisResultQueue(client)
 		}
 		return NewMemoryResultQueue(cfg.QueueBuffer)
 	})
