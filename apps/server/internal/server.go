@@ -19,35 +19,15 @@ import (
 	"peekaping/internal/modules/status_page"
 	"peekaping/internal/modules/tag"
 	"peekaping/internal/modules/websocket"
-	"peekaping/internal/version"
 
+	httpSwagger "github.com/swaggo/http-swagger"
 	"github.com/labstack/echo/v5"
 	"github.com/labstack/echo/v5/middleware"
 	"go.uber.org/zap"
 )
 
-// @Summary      Get server version
-// @Description  Returns the current server version
-// @Tags         System
-// @Produce      json
-// @Success      200  {object}  map[string]string  "{"version": "1.2.3"}"
-// @Router       /version [get]
-func versionHandler(c *echo.Context) error {
-	return c.JSON(http.StatusOK, map[string]string{"version": version.Version})
-}
-
-// @Summary      Get server health
-// @Description  Returns the current server health
-// @Tags         System
-// @Produce      json
-// @Success      200  {object}  map[string]string  "{"status": "success"}"
-// @Router       /health [get]
-func healthHandler(c *echo.Context) error {
-	return c.JSON(http.StatusOK, map[string]string{"status": "success"})
-}
-
 type Server struct {
-	Router *echo.Echo // Now an Echo instance (field name kept for minimal main.go changes)
+	Router *echo.Echo
 	Cfg    *config.Config
 }
 
@@ -79,32 +59,22 @@ func ProvideServer(
 	apiKeyRoute *api_key.Route,
 	apiKeyController *api_key.Controller,
 ) *Server {
-	// Initialize Echo server
 	e := echo.New()
 
-	// In production-ish modes, we still want recovery.
-	// Echo's Recover middleware is excellent.
 	e.Use(middleware.Recover())
-
-	// Optional logger in dev (Echo's built-in)
-	// Note: Echo v5 uses RequestLogger (not the old Logger)
 	if cfg.Mode == "dev" {
 		e.Use(middleware.RequestLogger())
 	}
 
-	// CORS - using Echo's built-in middleware (replaces gin-contrib/cors)
-	// NOTE: AllowCredentials must NOT be true when AllowOrigins contains "*".
-	// The app uses Authorization: Bearer header (token auth, no cookies for auth),
-	// so credentials mode is not required and "*" is safe.
+	// AllowCredentials must NOT be true when AllowOrigins contains "*".
+	// The app uses Authorization: Bearer (no cookies), so "*" is safe.
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
 		AllowOrigins:  []string{"*"},
 		AllowMethods:  []string{http.MethodGet, http.MethodPost, http.MethodPut, http.MethodDelete, http.MethodOptions, http.MethodPatch},
 		AllowHeaders:  []string{"Origin", "X-Requested-With", "Content-Type", "Accept", "Authorization", "X-API-Key"},
 		ExposeHeaders: []string{"Authorization"},
-		// AllowCredentials: false, // default; do not set to true with "*"
 	}))
 
-	// Simple health and version at root and under /api/v1
 	e.GET("/health", healthHandler)
 	e.GET("/version", versionHandler)
 
@@ -112,7 +82,6 @@ func ProvideServer(
 	api.GET("/health", healthHandler)
 	api.GET("/version", versionHandler)
 
-	// Connect all module routes (signatures will be updated to *echo.Group in their route files)
 	monitorRoute.ConnectRoute(api, monitorController)
 	authRoute.ConnectRoute(api, authController)
 	notificationChannelRoute.ConnectRoute(api, notificationChannelController)
@@ -124,42 +93,17 @@ func ProvideServer(
 	badgeRoute.ConnectRoute(api, badgeController)
 	apiKeyRoute.ConnectRoute(api, apiKeyController)
 
-	// Register push endpoint (will be updated to accept *echo.Group)
 	healthcheck.RegisterPushEndpoint(api, monitorService, heartbeatService, queueService, logger)
 
-	// Swagger
-	// We removed gin-swagger. For now serve a basic handler.
-	// Full interactive Swagger UI can be added later by mounting static assets
-	// or adding a small echo-swagger dependency. The generated doc.json is still produced by swag.
-	e.GET("/swagger/*", func(c *echo.Context) error {
-		path := c.Param("*")
-		if path == "doc.json" || path == "doc.json/" {
-			// The actual spec is generated into docs/swagger.json by swag.
-			// For a working port we return a helpful message; teams usually copy
-			// the json or serve the static UI separately.
-			return c.JSON(http.StatusOK, map[string]any{
-				"message": "Swagger spec available after 'swag init'. Mount /swagger/doc.json or use static UI assets.",
-			})
-		}
-		return c.String(http.StatusOK, "Swagger UI placeholder. Replace with static assets or echo-swagger handler as needed.")
-	})
+	e.GET("/swagger/*", echo.WrapHandler(httpSwagger.WrapHandler))
 
-	// WebSocket / socket.io compatibility shims (raw writer/request delegation)
-	// In Echo v5, c.Response() directly returns http.ResponseWriter (no .Writer wrapper like v4)
 	e.Any("/socket.io/*f", func(c *echo.Context) error {
 		wsServer.ServeHTTP(c.Response(), c.Request())
 		return nil
 	})
 
-	// Runtime env.js — must be before the SPA catch-all
-	e.GET("/env.js", func(c *echo.Context) error {
-		js := "/* generated at startup */\nwindow.__CONFIG__ = {\n  API_URL: \"\"\n};\n"
-		c.Response().Header().Set("Content-Type", "application/javascript")
-		c.Response().Header().Set("Cache-Control", "no-store, no-cache, must-revalidate")
-		return c.String(http.StatusOK, js)
-	})
-
-	// SPA catch-all — must be the last route
+	// env.js and SPA catch-all must come last
+	e.GET("/env.js", envJSHandler)
 	e.GET("/*", frontend.Handler())
 
 	return &Server{Router: e, Cfg: cfg}
