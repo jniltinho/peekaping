@@ -53,7 +53,7 @@ const DomainsManager = ({
                 <div key={index} className="space-y-1">
                   <div
                     className={
-                      `flex items-center justify-between p-2 rounded-md ` +
+                      `flex items-center justify-between p-2 rounded-none ` +
                       (isHighlighted
                         ? "bg-destructive/10 border border-destructive"
                         : "bg-muted")

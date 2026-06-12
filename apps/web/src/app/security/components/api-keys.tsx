@@ -190,7 +190,7 @@ const APIKeys = () => {
                 {t("security.api_keys.success_alert.description")}
               </p>
               <div className="flex items-center gap-2">
-                <code className="px-2 py-1 rounded text-sm font-mono bg-green-500/20">
+                <code className="px-2 py-1 rounded-none text-sm font-mono bg-green-500/20">
                   {newKeyState.token}
                 </code>
                 <Button
@@ -270,7 +270,7 @@ const APIKeys = () => {
                     <TableCell className="font-medium">{apiKey.name}</TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">
-                        <code className="bg-muted px-2 py-1 rounded text-sm font-mono">
+                        <code className="bg-muted px-2 py-1 rounded-none text-sm font-mono">
                           {apiKey.display_key}
                         </code>
                         {newKeyState.id === apiKey.id && (

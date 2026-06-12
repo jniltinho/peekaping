@@ -113,7 +113,7 @@ const Tags = () => {
                       {availableTags.map((tag) => (
                         <div
                           key={tag.id}
-                          className="flex items-center space-x-2 p-2 hover:bg-accent hover:text-accent-foreground rounded-sm cursor-pointer"
+                          className="flex items-center space-x-2 p-2 hover:bg-accent hover:text-accent-foreground rounded-none cursor-pointer"
                           onClick={() => handleTagToggle(tag.id!)}
                         >
                           <Checkbox

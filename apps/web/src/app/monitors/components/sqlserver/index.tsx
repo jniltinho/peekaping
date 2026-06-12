@@ -102,7 +102,7 @@ const SQLServerForm = () => {
                   <div className="text-sm text-muted-foreground space-y-3">
                     <div>
                       <p className="font-medium mb-2">Connection string format:</p>
-                      <code className="text-xs bg-muted px-2 py-1 rounded block break-all">
+                      <code className="text-xs bg-muted px-2 py-1 rounded-none block break-all">
                         Server=&lt;hostname&gt;,&lt;port&gt;;Database=&lt;database&gt;;User Id=&lt;username&gt;;Password=&lt;password&gt;;Encrypt=&lt;true/false&gt;;TrustServerCertificate=&lt;true/false&gt;;Connection Timeout=&lt;seconds&gt;
                       </code>
                     </div>
@@ -124,7 +124,7 @@ const SQLServerForm = () => {
                   <div className="text-sm text-muted-foreground">
                     <p>
                       {t("monitors.form.sqlserver.query_description")}
-                      <code className="text-xs bg-muted px-1 py-0.5 rounded">SELECT 1</code>.
+                      <code className="text-xs bg-muted px-1 py-0.5 rounded-none">SELECT 1</code>.
                     </p>
                     <p className="mt-1">
                       <span className="font-medium">{t("monitors.form.sqlserver.allowed_statements_label")}</span> {t("monitors.form.sqlserver.allowed_statements_description")}

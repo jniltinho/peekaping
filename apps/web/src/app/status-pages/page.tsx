@@ -106,7 +106,7 @@ const StatusPagesPage = () => {
         {statusPages.length === 0 && isLoading && (
           <div className="flex flex-col space-y-2 mb-2">
             {Array.from({ length: 7 }, (_, id) => (
-              <Skeleton className="h-[68px] w-full rounded-xl" key={id} />
+              <Skeleton className="h-[68px] w-full rounded-none" key={id} />
             ))}
           </div>
         )}
@@ -125,7 +125,7 @@ const StatusPagesPage = () => {
         {isFetchingNextPage && (
           <div className="flex flex-col space-y-2 mb-2">
             {Array.from({ length: 3 }, (_, i) => (
-              <Skeleton key={i} className="h-[68px] w-full rounded-xl" />
+              <Skeleton key={i} className="h-[68px] w-full rounded-none" />
             ))}
           </div>
         )}

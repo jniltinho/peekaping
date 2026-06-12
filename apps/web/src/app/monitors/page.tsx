@@ -314,7 +314,7 @@ const MonitorsPage = () => {
                       {availableTags.map((tag) => (
                         <div
                           key={tag.id}
-                          className="flex items-center space-x-2 p-2 hover:bg-accent hover:text-accent-foreground rounded-sm cursor-pointer"
+                          className="flex items-center space-x-2 p-2 hover:bg-accent hover:text-accent-foreground rounded-none cursor-pointer"
                           onClick={() => handleTagToggle(tag.id!)}
                         >
                           <Checkbox
@@ -394,7 +394,7 @@ const MonitorsPage = () => {
         {monitors.length === 0 && delayedLoader && (
           <div className="flex flex-col space-y-2 mb-2">
             {Array.from({ length: 7 }, (_, id) => (
-              <Skeleton className="h-[68px] w-full rounded-xl" key={id} />
+              <Skeleton className="h-[68px] w-full rounded-none" key={id} />
             ))}
           </div>
         )}
@@ -419,7 +419,7 @@ const MonitorsPage = () => {
         {delayedLoaderNextPage && (
           <div className="flex flex-col space-y-2 mb-2">
             {Array.from({ length: 3 }, (_, i) => (
-              <Skeleton key={i} className="h-[68px] w-full rounded-xl" />
+              <Skeleton key={i} className="h-[68px] w-full rounded-none" />
             ))}
           </div>
         )}

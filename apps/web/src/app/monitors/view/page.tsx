@@ -438,7 +438,7 @@ const MonitorPage = () => {
         </div>
 
         <div className="mt-4 mb-4">
-          <div className="inline-flex border rounded-md overflow-hidden">
+          <div className="inline-flex border rounded-none overflow-hidden">
             <Button
               variant="ghost"
               className="rounded-none border-r"
@@ -528,7 +528,7 @@ const MonitorPage = () => {
           <div className="grid grid-cols-4 gap-4 mb-4">
             <Card
               className={clsx(
-                "p-4 rounded-xl gap-1 col-span-4",
+                "p-4 rounded-none gap-1 col-span-4",
                 hasCertCheckExpire ? "lg:col-span-1" : "lg:col-span-1"
               )}
             >
@@ -567,7 +567,7 @@ const MonitorPage = () => {
 
             {/* Certificate Information Card - Only show for HTTPS monitors */}
             {hasCertCheckExpire && (
-              <Card className="p-4 rounded-xl gap-1 col-span-4 lg:col-span-1">
+              <Card className="p-4 rounded-none gap-1 col-span-4 lg:col-span-1">
                 <div className="font-semibold flex items-center gap-2">
                   <Shield className="w-4 h-4" />
                   {t("monitors.view.certificate")}
@@ -626,7 +626,7 @@ const MonitorPage = () => {
 
             <Card
               className={clsx(
-                "p-4 rounded-xl gap-2 col-span-4",
+                "p-4 rounded-none gap-2 col-span-4",
                 hasCertCheckExpire ? "lg:col-span-2" : "lg:col-span-3"
               )}
             >

@@ -278,7 +278,7 @@ const RabbitMQForm = () => {
               )}
             />
 
-            <div className="bg-muted/50 p-4 rounded-lg">
+            <div className="bg-muted/50 p-4 rounded-none">
               <h6 className="text-sm font-medium mb-2">{t("monitors.form.rabbitmq.setup_information_title")}</h6>
               <p className="text-xs text-muted-foreground mb-2">
                 {t("monitors.form.rabbitmq.setup_information_description")}

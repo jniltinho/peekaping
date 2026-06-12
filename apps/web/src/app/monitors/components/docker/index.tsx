@@ -319,13 +319,13 @@ const TLSSection = () => {
               )}
             />
 
-            <div className="bg-amber-50 border border-amber-200 rounded-md p-4">
+            <div className="bg-amber-50 border border-amber-200 rounded-none p-4">
               <div className="text-sm text-amber-800">
                 <strong>{t("monitors.form.docker.note")}</strong> {t("monitors.form.docker.mtls_note")}
               </div>
             </div>
 
-            <div className="bg-blue-50 border border-blue-200 rounded-md p-4">
+            <div className="bg-blue-50 border border-blue-200 rounded-none p-4">
               <div className="text-sm text-blue-800">
                 <strong>{t("monitors.form.docker.common_tls_issues")}</strong>
                 <ul className="mt-2 space-y-1 list-disc list-inside">

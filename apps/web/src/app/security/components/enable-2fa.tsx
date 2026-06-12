@@ -154,7 +154,7 @@ const Enable2FA = () => {
               <TypographyH5 className="mb-1">
                 {t("security.enable_2fa.messages.scan_qr_code_with_authenticator_app")}
               </TypographyH5>
-              <div className="mb-2 bg-white p-2 rounded inline-block">
+              <div className="mb-2 bg-white p-2 rounded-none inline-block">
                 <QRCode value={qr} size={160} />
               </div>
             </div>
@@ -164,7 +164,7 @@ const Enable2FA = () => {
               <TypographyH5 className="mb-1">
                 {t("security.enable_2fa.messages.or_enter_secret_manually")}
               </TypographyH5>
-              <div className="bg-muted p-2 rounded font-mono select-all inline-block">
+              <div className="bg-muted p-2 rounded-none font-mono select-all inline-block">
                 {secret}
               </div>
             </div>

@@ -225,25 +225,25 @@ export function Chart({ id }: { id: string }) {
             onValueChange={(v: typeof timeRange) => setTimeRange(v)}
           >
             <SelectTrigger
-              className="w-[160px] rounded-lg sm:ml-auto"
+              className="w-[160px] rounded-none sm:ml-auto"
               aria-label="Select a value"
             >
               <SelectValue placeholder={t("timezone.last_3_months")} />
             </SelectTrigger>
-            <SelectContent className="rounded-xl">
-              <SelectItem value="30m" className="rounded-lg">
+            <SelectContent className="rounded-none">
+              <SelectItem value="30m" className="rounded-none">
                 {t("timezone.last_30_minutes")}
               </SelectItem>
-              <SelectItem value="3h" className="rounded-lg">
+              <SelectItem value="3h" className="rounded-none">
                 {t("timezone.last_3_hours")}
               </SelectItem>
-              <SelectItem value="6h" className="rounded-lg">
+              <SelectItem value="6h" className="rounded-none">
                 {t("timezone.last_6_hours")}
               </SelectItem>
-              <SelectItem value="24h" className="rounded-lg">
+              <SelectItem value="24h" className="rounded-none">
                 {t("timezone.last_24_hours")}
               </SelectItem>
-              <SelectItem value="1week" className="rounded-lg">
+              <SelectItem value="1week" className="rounded-none">
                 {t("timezone.last_7_days")}
               </SelectItem>
             </SelectContent>

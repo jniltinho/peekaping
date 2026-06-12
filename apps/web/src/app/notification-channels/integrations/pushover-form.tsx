@@ -292,7 +292,7 @@ export default function PushoverForm() {
         )}
       />
 
-      <div className="mt-4 p-4 bg-gray-50 rounded-lg">
+      <div className="mt-4 p-4 bg-gray-50 rounded-none">
         <p className="text-sm text-gray-600">
           <span className="text-red-500">*</span> {t("common.required")}
         </p>

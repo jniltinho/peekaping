@@ -15,7 +15,7 @@ const EmptyList = ({
       <p className="text-muted-foreground mb-6 max-w-sm">{text}</p>
       <button
         onClick={onClick}
-        className="inline-flex items-center px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
+        className="inline-flex items-center px-4 py-2 bg-primary text-primary-foreground rounded-none hover:bg-primary/90 transition-colors"
       >
         {actionText}
       </button>

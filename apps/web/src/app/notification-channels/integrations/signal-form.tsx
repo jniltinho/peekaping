@@ -125,7 +125,7 @@ export default function SignalForm() {
         )}
       />
 
-      <div className="space-y-4 p-4 bg-amber-50 dark:bg-amber-900/20 rounded-lg border border-amber-200 dark:border-amber-800">
+      <div className="space-y-4 p-4 bg-amber-50 dark:bg-amber-900/20 rounded-none border border-amber-200 dark:border-amber-800">
         <p className="text-sm text-amber-800 dark:text-amber-200">
           <strong>{t("notifications.form.signal.note_label")}:</strong> {t("notifications.form.signal.note_description")}
         </p>

@@ -275,7 +275,7 @@ export default function MaintenancePage() {
         {isLoading ? (
           <div className="flex flex-col space-y-2 mb-2">
             {Array.from({ length: 7 }, (_, id) => (
-              <Skeleton className="h-[68px] w-full rounded-xl" key={id} />
+              <Skeleton className="h-[68px] w-full rounded-none" key={id} />
             ))}
           </div>
         ) : maintenances.length > 0 ? (
@@ -299,7 +299,7 @@ export default function MaintenancePage() {
             {isFetchingNextPage && (
               <div className="flex flex-col space-y-2 mb-2">
                 {Array.from({ length: 3 }, (_, i) => (
-                  <Skeleton key={i} className="h-[68px] w-full rounded-xl" />
+                  <Skeleton key={i} className="h-[68px] w-full rounded-none" />
                 ))}
               </div>
             )}
@@ -315,7 +315,7 @@ export default function MaintenancePage() {
 
         {deleteId && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-            <div className="bg-background p-6 rounded-lg shadow-lg max-w-md w-full border">
+            <div className="bg-background p-6 rounded-none shadow-lg max-w-md w-full border">
               <h2 className="text-xl font-bold mb-4">{t("maintenance.page.dialogs.confirm_delete.title")}</h2>
               <p className="mb-6">
                 {t("maintenance.page.dialogs.confirm_delete.description")}

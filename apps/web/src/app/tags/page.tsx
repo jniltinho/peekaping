@@ -155,7 +155,7 @@ const TagsPage = () => {
         {tags.length === 0 && isLoading && (
           <div className="space-y-4">
             {Array.from({ length: 6 }, (_, id) => (
-              <Skeleton className="h-[68px] w-full rounded-xl" key={id} />
+              <Skeleton className="h-[68px] w-full rounded-none" key={id} />
             ))}
           </div>
         )}
@@ -229,7 +229,7 @@ const TagsPage = () => {
         {isFetchingNextPage && (
           <div className="space-y-4">
             {Array.from({ length: 3 }, (_, i) => (
-              <Skeleton key={i} className="h-[68px] w-full rounded-xl" />
+              <Skeleton key={i} className="h-[68px] w-full rounded-none" />
             ))}
           </div>
         )}

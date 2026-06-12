@@ -130,7 +130,7 @@ const TagForm = ({ mode, tag }: TagFormProps) => {
                     <div className="flex gap-2 items-center">
                       <Input
                         type="color"
-                        className="w-12 h-10 p-1 border rounded"
+                        className="w-12 h-10 p-1 border rounded-none"
                         {...field}
                       />
                       <Input

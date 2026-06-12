@@ -39,7 +39,7 @@ export function VersionMismatchAlert() {
       </span>
       <button
         onClick={handleClose}
-        className="ml-4 px-2 py-0.5 rounded bg-red-800 hover:bg-red-700 text-white text-xs font-bold"
+        className="ml-4 px-2 py-0.5 rounded-none bg-red-800 hover:bg-red-700 text-white text-xs font-bold"
         style={{ marginLeft: 16 }}
       >
         {t("common.dismiss")}

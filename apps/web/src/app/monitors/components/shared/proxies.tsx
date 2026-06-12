@@ -52,7 +52,7 @@ const Proxies = ({ onNewProxy }: { onNewProxy: () => void }) => {
               return (
                 <div
                   key={proxy_id}
-                  className="flex items-center justify-between bg-muted rounded px-3 py-1"
+                  className="flex items-center justify-between bg-muted rounded-none px-3 py-1"
                 >
                   <span>{`${proxy.protocol}://${proxy.host}:${proxy.port}`}</span>
                   <Button

@@ -235,7 +235,7 @@ export const MultiSelect = React.forwardRef<
             {...props}
             onClick={handleTogglePopover}
             className={cn(
-              "flex w-full p-1 rounded-md border min-h-10 h-auto items-center justify-between bg-inherit hover:bg-inherit [&_svg]:pointer-events-auto",
+              "flex w-full p-1 rounded-none border min-h-10 h-auto items-center justify-between bg-inherit hover:bg-inherit [&_svg]:pointer-events-auto",
               className
             )}
           >
@@ -339,13 +339,13 @@ export const MultiSelect = React.forwardRef<
                   key={option.value}
                   onClick={() => toggleOption(option.value)}
                   className={cn(
-                    "cursor-pointer flex items-center gap-2 px-3 py-2.5 text-sm text-foreground/90 hover:bg-muted/80 hover:text-foreground transition-colors duration-150 ease-in-out rounded-sm",
+                    "cursor-pointer flex items-center gap-2 px-3 py-2.5 text-sm text-foreground/90 hover:bg-muted/80 hover:text-foreground transition-colors duration-150 ease-in-out rounded-none",
                     isSelected && "bg-muted/50"
                   )}
                 >
                   <div
                     className={cn(
-                      "mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary",
+                      "mr-2 flex h-4 w-4 items-center justify-center rounded-none border border-primary",
                       isSelected
                         ? "bg-primary text-primary-foreground"
                         : "opacity-50 [&_svg]:invisible"

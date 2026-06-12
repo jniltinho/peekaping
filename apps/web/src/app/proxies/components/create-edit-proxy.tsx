@@ -151,7 +151,7 @@ export default function CreateEditProxy({
           control={form.control}
           name="auth"
           render={({ field }) => (
-            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+            <FormItem className="flex flex-row items-center justify-between rounded-none border p-3 shadow-sm">
               <div className="space-y-0.5">
                 <FormLabel>{t("proxies.form.auth_label")}</FormLabel>
               </div>

@@ -175,7 +175,7 @@ const PushForm = () => {
             <div className="text-muted-foreground mb-2">
               {t("monitors.form.push.url_description")}
             </div>
-            <div className="flex items-center gap-2 bg-muted rounded px-3 py-2">
+            <div className="flex items-center gap-2 bg-muted rounded-none px-3 py-2">
               <span className="break-all font-mono text-sm">{pushUrl}</span>
             </div>
             <div className="flex gap-2 mt-2">

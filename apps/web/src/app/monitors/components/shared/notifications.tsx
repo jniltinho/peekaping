@@ -57,7 +57,7 @@ const Notifications = ({ onNewNotifier }: { onNewNotifier: () => void }) => {
               return (
                 <div
                   key={id}
-                  className="flex items-center justify-between bg-muted rounded px-3 py-1"
+                  className="flex items-center justify-between bg-muted rounded-none px-3 py-1"
                 >
                   <span>{notification.name}</span>
                   <Button

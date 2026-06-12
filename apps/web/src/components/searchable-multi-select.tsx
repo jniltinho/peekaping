@@ -93,7 +93,7 @@ export function SearchableMultiSelect({
       onKeyDown={handleKeyDown}
       className="overflow-visible bg-transparent"
     >
-      <div className="group rounded-md border border-input px-3 py-2 text-sm ring-offset-background focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2">
+      <div className="group rounded-none border border-input px-3 py-2 text-sm ring-offset-background focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2">
         <div className="flex flex-wrap gap-1">
           {selected.map((option) => {
             return (
@@ -133,7 +133,7 @@ export function SearchableMultiSelect({
       <div className="relative mt-2">
         <CommandList>
           {open && selectables.length > 0 ? (
-            <div className="absolute top-0 z-10 w-full rounded-md border bg-popover text-popover-foreground shadow-md outline-none animate-in">
+            <div className="absolute top-0 z-10 w-full rounded-none border bg-popover text-popover-foreground shadow-md outline-none animate-in">
               <CommandGroup 
                 className="overflow-auto"
                 style={{ maxHeight: "calc(2.25rem * 10.5)" }}

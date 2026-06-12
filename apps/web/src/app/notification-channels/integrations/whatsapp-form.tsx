@@ -135,7 +135,7 @@ export default function WhatsAppForm() {
           control={form.control}
           name="use_template"
           render={({ field }) => (
-            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+            <FormItem className="flex flex-row items-center justify-between rounded-none border p-4">
               <div className="space-y-0.5">
                 <FormLabel className="text-base">Use Custom Template</FormLabel>
                 <FormDescription>
@@ -201,7 +201,7 @@ export default function WhatsAppForm() {
           />
         )}
       </div>
-      <div className="space-y-4 p-4 bg-amber-50 dark:bg-amber-900/20 rounded-lg border border-amber-200 dark:border-amber-800">
+      <div className="space-y-4 p-4 bg-amber-50 dark:bg-amber-900/20 rounded-none border border-amber-200 dark:border-amber-800">
         <p className="text-sm text-amber-800 dark:text-amber-200">
           <strong>Note:</strong> You need to have a WAHA server.
         </p>

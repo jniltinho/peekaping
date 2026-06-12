@@ -135,7 +135,7 @@ export default function MatrixForm() {
         )}
       />
 
-      <div className="space-y-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+      <div className="space-y-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-none border border-blue-200 dark:border-blue-800">
         <p className="text-sm text-blue-800 dark:text-blue-200">
           <strong>{t("notifications.form.matrix.setup_instructions_label")}</strong>
         </p>
@@ -149,7 +149,7 @@ export default function MatrixForm() {
           <p>
             3. {t("notifications.form.matrix.setup_instructions_3")}:
           </p>
-          <div className="bg-blue-100 dark:bg-blue-800 p-2 rounded font-mono text-xs overflow-x-auto">
+          <div className="bg-blue-100 dark:bg-blue-800 p-2 rounded-none font-mono text-xs overflow-x-auto">
             <code>
               curl -XPOST -d '{`"type": "m.login.password", "identifier": {"user": "botusername", "type": "m.id.user"}, "password": "passwordforuser"`}' "https://home.server/_matrix/client/v3/login"
             </code>
