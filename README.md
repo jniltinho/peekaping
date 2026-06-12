@@ -30,7 +30,7 @@ Peekaping is a modern uptime monitoring solution designed with the requirements 
 - **Easily extensible server architecture** — the modular structure allows adding new monitor types and notification channels without modifying the system core
 - **Server built with Golang** — using one of the most performant compiled languages ensures high speed with minimal consumption of RAM and CPU resources
 - **Unmatched stability** — thanks to a typed client and compiled Golang language, the system demonstrates high reliability and predictable operation
-Modern and intuitive interface — clean user interface design built on contemporary UI/UX principles
+- **Modern and intuitive interface** — clean user interface design built on contemporary UI/UX principles
 - **Flexible storage options** — support for popular databases (SQLite / PostgreSQL / MySQL / MariaDB) allows adapting the solution to any infrastructure
 - **API key management and access control** — built-in security system with access rights management and API keys provides enterprise-level protection
 
@@ -58,9 +58,9 @@ docker run -d --restart=always \
   0xfurai/peekaping-bundle-sqlite:latest
 ```
 
-[Docker + SQLite Setup](https://docs.peekaping.com/self-hosting/docker-with-sqlite)
+Peekaping also supports [PostgreSQL](./docs/self-hosting/docker-with-postgres.md) and [MySQL/MariaDB](./docs/self-hosting/docker-with-mysql.md).
 
-Peekaping also supports [PostgreSQL Setup](https://docs.peekaping.com/self-hosting/docker-with-postgres) and [MySQL/MariaDB Setup](https://docs.peekaping.com/self-hosting/docker-with-mysql). Read docs for more guidance
+See the full [self-hosting docs](./docs/index.md) and [configuration reference](./docs/configuration.md).
 
 ## ⚡ Features
 
@@ -200,13 +200,3 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ---
 
 **Made with ❤️ by the Peekaping team**
-
-## Criteria to Consider When Looking for Uptime Kuma Alternatives
-When choosing an Uptime Kuma alternative, it's important to consider the technology stack and architecture. Solutions built with compiled languages (Go, Rust) deliver better performance and consume fewer resources. An API-first approach is critical for automation and integration with CI/CD processes.
-
-Ensure the system supports the necessary monitoring protocols (HTTP/HTTPS, TCP, databases, Docker, gRPC) and integrates with your communication channels. Also important are flexible storage options (SQLite/PostgreSQL/MongoDB), security features (MFA, RBAC, API keys), modular architecture for extensibility, and an active community with quality documentation.
-
-## How to Choose the Right Uptime Kuma Alternative
-Determine the deployment format based on your capabilities and requirements. Self-hosted solutions provide complete control over data and deep customization options, but require technical resources for deployment and maintenance. Cloud solutions offer quick setup and automatic updates, but come with customization limitations and monthly subscriptions.
-
-Conduct practical testing: deploy the system, create real monitors of different types, simulate failures, and evaluate detection speed. Check resource consumption under load, ease of API integrations, and interface quality. Teams choose Peekaping when they need high performance, API-first architecture, and freedom from vendor lock-in.
