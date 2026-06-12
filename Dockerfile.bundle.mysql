@@ -1,0 +1,96 @@
+# Multi-stage Dockerfile to build server, web, and migrations in one container with MariaDB (MySQL-compatible)
+
+# Stage 1: Build React web app (must run before go-builder for embed)
+FROM node:22-alpine AS web-builder
+
+WORKDIR /app
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY patches/ ./patches/
+COPY apps/web/package.json ./apps/web/package.json
+RUN npm install -g pnpm && pnpm install --filter=web
+COPY apps/web/ ./apps/web/
+WORKDIR /app/apps/web
+RUN pnpm run build
+
+# Stage 2: Build Go server and migration tool
+FROM golang:1.26-alpine AS go-builder
+
+RUN apk add --no-cache git
+WORKDIR /app/server
+COPY apps/server/go.mod apps/server/go.sum ./
+RUN go mod download
+COPY apps/server/ .
+# Embed compiled frontend into the api binary
+COPY --from=web-builder /app/apps/web/dist ./internal/frontend/web
+RUN CGO_ENABLED=0 GOFLAGS="-trimpath" go build -o api -ldflags="-s -w" ./cmd/api
+RUN CGO_ENABLED=0 GOFLAGS="-trimpath" go build -o engine -ldflags="-s -w" ./cmd/engine
+RUN CGO_ENABLED=0 go build -o bun -ldflags="-s -w" ./cmd/bun
+
+# Stage 3: Final runtime image with Debian bookworm-slim and MariaDB
+FROM debian:bookworm-slim
+
+# Set environment variables for non-interactive installation
+ENV DEBIAN_FRONTEND=noninteractive
+ENV TZ=UTC
+
+# Install base dependencies
+RUN apt-get update && apt-get install -y \
+    supervisor \
+    netcat-openbsd \
+    wget \
+    curl \
+    ca-certificates \
+    gnupg \
+    lsb-release \
+    locales \
+    gosu \
+    && rm -rf /var/lib/apt/lists/*
+
+# Set up proper locales
+RUN sed -i '/en_US.UTF-8/s/^# //g' /etc/locale.gen && locale-gen
+ENV LANG=en_US.UTF-8 \
+    LANGUAGE=en_US:en \
+    LC_ALL=en_US.UTF-8
+
+# Install Redis 7 from Debian bookworm repositories
+RUN apt-get update \
+    && apt-get install -y redis-server \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install MariaDB server and client (provides MySQL-compatible protocol and tools)
+RUN apt-get update && apt-get install -y \
+    mariadb-server \
+    mariadb-client \
+    && rm -rf /var/lib/apt/lists/*
+
+# Set MariaDB data directory (standard location)
+ENV DATADIR="/var/lib/mysql"
+
+# Create necessary directories
+RUN mkdir -p /app/server /app/data /var/log/supervisor
+
+# Set proper permissions for MariaDB (the package creates the 'mysql' system user)
+RUN mkdir -p /var/lib/mysql \
+    && chown -R mysql:mysql /var/lib/mysql \
+    && chmod 700 /var/lib/mysql
+
+# Copy built Go binaries from go-builder
+COPY --from=go-builder /app/server/api /app/server/api
+COPY --from=go-builder /app/server/engine /app/server/engine
+COPY --from=go-builder /app/server/bun /app/server/bun
+COPY --from=go-builder /app/server/cmd/bun/migrations /app/server/cmd/bun/migrations
+COPY --from=go-builder /app/server/internal/config /app/server/internal/config
+COPY --from=go-builder /app/server/scripts/run-migrations.sh /app/server/run-migrations.sh
+
+# Copy configuration files
+COPY supervisord.bundle.mysql.conf /etc/supervisor/conf.d/supervisord.conf
+COPY startup.bundle.mysql.sh /app/startup.sh
+
+# Set proper permissions for executables
+RUN chmod +x /app/server/run-migrations.sh /app/startup.sh /app/server/api /app/server/engine /app/server/bun
+
+# Expose port (SERVER_PORT=8383 is set in supervisord.conf)
+EXPOSE 8383
+
+# Start the application
+CMD ["/app/startup.sh"]

@@ -16,7 +16,7 @@ redis:
 config:
   existingSecret: "peekaping-config"
   env:
-    DB_TYPE: "postgres"
+    DB_TYPE: "postgres"  # or mysql, mariadb, sqlite (external DB recommended; MongoDB backend removed)
     # DB_HOST: "peekaping-postgresql.peekaping.svc.cluster.local"
     # DB_PORT: "5432"
     # REDIS_HOST: "peekaping-redis-master.peekaping.svc.cluster.local"
@@ -55,38 +55,23 @@ api:
       failureThreshold: 30
       periodSeconds: 2
 
-ingester:
-  replicaCount: 3
+engine:
+  replicaCount: 1
   apparmor:
     enabled: false
   image:
-    repository: 0xfurai/peekaping-ingester
+    repository: 0xfurai/peekaping-engine
     tag: latest
     pullPolicy: IfNotPresent
   resources:
     requests:
-      cpu: "100m"
+      cpu: "200m"
       memory: "256Mi"
     limits:
-      cpu: "500m"
+      cpu: "1000m"
       memory: "512Mi"
 
-producer:
-  replicaCount: 3
-  apparmor:
-    enabled: false
-  image:
-    repository: 0xfurai/peekaping-producer
-    tag: latest
-    pullPolicy: IfNotPresent
-  resources:
-    requests:
-      cpu: "100m"
-      memory: "256Mi"
-    limits:
-      cpu: "500m"
-      memory: "512Mi"
-
+# Deprecated: use engine instead
 worker:
   replicaCount: 3
   apparmor:

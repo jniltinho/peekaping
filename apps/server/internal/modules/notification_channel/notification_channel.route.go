@@ -25,7 +25,7 @@ func (uc *Route) ConnectRoute(
 	rg *echo.Group,
 	controller *Controller,
 ) {
-	router := rg.Group("notification-channels")
+	router := rg.Group("/notification-channels")
 
 	router.Use(uc.middleware.AllAuth())
 

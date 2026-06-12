@@ -1,3 +1,5 @@
+// Deprecated: cmd/worker is superseded by cmd/engine which combines producer+worker+ingester.
+// This binary is kept for rollback purposes only. Use cmd/engine for new deployments.
 package main
 
 import (

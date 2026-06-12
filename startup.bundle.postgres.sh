@@ -35,16 +35,6 @@ execute_sql_safely() {
     rm -f "$temp_file"
 }
 
-# Create env.js file for the web app
-cat >/app/web/env.js <<EOF
-/* generated each container start */
-window.__CONFIG__ = {
-  API_URL: ""
-};
-EOF
-# Security: Set appropriate permissions for web assets
-chmod 644 /app/web/env.js
-
 # Set default environment variables if not provided
 export DB_TYPE=${DB_TYPE:-postgres}
 export DB_HOST=${DB_HOST:-localhost}
@@ -186,8 +176,8 @@ fi
 echo "Stopping PostgreSQL after migrations..."
 gosu postgres pg_ctl -D /var/lib/postgresql/data stop
 
-# Start supervisor to manage PostgreSQL, server, and Caddy
-echo "Starting supervisor to manage PostgreSQL, server, and Caddy..."
+# Start supervisor
+echo "Starting supervisor..."
 
 # Note: Environment variables are passed to supervisor processes via the environment= directive
 # in the supervisor configuration, so they remain available to the server even if cleared here

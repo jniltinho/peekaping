@@ -18,10 +18,10 @@ type Config struct {
 	// Database configuration
 	DBHost string `env:"DB_HOST"`                           // validated in Validate()
 	DBPort string `env:"DB_PORT"`                           // validated in Validate()
-	DBName string `env:"DB_NAME" validate:"required,min=1"` // validated in Validate()
+	DBName string `env:"DB_NAME" validate:"required,min=1" default:"peekaping.db"` // validated in Validate()
 	DBUser string `env:"DB_USER"`                           // validated in Validate()
 	DBPass string `env:"DB_PASS"`                           // validated in Validate()
-	DBType string `env:"DB_TYPE" validate:"required,db_type"`
+	DBType string `env:"DB_TYPE" validate:"required,db_type" default:"sqlite"`
 
 	// Common settings
 	Mode     string `env:"MODE" validate:"required,oneof=dev prod test" default:"dev"`

@@ -47,11 +47,7 @@ check_and_init_database() {
     fi
 }
 
-# Skip migrations for MongoDB
-if [ "$DB_TYPE" = "mongo" ] || [ "$DB_TYPE" = "mongodb" ]; then
-    echo "Skipping migrations for MongoDB - not needed"
-    exit 0
-fi
+# (MongoDB backend removed - no special skip needed)
 
 # Wait for database and run migrations
 wait_for_database

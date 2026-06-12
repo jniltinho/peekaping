@@ -1,7 +1,6 @@
 package infra
 
 import (
-	"context"
 	"database/sql"
 	"fmt"
 	"peekaping/internal/config"
@@ -13,7 +12,6 @@ import (
 	"github.com/uptrace/bun/driver/pgdriver"
 	"github.com/uptrace/bun/driver/sqliteshim"
 	"github.com/uptrace/bun/extra/bundebug"
-	"go.mongodb.org/mongo-driver/mongo"
 	"go.uber.org/dig"
 	"go.uber.org/zap"
 
@@ -52,6 +50,20 @@ func ProvideSQLDB(
 		db = bun.NewDB(sqldb, mysqldialect.New())
 
 		logger.Infof("Connecting to MySQL database: %s:%s/%s", cfg.DBHost, cfg.DBPort, cfg.DBName)
+
+	case "mariadb":
+		// MariaDB connection (MySQL wire protocol compatible)
+		dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?parseTime=true",
+			cfg.DBUser, cfg.DBPass, cfg.DBHost, cfg.DBPort, cfg.DBName)
+
+		sqldb, err = sql.Open("mysql", dsn)
+		if err != nil {
+			return nil, fmt.Errorf("failed to open MariaDB connection: %w", err)
+		}
+
+		db = bun.NewDB(sqldb, mysqldialect.New())
+
+		logger.Infof("Connecting to MySQL-compatible database (type: mariadb): %s:%s/%s", cfg.DBHost, cfg.DBPort, cfg.DBName)
 
 	case "sqlite":
 		// SQLite connection
@@ -150,7 +162,7 @@ func ProvideSQLDB(
 		logger.Infof("Connecting to SQLite database: %s (WAL mode enabled, corruption prevention active)", dbPath)
 
 	default:
-		return nil, fmt.Errorf("unsupported database type: %s. Supported types: postgres, mysql, sqlite", cfg.DBType)
+		return nil, fmt.Errorf("unsupported database type: %s. Supported types: postgres, mysql, mariadb, sqlite", cfg.DBType)
 	}
 
 	// Test the connection
@@ -211,20 +223,11 @@ func GracefulSQLiteShutdown(db *bun.DB, dbType string, logger *zap.SugaredLogger
 // It uses the DI container to get the appropriate database connection
 func GracefulDatabaseShutdown(container *dig.Container, cfg *config.Config, logger *zap.SugaredLogger) error {
 	switch cfg.DBType {
-	case "postgres", "postgresql", "mysql", "sqlite":
+	case "postgres", "postgresql", "mysql", "mariadb", "sqlite":
 		// For SQL databases, perform graceful shutdown
 		return container.Invoke(func(db *bun.DB) {
 			if err := GracefulSQLiteShutdown(db, cfg.DBType, logger); err != nil {
 				logger.Errorw("Failed to gracefully shutdown database", "error", err)
-			}
-		})
-	case "mongo", "mongodb":
-		// For MongoDB, disconnect the client
-		return container.Invoke(func(client *mongo.Client) {
-			if err := client.Disconnect(context.Background()); err != nil {
-				logger.Errorw("Failed to disconnect MongoDB client", "error", err)
-			} else {
-				logger.Info("MongoDB client disconnected gracefully")
 			}
 		})
 	default:

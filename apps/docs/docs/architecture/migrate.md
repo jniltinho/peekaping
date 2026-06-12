@@ -48,7 +48,7 @@ YYYYMMDDHHMMSS_description.tx.{up|down}.sql
 
 | Variable | Type | Required | Default | Description |
 |----------|------|----------|---------|-------------|
-| `DB_TYPE` | string | Yes | - | Database type: `postgres`, `mysql`, `sqlite` |
+| `DB_TYPE` | string | Yes | - | Database type: `postgres`, `mysql`, `mariadb`, `sqlite` |
 | `DB_HOST` | string | Conditional | - | Database host (not required for SQLite) |
 | `DB_PORT` | string | Conditional | - | Database port (not required for SQLite) |
 | `DB_NAME` | string | Yes | - | Database name or SQLite file path |
@@ -134,8 +134,8 @@ The container:
 - WAL mode enabled for better concurrency
 
 ### MongoDB
-- Not applicable (schema-less database)
-- Schema evolution handled through application code
+- No longer supported as an application database backend (removed in remove-mongodb-type change).
+- Historical note: previously schema-less, no SQL migrations used.
 
 ## Related Components
 

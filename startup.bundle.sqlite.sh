@@ -4,16 +4,6 @@ set -e
 
 
 
-# Create env.js file for the web app
-cat >/app/web/env.js <<EOF
-/* generated each container start */
-window.__CONFIG__ = {
-  API_URL: ""
-};
-EOF
-# Security: Set appropriate permissions for web assets
-chmod 644 /app/web/env.js
-
 # Set environment variables for SQLite
 export DB_TYPE=sqlite
 export DB_NAME=/app/data/peekaping.db
@@ -37,6 +27,6 @@ else
     exit 1
 fi
 
-# Start supervisor to manage both server and Caddy
-echo "Starting supervisor to manage server and Caddy..."
+# Start supervisor
+echo "Starting supervisor..."
 exec /usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf

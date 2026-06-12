@@ -16,7 +16,7 @@ func NewRoute(controller *Controller) *Route {
 
 func (r *Route) ConnectRoute(rg *echo.Group, controller *Controller) {
 	// Badge routes - these are public endpoints
-	badge := rg.Group("badge")
+	badge := rg.Group("/badge")
 	{
 		// Status badge
 		badge.GET("/:monitorId/status", r.controller.GetStatusBadge)

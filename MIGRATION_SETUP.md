@@ -68,7 +68,9 @@ Migrations are stored in `apps/server/cmd/bun/migrations/` and follow the naming
 
 The migration system supports:
 - PostgreSQL (recommended)
-- MySQL
+- MySQL / MariaDB
 - SQLite
+
+(Note: MongoDB was previously supported as a schemaless backend but is no longer a valid DB_TYPE for the application.)
 
 The startup script automatically detects the database type and waits appropriately.

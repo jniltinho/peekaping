@@ -28,7 +28,7 @@ func (uc *Route) ConnectRoute(
 
 	router.Use(uc.middleware.AllAuth())
 
-	router.GET("key/:key", uc.controller.GetByKey)
-	router.PUT("key/:key", uc.controller.SetByKey)
-	router.DELETE("key/:key", uc.controller.DeleteByKey)
+	router.GET("/key/:key", uc.controller.GetByKey)
+	router.PUT("/key/:key", uc.controller.SetByKey)
+	router.DELETE("/key/:key", uc.controller.DeleteByKey)
 }

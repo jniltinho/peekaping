@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"path/filepath"
 	"reflect"
 	"strconv"
 	"strings"
@@ -15,10 +16,10 @@ import (
 type DBConfig struct {
 	DBHost string `env:"DB_HOST"`                           // validated in validateCustomRules
 	DBPort string `env:"DB_PORT"`                           // validated in validateCustomRules
-	DBName string `env:"DB_NAME" validate:"required,min=1"` // validated in validateCustomRules
+	DBName string `env:"DB_NAME" validate:"required,min=1" default:"peekaping.db"` // validated in validateCustomRules
 	DBUser string `env:"DB_USER"`                           // validated in validateCustomRules
 	DBPass string `env:"DB_PASS"`                           // validated in validateCustomRules
-	DBType string `env:"DB_TYPE" validate:"required,db_type"`
+	DBType string `env:"DB_TYPE" validate:"required,db_type" default:"sqlite"`
 }
 
 type Config struct {
@@ -27,10 +28,10 @@ type Config struct {
 
 	DBHost string `env:"DB_HOST"`                           // validated in validateCustomRules
 	DBPort string `env:"DB_PORT"`                           // validated in validateCustomRules
-	DBName string `env:"DB_NAME" validate:"required,min=1"` // validated in validateCustomRules
+	DBName string `env:"DB_NAME" validate:"required,min=1" default:"peekaping.db"` // validated in validateCustomRules
 	DBUser string `env:"DB_USER"`                           // validated in validateCustomRules
 	DBPass string `env:"DB_PASS"`                           // validated in validateCustomRules
-	DBType string `env:"DB_TYPE" validate:"required,db_type"`
+	DBType string `env:"DB_TYPE" validate:"required,db_type" default:"sqlite"`
 
 	Mode     string `env:"MODE" validate:"required,oneof=dev prod test" default:"dev"`
 	LogLevel string `env:"LOG_LEVEL" validate:"omitempty,log_level" default:"info"`
@@ -71,21 +72,63 @@ type Config struct {
 
 var validate = validator.New()
 
+// findEnvFiles returns candidate .env file paths to try, in priority order.
+// The first existing file that can be loaded will be used.
+func findEnvFiles(basePath string) []string {
+	candidates := []string{}
+
+	if basePath != "" {
+		candidates = append(candidates, filepath.Join(basePath, ".env"))
+	}
+
+	// Current working directory (common for go run and `cd dir && ./binary`)
+	if wd, err := os.Getwd(); err == nil {
+		candidates = append(candidates, filepath.Join(wd, ".env"))
+	}
+
+	// Directory containing the executable (supports ./bin/api directly)
+	if exePath, err := os.Executable(); err == nil {
+		exeDir := filepath.Dir(exePath)
+		candidates = append(candidates, filepath.Join(exeDir, ".env"))
+
+		// If binary lives in a "bin/" subdirectory (like bin/api), also check its parent
+		// (e.g. the apps/server directory) as a convenience.
+		if filepath.Base(exeDir) == "bin" {
+			candidates = append(candidates, filepath.Join(filepath.Dir(exeDir), ".env"))
+		}
+	}
+
+	// Deduplicate while preserving order
+	seen := make(map[string]bool)
+	unique := []string{}
+	for _, c := range candidates {
+		if !seen[c] {
+			seen[c] = true
+			unique = append(unique, c)
+		}
+	}
+	return unique
+}
+
 func LoadConfig[T any](path string) (config T, err error) {
 	// Register custom validators
 	RegisterCustomValidators(validate)
 
-	// Try to load from .env file first
-	envFile := path + "/.env"
+	// Try to load from .env file candidates (supports running binary from bin/, cwd, dev from source tree, etc.)
 	envVarsFromFile := make(map[string]string)
-	err = loadEnvFile(envFile, &config, envVarsFromFile)
-	if err != nil {
-		// Only return error if it's not a "file not found" error
-		if !os.IsNotExist(err) {
-			return
+	for _, envFile := range findEnvFiles(path) {
+		err = loadEnvFile(envFile, &config, envVarsFromFile)
+		if err != nil {
+			// Only return error if it's not a "file not found" error
+			if !os.IsNotExist(err) {
+				return
+			}
+			// file not found for this candidate, try next
+			err = nil
+			continue
 		}
-		// Clear the error if it's just file not found (we'll use env vars instead)
-		err = nil
+		// Successfully loaded from this .env, stop searching (first match wins; OS envs override later)
+		break
 	}
 
 	// Override with environment variables (takes precedence)
@@ -144,7 +187,7 @@ func formatValidationError(err validator.FieldError) string {
 	case "port":
 		return fmt.Sprintf("%s must be a valid port number (1-65535)", field)
 	case "db_type":
-		return fmt.Sprintf("%s must be one of: postgres, postgresql, mysql, sqlite, mongo, mongodb", field)
+		return fmt.Sprintf("%s must be one of: postgres, postgresql, mysql, mariadb, sqlite", field)
 	case "log_level":
 		return fmt.Sprintf("%s must be one of: debug, info, warn, warning, error, dpanic, panic, fatal", field)
 	case "duration_min":
@@ -163,24 +206,7 @@ func formatValidationError(err validator.FieldError) string {
 func ValidateDatabaseCustomRules(config *DBConfig) error {
 	// Validate database-specific requirements
 	switch config.DBType {
-	case "postgres", "postgresql", "mysql":
-		if config.DBHost == "" {
-			return fmt.Errorf("DB_HOST is required for %s database", config.DBType)
-		}
-		if config.DBPort == "" {
-			return fmt.Errorf("DB_PORT is required for %s database", config.DBType)
-		}
-		if config.DBUser == "" {
-			return fmt.Errorf("DB_USER is required for %s database", config.DBType)
-		}
-		if config.DBPass == "" {
-			return fmt.Errorf("DB_PASS is required for %s database", config.DBType)
-		}
-		// Validate port format for database connection
-		if _, err := strconv.Atoi(config.DBPort); err != nil {
-			return fmt.Errorf("DB_PORT must be a valid number for %s database", config.DBType)
-		}
-	case "mongo", "mongodb":
+	case "postgres", "postgresql", "mysql", "mariadb":
 		if config.DBHost == "" {
 			return fmt.Errorf("DB_HOST is required for %s database", config.DBType)
 		}
@@ -278,6 +304,12 @@ func loadEnvFile[T any](filePath string, config *T, envVarsFromFile map[string]s
 
 		key := strings.TrimSpace(parts[0])
 		value := strings.TrimSpace(parts[1])
+
+		// Strip inline comments (e.g. "dev # logging"), as used in .env.example and bin/.env files.
+		// This is a simple parser; values containing literal # are not supported.
+		if hashIdx := strings.Index(value, "#"); hashIdx != -1 {
+			value = strings.TrimSpace(value[:hashIdx])
+		}
 
 		// Remove quotes if they exist
 		value = strings.Trim(value, `"'`)

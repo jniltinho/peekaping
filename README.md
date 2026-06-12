@@ -4,7 +4,7 @@
 ![Go](https://img.shields.io/badge/go-%23007d9c.svg?style=flat&logo=go&logoColor=white)
 ![React](https://img.shields.io/badge/react-%2320232a.svg?style=flat&logo=react&logoColor=%2361dafb)
 ![TypeScript](https://img.shields.io/badge/typescript-%23007acc.svg?style=flat&logo=typescript&logoColor=white)
-![MongoDB](https://img.shields.io/badge/mongodb-4ea94b.svg?style=flat&logo=mongodb&logoColor=white)
+
 ![PostgreSQL](https://img.shields.io/badge/postgresql-%23336791.svg?style=flat&logo=postgresql&logoColor=white)
 ![SQLite](https://img.shields.io/badge/sqlite-%2307405e.svg?style=flat&logo=sqlite&logoColor=white)
 ![Docker Pulls](https://img.shields.io/docker/pulls/0xfurai/peekaping-web)
@@ -31,7 +31,7 @@ Peekaping is a modern uptime monitoring solution designed with the requirements 
 - **Server built with Golang** — using one of the most performant compiled languages ensures high speed with minimal consumption of RAM and CPU resources
 - **Unmatched stability** — thanks to a typed client and compiled Golang language, the system demonstrates high reliability and predictable operation
 Modern and intuitive interface — clean user interface design built on contemporary UI/UX principles
-- **Flexible storage options** — support for three popular databases (SQLite / PostgreSQL / MongoDB) allows adapting the solution to any infrastructure
+- **Flexible storage options** — support for popular databases (SQLite / PostgreSQL / MySQL / MariaDB) allows adapting the solution to any infrastructure
 - **API key management and access control** — built-in security system with access rights management and API keys provides enterprise-level protection
 
 
@@ -60,7 +60,7 @@ docker run -d --restart=always \
 
 [Docker + SQLite Setup](https://docs.peekaping.com/self-hosting/docker-with-sqlite)
 
-Peekaping also support [PostgreSQL Setup](https://docs.peekaping.com/self-hosting/docker-with-postgres) and [MongoDB Setup](https://docs.peekaping.com/self-hosting/docker-with-mongo). Read docs for more guidance
+Peekaping also supports [PostgreSQL Setup](https://docs.peekaping.com/self-hosting/docker-with-postgres) and [MySQL/MariaDB Setup](https://docs.peekaping.com/self-hosting/docker-with-mysql). Read docs for more guidance
 
 ## ⚡ Features
 
@@ -78,7 +78,7 @@ Peekaping also support [PostgreSQL Setup](https://docs.peekaping.com/self-hostin
 - Microsoft SQL Server
 - MongoDB
 - Redis
-- MySQL/MariaDB -
+- MySQL/MariaDB
 - MQTT Broker
 - RabbitMQ
 - Kafka Producer

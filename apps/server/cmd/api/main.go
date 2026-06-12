@@ -2,8 +2,8 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"log"
+	"net/http"
 	"os"
 	"os/signal"
 	"peekaping/docs"
@@ -80,15 +80,8 @@ func main() {
 	container.Provide(internal.ProvideServer)
 	container.Provide(websocket.NewServer)
 
-	// database-specific deps
-	switch internalCfg.DBType {
-	case "postgres", "postgresql", "mysql", "sqlite":
-		container.Provide(infra.ProvideSQLDB)
-	case "mongo", "mongodb":
-		container.Provide(infra.ProvideMongoDB)
-	default:
-		panic(fmt.Errorf("unsupported DB_DRIVER %q", internalCfg.DBType))
-	}
+	// database-specific deps (MongoDB backend removed; SQL only)
+	container.Provide(infra.ProvideSQLDB)
 
 	// Provide Redis event bus
 	container.Provide(infra.ProvideRedisClient)
@@ -109,8 +102,8 @@ func main() {
 	monitor_notification.RegisterDependencies(container, internalCfg)
 	proxy.RegisterDependencies(container, internalCfg)
 	setting.RegisterDependencies(container, internalCfg)
-	notification_sent_history.RegisterDependencies(container, internalCfg)
-	monitor_tls_info.RegisterDependencies(container, internalCfg)
+	notification_sent_history.RegisterDependencies(container)
+	monitor_tls_info.RegisterDependencies(container)
 	certificate.RegisterDependencies(container)
 	stats.RegisterDependencies(container, internalCfg)
 	monitor_maintenance.RegisterDependencies(container, internalCfg)
@@ -203,10 +196,17 @@ func main() {
 		sigChan := make(chan os.Signal, 1)
 		signal.Notify(sigChan, os.Interrupt, syscall.SIGTERM)
 
+		// In Echo v5 there is no Router.Shutdown; we use a plain http.Server
+		// because *echo.Echo implements http.Handler.
+		httpSrv := &http.Server{
+			Addr:    port,
+			Handler: server.Router,
+		}
+
 		// Start server in a goroutine
 		go func() {
 			logger.Infof("Starting server on port %s", port)
-			if err := server.Router.Start(port); err != nil {
+			if err := httpSrv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 				logger.Fatalf("Failed to start server: %v", err)
 			}
 		}()
@@ -215,10 +215,10 @@ func main() {
 		<-sigChan
 		logger.Info("Shutdown signal received, starting graceful shutdown...")
 
-		// Graceful shutdown for Echo
+		// Graceful shutdown
 		shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		defer cancel()
-		if err := server.Router.Shutdown(shutdownCtx); err != nil {
+		if err := httpSrv.Shutdown(shutdownCtx); err != nil {
 			logger.Errorw("Echo server shutdown error", "error", err)
 		}
 

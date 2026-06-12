@@ -8,6 +8,6 @@ import (
 )
 
 func RegisterDependencies(container *dig.Container, cfg *config.Config) {
-	utils.RegisterRepositoryByDBType(container, cfg, NewSQLRepository, NewMongoRepository)
+	utils.RegisterRepository(container, NewSQLRepository)
 	container.Provide(NewService)
 }

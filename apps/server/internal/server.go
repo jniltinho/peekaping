@@ -4,6 +4,7 @@ import (
 	"net/http"
 	_ "peekaping/docs"
 	"peekaping/internal/config"
+	"peekaping/internal/frontend"
 	"peekaping/internal/modules/api_key"
 	"peekaping/internal/modules/auth"
 	"peekaping/internal/modules/badge"
@@ -86,17 +87,21 @@ func ProvideServer(
 	e.Use(middleware.Recover())
 
 	// Optional logger in dev (Echo's built-in)
+	// Note: Echo v5 uses RequestLogger (not the old Logger)
 	if cfg.Mode == "dev" {
-		e.Use(middleware.Logger())
+		e.Use(middleware.RequestLogger())
 	}
 
 	// CORS - using Echo's built-in middleware (replaces gin-contrib/cors)
+	// NOTE: AllowCredentials must NOT be true when AllowOrigins contains "*".
+	// The app uses Authorization: Bearer header (token auth, no cookies for auth),
+	// so credentials mode is not required and "*" is safe.
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
-		AllowOrigins:     []string{"*"},
-		AllowMethods:     []string{http.MethodGet, http.MethodPost, http.MethodPut, http.MethodDelete, http.MethodOptions, http.MethodPatch},
-		AllowHeaders:     []string{"Origin", "X-Requested-With", "Content-Type", "Accept", "Authorization", "X-API-Key"},
-		ExposeHeaders:    []string{"Authorization"},
-		AllowCredentials: true,
+		AllowOrigins:  []string{"*"},
+		AllowMethods:  []string{http.MethodGet, http.MethodPost, http.MethodPut, http.MethodDelete, http.MethodOptions, http.MethodPatch},
+		AllowHeaders:  []string{"Origin", "X-Requested-With", "Content-Type", "Accept", "Authorization", "X-API-Key"},
+		ExposeHeaders: []string{"Authorization"},
+		// AllowCredentials: false, // default; do not set to true with "*"
 	}))
 
 	// Simple health and version at root and under /api/v1
@@ -140,11 +145,22 @@ func ProvideServer(
 	})
 
 	// WebSocket / socket.io compatibility shims (raw writer/request delegation)
-	// Works the same way with Echo's access to underlying http objects.
+	// In Echo v5, c.Response() directly returns http.ResponseWriter (no .Writer wrapper like v4)
 	e.Any("/socket.io/*f", func(c *echo.Context) error {
-		wsServer.ServeHTTP(c.Response().Writer, c.Request())
+		wsServer.ServeHTTP(c.Response(), c.Request())
 		return nil
 	})
+
+	// Runtime env.js — must be before the SPA catch-all
+	e.GET("/env.js", func(c *echo.Context) error {
+		js := "/* generated at startup */\nwindow.__CONFIG__ = {\n  API_URL: \"\"\n};\n"
+		c.Response().Header().Set("Content-Type", "application/javascript")
+		c.Response().Header().Set("Cache-Control", "no-store, no-cache, must-revalidate")
+		return c.String(http.StatusOK, js)
+	})
+
+	// SPA catch-all — must be the last route
+	e.GET("/*", frontend.Handler())
 
 	return &Server{Router: e, Cfg: cfg}
 }

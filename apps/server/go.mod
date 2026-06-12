@@ -1,6 +1,6 @@
 module peekaping
 
-go 1.25.0
+go 1.26.0
 
 require (
 	github.com/Azure/go-ntlmssp v0.0.0-20221128193559-754e69321358
@@ -33,7 +33,7 @@ require (
 	github.com/uptrace/bun/driver/sqliteshim v1.2.14
 	github.com/uptrace/bun/extra/bundebug v1.2.14
 	github.com/urfave/cli/v2 v2.27.7
-	github.com/zishang520/socket.io/v2 v2.4.11
+	github.com/zishang520/socket.io/v2 v2.5.0
 	go.mongodb.org/mongo-driver v1.17.3
 	go.uber.org/dig v1.18.2
 	go.uber.org/zap v1.27.0
@@ -54,7 +54,7 @@ require (
 	github.com/Microsoft/go-winio v0.4.14 // indirect
 	github.com/PuerkitoBio/purell v1.1.1 // indirect
 	github.com/PuerkitoBio/urlesc v0.0.0-20170810143723-de5bf2ad4578 // indirect
-	github.com/andybalholm/brotli v1.1.1 // indirect
+	github.com/andybalholm/brotli v1.2.0 // indirect
 	github.com/boombuler/barcode v1.0.1-0.20190219062509-6c824513bacc // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/containerd/errdefs v1.0.0 // indirect
@@ -115,8 +115,8 @@ require (
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
 	github.com/puzpuzpuz/xsync/v3 v3.5.1 // indirect
-	github.com/quic-go/qpack v0.6.0 // indirect
-	github.com/quic-go/quic-go v0.59.0 // indirect
+	github.com/quic-go/qpack v0.5.1 // indirect
+	github.com/quic-go/quic-go v0.53.0 // indirect
 	github.com/rcrowley/go-metrics v0.0.0-20201227073835-cf1acfcdf475 // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
@@ -136,9 +136,9 @@ require (
 	github.com/youmark/pkcs8 v0.0.0-20240726163527-a2c0da244d78 // indirect
 	github.com/yuin/gopher-lua v1.1.1 // indirect
 	github.com/zishang520/engine.io-go-parser v1.3.2 // indirect
-	github.com/zishang520/engine.io/v2 v2.4.13 // indirect
-	github.com/zishang520/socket.io-go-parser/v2 v2.4.6 // indirect
-	github.com/zishang520/webtransport-go v0.8.7 // indirect
+	github.com/zishang520/engine.io/v2 v2.5.0 // indirect
+	github.com/zishang520/socket.io-go-parser/v2 v2.5.0 // indirect
+	github.com/zishang520/webtransport-go v0.9.1 // indirect
 	go.opentelemetry.io/auto/sdk v1.1.0 // indirect
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.62.0 // indirect
 	go.opentelemetry.io/otel v1.37.0 // indirect

@@ -2,9 +2,13 @@
 sidebar_position: 3
 ---
 
-# Producer
+:::warning Deprecated
+`cmd/producer` is deprecated and superseded by the **Engine** (`cmd/engine`), which combines producer + worker + ingester into a single binary. See the [Engine architecture](./engine.md) documentation.
+:::
 
-The Producer is the scheduling component of Peekaping, responsible for determining when monitors should be checked and enqueueing health check tasks for workers to execute.
+# Producer (Deprecated)
+
+The Producer was the scheduling component of Peekaping, responsible for determining when monitors should be checked and enqueueing health check tasks for workers to execute.
 
 ## Role & Responsibilities
 
@@ -60,7 +64,7 @@ The producer runs multiple concurrent goroutines:
 
 | Variable | Type | Required | Default | Description |
 |----------|------|----------|---------|-------------|
-| `DB_TYPE` | string | Yes | - | Database type: `postgres`, `mysql`, `sqlite`, `mongo`, `mongodb` |
+| `DB_TYPE` | string | Yes | - | Database type: `postgres`, `mysql`, `mariadb`, `sqlite` |
 | `DB_HOST` | string | Conditional | - | Database host (not required for SQLite) |
 | `DB_PORT` | string | Conditional | - | Database port (not required for SQLite) |
 | `DB_NAME` | string | Yes | - | Database name or SQLite file path |

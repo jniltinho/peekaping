@@ -1,3 +1,3 @@
 module peekaping_test_failing
 
-go 1.25.6
+go 1.26.0

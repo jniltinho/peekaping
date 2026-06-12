@@ -85,7 +85,7 @@ func (h *IngesterTaskHandler) ProcessTask(ctx context.Context, task *asynq.Task)
 	)
 
 	// Process the heartbeat
-	if err := h.processHeartbeat(ctx, &payload); err != nil {
+	if err := h.ProcessHeartbeat(ctx, &payload); err != nil {
 		h.logger.Errorw("Failed to process heartbeat",
 			"monitor_id", payload.MonitorID,
 			"error", err,
@@ -125,8 +125,9 @@ func (h *IngesterTaskHandler) isImportantForNotification(prevBeatStatus, currBea
 		(prevBeatStatus == pending && currBeatStatus == down)
 }
 
-// processHeartbeat processes and stores the heartbeat
-func (h *IngesterTaskHandler) processHeartbeat(ctx context.Context, payload *IngesterTaskPayload) error {
+// ProcessHeartbeat processes and stores a heartbeat from a check result payload.
+// It is exported so the engine's ingester can call it directly without Asynq.
+func (h *IngesterTaskHandler) ProcessHeartbeat(ctx context.Context, payload *IngesterTaskPayload) error {
 	// Get the previous heartbeat
 	previousBeats, err := h.heartbeatService.FindByMonitorIDPaginated(ctx, payload.MonitorID, 1, 0, nil, false)
 	var previousBeat *heartbeat.Model = nil

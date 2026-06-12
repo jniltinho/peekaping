@@ -25,7 +25,7 @@ func (r *Route) ConnectRoute(
 	rg *echo.Group,
 	controller *Controller,
 ) {
-	router := rg.Group("tags")
+	router := rg.Group("/tags")
 
 	router.Use(r.middleware.AllAuth())
 

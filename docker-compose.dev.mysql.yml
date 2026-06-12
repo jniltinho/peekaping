@@ -1,0 +1,140 @@
+networks:
+  appnet:
+
+services:
+  database:
+    image: mariadb:11
+    restart: unless-stopped
+    ports:
+      - "${DB_PORT:-3306}:3306"
+    env_file:
+      - .env
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASS:-password}
+      MYSQL_DATABASE: ${DB_NAME:-peekaping}
+      MYSQL_USER: ${DB_USER:-peekaping}
+      MYSQL_PASSWORD: ${DB_PASS:-password}
+    volumes:
+      - ./.data/mysql:/var/lib/mysql
+    networks:
+      - appnet
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 30s
+      timeout: 2s
+      retries: 5
+      start_period: 5s
+
+  redis:
+    image: redis:7
+    restart: always
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    networks:
+      - appnet
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 2s
+      retries: 5
+      start_period: 5s
+
+  migrate:
+    build:
+      context: ./apps/server
+      dockerfile: infra/Dockerfile.migrate
+    restart: "no"
+    env_file:
+      - .env
+    depends_on:
+      database:
+        condition: service_healthy
+    networks:
+      - appnet
+
+  api:
+    build:
+      context: ./apps/server
+      dockerfile: infra/Dockerfile.api
+    restart: unless-stopped
+    ports:
+      - "8034:8034"
+    env_file:
+      - .env
+    depends_on:
+      database:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - appnet
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO - http://localhost:8034/api/v1/health || exit 1"]
+      interval: 30s
+      timeout: 2s
+      retries: 5
+      start_period: 5s
+
+  producer:
+    build:
+      context: ./apps/server
+      dockerfile: infra/Dockerfile.producer
+    restart: unless-stopped
+    env_file:
+      - .env
+    depends_on:
+      database:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - appnet
+
+  worker:
+    build:
+      context: ./apps/server
+      dockerfile: infra/Dockerfile.worker
+    restart: unless-stopped
+    env_file:
+      - .env
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - appnet
+
+  ingester:
+    build:
+      context: ./apps/server
+      dockerfile: infra/Dockerfile.ingester
+    restart: unless-stopped
+    env_file:
+      - .env
+    depends_on:
+      database:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - appnet
+
+  web:
+    build:
+      context: .
+      dockerfile: ./apps/web/Dockerfile
+    restart: unless-stopped
+    ports:
+      - "8383:80"
+    environment:
+      - API_URL=http://localhost:8034
+    depends_on:
+      api:
+        condition: service_healthy
+    networks:
+      - appnet
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:80 || exit 1"]
+      interval: 30s
+      timeout: 2s
+      retries: 5
+      start_period: 5s

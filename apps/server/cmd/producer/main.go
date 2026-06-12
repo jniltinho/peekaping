@@ -1,3 +1,5 @@
+// Deprecated: cmd/producer is superseded by cmd/engine which combines producer+worker+ingester.
+// This binary is kept for rollback purposes only. Use cmd/engine for new deployments.
 package main
 
 import (
@@ -49,14 +51,8 @@ func main() {
 
 	container.Provide(internal.ProvideLogger)
 
-	switch internalCfg.DBType {
-	case "postgres", "postgresql", "mysql", "sqlite":
-		container.Provide(infra.ProvideSQLDB)
-	case "mongo", "mongodb":
-		container.Provide(infra.ProvideMongoDB)
-	default:
-		log.Fatalf("Unsupported DB_TYPE: %s", internalCfg.DBType)
-	}
+	// database-specific deps (MongoDB backend removed; SQL only)
+	container.Provide(infra.ProvideSQLDB)
 
 	// Provide Redis infrastructure
 	container.Provide(infra.ProvideRedisClient)
@@ -78,8 +74,8 @@ func main() {
 	monitor_maintenance.RegisterDependencies(container, internalCfg)
 	monitor_notification.RegisterDependencies(container, internalCfg)
 	setting.RegisterDependencies(container, internalCfg)
-	notification_sent_history.RegisterDependencies(container, internalCfg)
-	monitor_tls_info.RegisterDependencies(container, internalCfg)
+	notification_sent_history.RegisterDependencies(container)
+	monitor_tls_info.RegisterDependencies(container)
 	certificate.RegisterDependencies(container)
 	stats.RegisterDependencies(container, internalCfg)
 

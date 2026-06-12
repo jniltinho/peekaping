@@ -1,0 +1,27 @@
+services:
+  database:
+    image: mariadb:11
+    restart: unless-stopped
+    ports:
+      - "${DB_PORT:-3306}:3306"
+    env_file:
+      - .env
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASS:-password}
+      MYSQL_DATABASE: ${DB_NAME:-peekaping}
+      MYSQL_USER: ${DB_USER:-peekaping}
+      MYSQL_PASSWORD: ${DB_PASS:-password}
+    volumes:
+      - ./.data/mysql:/var/lib/mysql
+
+  redis:
+    image: redis:7-alpine
+    command: [
+      "redis-server",
+      "--save",
+      "",
+      "--appendonly",
+      "no",
+    ]
+    ports:
+      - "${REDIS_PORT:-6379}:6379"

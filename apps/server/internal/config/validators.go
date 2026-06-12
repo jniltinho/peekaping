@@ -62,7 +62,7 @@ func validatePort(fl validator.FieldLevel) bool {
 // validateDBType validates that the database type is supported
 func validateDBType(fl validator.FieldLevel) bool {
 	dbType := strings.ToLower(fl.Field().String())
-	validTypes := []string{"postgres", "postgresql", "mysql", "sqlite", "mongo", "mongodb"}
+	validTypes := []string{"postgres", "postgresql", "mysql", "mariadb", "sqlite"}
 
 	for _, validType := range validTypes {
 		if dbType == validType {

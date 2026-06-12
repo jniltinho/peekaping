@@ -1,25 +1,19 @@
 package notification_sent_history
 
 import (
-	"peekaping/internal/config"
 	"peekaping/internal/utils"
 
 	"github.com/uptrace/bun"
-	"go.mongodb.org/mongo-driver/mongo"
 	"go.uber.org/dig"
 	"go.uber.org/zap"
 )
 
-func RegisterDependencies(container *dig.Container, cfg *config.Config) {
-	// Register repository based on database type
-	utils.RegisterRepositoryByDBType(
+func RegisterDependencies(container *dig.Container) {
+	// Register repository (MongoDB backend removed; always SQL)
+	utils.RegisterRepository(
 		container,
-		cfg,
 		func(db *bun.DB) Repository {
 			return NewSQLRepository(db)
-		},
-		func(client *mongo.Client) Repository {
-			return NewMongoRepository(client, cfg)
 		},
 	)
 

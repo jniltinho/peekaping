@@ -51,3 +51,24 @@ package-lock.json
 
 storageState.json
 apps/web/src/i18n/progress
+
+# Frontend embed target (populated by 'make embed-web' or Docker build)
+apps/server/internal/frontend/web/*
+!apps/server/internal/frontend/web/.gitkeep
+
+# SQLite runtime databases (never commit actual DB files)
+*.db
+*.db-shm
+*.db-wal
+peekaping.db*
+
+# Compiled server binaries
+apps/server/api
+apps/server/engine
+apps/server/cmd/engine/engine
+
+# Personal AI assistant / editor tool config dirs (local only)
+.agent/
+.claude/
+.cursor/
+.opencode/

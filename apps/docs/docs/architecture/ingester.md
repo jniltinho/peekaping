@@ -2,9 +2,13 @@
 sidebar_position: 5
 ---
 
-# Ingester
+:::warning Deprecated
+`cmd/ingester` is deprecated and superseded by the **Engine** (`cmd/engine`), which combines producer + worker + ingester into a single binary. See the [Engine architecture](./engine.md) documentation.
+:::
 
-The Ingester is the data persistence and event processing component of Peekaping. It consumes health check results from workers, stores them in the database, detects status changes, triggers notifications, and maintains statistics.
+# Ingester (Deprecated)
+
+The Ingester was the data persistence and event processing component of Peekaping. It consumes health check results from workers, stores them in the database, detects status changes, triggers notifications, and maintains statistics.
 
 ## Role & Responsibilities
 
@@ -38,7 +42,7 @@ Ingesters can run multiple tasks concurrently based on `QUEUE_CONCURRENCY`:
 
 | Variable | Type | Required | Default | Description |
 |----------|------|----------|---------|-------------|
-| `DB_TYPE` | string | Yes | - | Database type: `postgres`, `mysql`, `sqlite`, `mongo`, `mongodb` |
+| `DB_TYPE` | string | Yes | - | Database type: `postgres`, `mysql`, `mariadb`, `sqlite` |
 | `DB_HOST` | string | Conditional | - | Database host (not required for SQLite) |
 | `DB_PORT` | string | Conditional | - | Database port (not required for SQLite) |
 | `DB_NAME` | string | Yes | - | Database name or SQLite file path |
