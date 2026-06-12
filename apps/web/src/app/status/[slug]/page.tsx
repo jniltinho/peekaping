@@ -390,7 +390,7 @@ const PublicStatusPage = ({ incomingSlug }: { incomingSlug?: string }) => {
               href="https://github.com/jniltinho/peekaping"
               className="underline hover:text-foreground"
             >
-              Peekaping
+              Monitoring
             </a>
           </p>
         </div>

@@ -9,7 +9,7 @@ export default function SHLoginPage() {
           <div className="flex h-6 w-6 items-center justify-center rounded-none bg-primary text-primary-foreground">
             <GalleryVerticalEnd className="size-4" />
           </div>
-          Peekaping
+          Monitoring
         </a>
 
         <LoginForm />
