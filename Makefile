@@ -19,6 +19,21 @@ help: ## Show this help message
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-25s\033[0m %s\n", $$1, $$2}'
 
 
+# ── Docker build ──────────────────────────────────────────────────────────────
+
+.PHONY: build-bundle-sqlite
+build-bundle-sqlite: ## Build bundle SQLite image (peekaping-bundle-sqlite:dev)
+	docker build --no-cache -f Dockerfile.bundle.sqlite -t peekaping-bundle-sqlite:dev .
+
+.PHONY: build-bundle-postgres
+build-bundle-postgres: ## Build bundle PostgreSQL image (peekaping-bundle-postgres:dev)
+	docker build --no-cache -f Dockerfile.bundle.postgres -t peekaping-bundle-postgres:dev .
+
+.PHONY: build-bundle-mysql
+build-bundle-mysql: ## Build bundle MySQL image (peekaping-bundle-mysql:dev)
+	docker build --no-cache -f Dockerfile.bundle.mysql -t peekaping-bundle-mysql:dev .
+
+
 # ── Docker ────────────────────────────────────────────────────────────────────
 
 .PHONY: docker-postgres
