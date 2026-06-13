@@ -4,13 +4,12 @@ BIN_DIR     := bin
 BINARY      := $(BIN_DIR)/monitoring
 PREFIX      := peekaping/version
 
-VERSION    := $(shell git describe --tags --abbrev=0 2>/dev/null || echo "dev")
-VER        := $(patsubst v%,%,$(VERSION))
+VERSION    := $(or $(shell git describe --tags --abbrev=0 2>/dev/null),dev)
 BUILD_TIME := $(shell date -u +"%Y-%m-%dT%H:%M:%SZ")
 GIT_COMMIT := $(shell git rev-parse --short HEAD 2>/dev/null || echo "unknown")
 
 LDFLAGS    := -trimpath -ldflags "-s -w \
-              -X $(PREFIX).Version=$(VER) \
+              -X $(PREFIX).Version=$(VERSION) \
               -X $(PREFIX).BuildTime=$(BUILD_TIME) \
               -X $(PREFIX).GitCommit=$(GIT_COMMIT)"
 
@@ -21,7 +20,7 @@ LDFLAGS    := -trimpath -ldflags "-s -w \
 build: ## Build the monitoring binary
 	@mkdir -p $(BIN_DIR)
 	@rm -f $(BINARY)
-	@echo "Building monitoring $(VER) ($(GIT_COMMIT))..."
+	@echo "Building monitoring $(VERSION) ($(GIT_COMMIT))..."
 	@CGO_ENABLED=$(CGO_ENABLED) $(GO) build -o $(BINARY) $(LDFLAGS) .
 	@if command -v upx > /dev/null 2>&1; then \
 		echo "Compressing with UPX..."; \

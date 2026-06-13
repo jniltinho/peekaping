@@ -108,7 +108,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
         <NavMain items={data.navMain} />
         <NavSecondary items={data.navSecondary} className="mt-auto" />
         <div className="text-xs text-muted-foreground w-full mb-2 select-none px-4">
-          v{versionData?.version ?? "..."}
+          {versionData?.version ?? "..."}
         </div>
       </SidebarContent>
 

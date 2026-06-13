@@ -15,6 +15,10 @@ RUN pnpm run build
 # Stage 2: Build Go server and migration tool
 FROM golang:1.26-alpine AS go-builder
 
+ARG VERSION=dev
+ARG BUILD_TIME=unknown
+ARG GIT_COMMIT=unknown
+
 RUN apk add --no-cache git
 WORKDIR /app/server
 COPY apps/server/go.mod apps/server/go.sum ./
@@ -22,7 +26,12 @@ RUN go mod download
 COPY apps/server/ .
 # Embed compiled frontend into the api binary
 COPY --from=web-builder /app/apps/web/dist ./internal/frontend/web
-RUN CGO_ENABLED=0 GOFLAGS="-trimpath" go build -o monitoring -ldflags="-s -w" .
+RUN CGO_ENABLED=0 go build -o monitoring \
+    -trimpath \
+    -ldflags="-s -w \
+      -X peekaping/version.Version=${VERSION} \
+      -X peekaping/version.BuildTime=${BUILD_TIME} \
+      -X peekaping/version.GitCommit=${GIT_COMMIT}" .
 
 # Stage 3: Final runtime image with Debian bookworm-slim and MariaDB
 FROM debian:bookworm-slim
