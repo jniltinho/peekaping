@@ -11,7 +11,7 @@ import (
 	"net/url"
 	"peekaping/internal/modules/heartbeat"
 	"peekaping/internal/modules/monitor"
-	"peekaping/internal/version"
+	"peekaping/version"
 	"time"
 
 	liquid "github.com/osteele/liquid"

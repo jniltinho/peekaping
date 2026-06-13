@@ -7,6 +7,7 @@ import (
 	"peekaping/internal/config"
 
 	"github.com/go-playground/validator/v10"
+	"github.com/spf13/viper"
 )
 
 // Config defines the configuration schema for the API service
@@ -48,9 +49,11 @@ type Config struct {
 	ServiceName string `env:"SERVICE_NAME" validate:"required,min=1" default:"peekaping:api"`
 }
 
-// LoadAndValidate loads and validates the API service configuration
-func LoadAndValidate(path string) (*Config, error) {
-	cfg, err := config.LoadConfig[Config](path)
+// LoadAndValidate loads and validates the API service configuration.
+// v is a pre-configured Viper instance; bind any CLI flags to it before calling.
+// Pass viper.New() when no extra flag bindings are needed.
+func LoadAndValidate(path string, v *viper.Viper) (*Config, error) {
+	cfg, err := config.LoadWithViper[Config](v, path)
 	if err != nil {
 		return nil, fmt.Errorf("failed to load config: %w", err)
 	}

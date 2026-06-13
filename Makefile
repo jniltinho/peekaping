@@ -119,18 +119,18 @@ docker-down-all: ## Stop all bundle services
 
 .PHONY: migrate-up
 migrate-up: ## Apply / update database schema (GORM AutoMigrate)
-	cd apps/server && ../../scripts/tool.sh go run ./cmd/monitoring migrate up
+	cd apps/server && ../../scripts/tool.sh go run . migrate up
 
 .PHONY: migrate-status
 migrate-status: ## Check database connectivity
-	cd apps/server && ../../scripts/tool.sh go run ./cmd/monitoring migrate status
+	cd apps/server && ../../scripts/tool.sh go run . migrate status
 
 
 # ── Build ─────────────────────────────────────────────────────────────────────
 
 .PHONY: build
 build: ## Build the unified peekaping binary
-	cd $(GO_SERVER_DIR) && ../../scripts/tool.sh go build -o ../../bin/monitoring ./cmd/monitoring
+	cd $(GO_SERVER_DIR) && ../../scripts/tool.sh go build -o ../../bin/monitoring .
 
 .PHONY: build-api
 build-api: build ## Build the unified peekaping binary (alias)
@@ -152,11 +152,11 @@ embed-web: ## Build frontend and embed into Go API binary
 
 .PHONY: run-api
 run-api: ## Run the API server
-	cd $(GO_SERVER_DIR) && ../../scripts/tool.sh go run ./cmd/monitoring api
+	cd $(GO_SERVER_DIR) && ../../scripts/tool.sh go run . api
 
 .PHONY: run-engine
 run-engine: ## Run the engine service
-	cd $(GO_SERVER_DIR) && ../../scripts/tool.sh go run ./cmd/monitoring engine
+	cd $(GO_SERVER_DIR) && ../../scripts/tool.sh go run . engine
 
 .PHONY: dev
 dev: ## Start full development environment

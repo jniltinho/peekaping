@@ -2,7 +2,7 @@ package internal
 
 import (
 	"net/http"
-	"peekaping/internal/version"
+	"peekaping/version"
 
 	"github.com/labstack/echo/v5"
 )

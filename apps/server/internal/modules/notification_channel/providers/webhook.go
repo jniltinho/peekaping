@@ -10,7 +10,7 @@ import (
 	"net/http"
 	"peekaping/internal/modules/heartbeat"
 	"peekaping/internal/modules/monitor"
-	"peekaping/internal/version"
+	"peekaping/version"
 
 	liquid "github.com/osteele/liquid"
 	"go.uber.org/zap"

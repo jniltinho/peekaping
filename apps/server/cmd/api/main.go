@@ -38,7 +38,7 @@ import (
 	"peekaping/internal/modules/tag"
 	"peekaping/internal/modules/websocket"
 	"peekaping/internal/utils"
-	"peekaping/internal/version"
+	"peekaping/version"
 	"syscall"
 	"time"
 

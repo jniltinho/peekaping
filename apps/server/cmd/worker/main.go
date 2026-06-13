@@ -15,7 +15,7 @@ import (
 	"peekaping/internal/modules/healthcheck"
 	"peekaping/internal/modules/heartbeat"
 	"peekaping/internal/modules/worker"
-	"peekaping/internal/version"
+	"peekaping/version"
 	"syscall"
 
 	"go.uber.org/dig"

@@ -11,7 +11,7 @@ import (
 	"peekaping/internal/modules/heartbeat"
 	"peekaping/internal/modules/monitor"
 	"peekaping/internal/modules/shared"
-	"peekaping/internal/version"
+	"peekaping/version"
 	"strings"
 
 	liquid "github.com/osteele/liquid"

@@ -1,67 +1,49 @@
-# Makefile for building Peekaping server binaries
-#
-# Usage:
-#   make            # Build all binaries (default)
-#   make api        # Build only the api binary
-#   make engine     # Build only the engine binary
-#   make bun        # Build only the bun migration tool
-#   make clean      # Remove all built binaries
+GO          := go
+CGO_ENABLED := 1
+BIN_DIR     := bin
+BINARY      := $(BIN_DIR)/monitoring
+PREFIX      := peekaping/version
 
-# Go parameters
-GO            := go
-CGO_ENABLED   := 0
-LDFLAGS       := -s -w
-GOFLAGS       := -trimpath
+VERSION    := $(shell git describe --tags --abbrev=0 2>/dev/null || echo "dev")
+VER        := $(patsubst v%,%,$(VERSION))
+BUILD_TIME := $(shell date -u +"%Y-%m-%dT%H:%M:%SZ")
+GIT_COMMIT := $(shell git rev-parse --short HEAD 2>/dev/null || echo "unknown")
 
-# Directories
-BIN_DIR       := bin
+LDFLAGS    := -trimpath -ldflags "-s -w \
+              -X $(PREFIX).Version=$(VER) \
+              -X $(PREFIX).BuildTime=$(BUILD_TIME) \
+              -X $(PREFIX).GitCommit=$(GIT_COMMIT)"
 
-# Binaries
-API_BINARY    := $(BIN_DIR)/api
-ENGINE_BINARY := $(BIN_DIR)/engine
-BUN_BINARY    := $(BIN_DIR)/bun
+.PHONY: build run-api run-engine migrate-up migrate-status clean help
 
-.PHONY: all build help clean api engine bun
+.DEFAULT_GOAL := build
 
-# Default target
-.DEFAULT_GOAL := all
-
-all: build ## Build all binaries (default)
-
-build: api engine bun ## Build all binaries
-
-# Individual build targets
-api: ## Build the API server (includes embedded frontend if web/ is populated)
+build: ## Build the monitoring binary
 	@mkdir -p $(BIN_DIR)
-	@echo "Building api..."
-	CGO_ENABLED=$(CGO_ENABLED) GOFLAGS="$(GOFLAGS)" $(GO) build -o $(API_BINARY) -ldflags="$(LDFLAGS)" ./cmd/api
+	@rm -f $(BINARY)
+	@echo "Building monitoring $(VER) ($(GIT_COMMIT))..."
+	@CGO_ENABLED=$(CGO_ENABLED) $(GO) build -o $(BINARY) $(LDFLAGS) .
+	@if command -v upx > /dev/null 2>&1; then \
+		echo "Compressing with UPX..."; \
+		upx --best --lzma $(BINARY); \
+	else \
+		echo "UPX not found, skipping compression."; \
+	fi
 
-engine: ## Build the engine (scheduler + worker pool + ingester)
-	@mkdir -p $(BIN_DIR)
-	@echo "Building engine..."
-	CGO_ENABLED=$(CGO_ENABLED) GOFLAGS="$(GOFLAGS)" $(GO) build -o $(ENGINE_BINARY) -ldflags="$(LDFLAGS)" ./cmd/engine
+run-api: ## Run the API server
+	$(GO) run . api
 
-bun: ## Build the bun migration tool
-	@mkdir -p $(BIN_DIR)
-	@echo "Building bun..."
-	CGO_ENABLED=$(CGO_ENABLED) $(GO) build -o $(BUN_BINARY) -ldflags="$(LDFLAGS)" ./cmd/bun
+run-engine: ## Run the engine (scheduler/worker/ingester)
+	$(GO) run . engine
 
-clean: ## Remove all built binaries
-	@echo "Cleaning binaries..."
-	@rm -rf $(BIN_DIR)/*
-	@echo "Done."
+migrate-up: ## Apply / update database schema (GORM AutoMigrate)
+	$(GO) run . migrate up
 
-help: ## Show this help message
-	@echo "Peekaping Server - Build targets"
-	@echo ""
-	@echo "Usage:"
-	@echo "  make [target]"
-	@echo ""
-	@echo "Targets:"
-	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-12s\033[0m %s\n", $$1, $$2}'
-	@echo ""
-	@echo "Examples:"
-	@echo "  make           # Build all binaries"
-	@echo "  make api       # Build only api"
-	@echo "  make engine    # Build only engine"
-	@echo "  make clean     # Remove bin/ contents"
+migrate-status: ## Check database connectivity
+	$(GO) run . migrate status
+
+clean: ## Remove built binary
+	@rm -f $(BINARY)
+
+help: ## Show available targets
+	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-16s\033[0m %s\n", $$1, $$2}'

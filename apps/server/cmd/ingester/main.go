@@ -20,7 +20,7 @@ import (
 	"peekaping/internal/modules/notification_sent_history"
 	"peekaping/internal/modules/setting"
 	"peekaping/internal/modules/stats"
-	"peekaping/internal/version"
+	"peekaping/version"
 	"syscall"
 
 	"github.com/hibiken/asynq"

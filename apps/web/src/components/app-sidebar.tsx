@@ -20,16 +20,18 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
+import { useQuery } from "@tanstack/react-query";
+import { getVersionOptions } from "../api/@tanstack/react-query.gen";
 import { NavUser } from "./nav-user";
 import { NavMain } from "./nav-main";
 import { NavSecondary } from "./nav-secondary";
 import { useAuthStore } from "@/store/auth";
-import { VERSION } from "../version";
 import { useLocalizedTranslation } from "@/hooks/useTranslation";
 
 export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
   const user = useAuthStore((state) => state.user);
   const { t } = useLocalizedTranslation();
+  const { data: versionData } = useQuery(getVersionOptions());
 
   const data = {
     user: {
@@ -106,7 +108,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
         <NavMain items={data.navMain} />
         <NavSecondary items={data.navSecondary} className="mt-auto" />
         <div className="text-xs text-muted-foreground w-full mb-2 select-none px-4">
-          v{VERSION}
+          v{versionData?.version ?? "..."}
         </div>
       </SidebarContent>
 

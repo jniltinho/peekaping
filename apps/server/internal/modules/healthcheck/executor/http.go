@@ -14,7 +14,7 @@ import (
 	"peekaping/internal/modules/certificate"
 	"peekaping/internal/modules/shared"
 	"peekaping/internal/utils"
-	"peekaping/internal/version"
+	"peekaping/version"
 	"strconv"
 	"strings"
 	"sync"

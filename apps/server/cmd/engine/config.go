@@ -8,6 +8,7 @@ import (
 	internalengine "peekaping/internal/engine"
 
 	"github.com/go-playground/validator/v10"
+	"github.com/spf13/viper"
 )
 
 // Config defines the configuration schema for the Engine service.
@@ -42,8 +43,9 @@ type Config struct {
 }
 
 // LoadAndValidate loads and validates the Engine service configuration.
-func LoadAndValidate(path string) (*Config, error) {
-	cfg, err := config.LoadConfig[Config](path)
+// v is a pre-configured Viper instance; pass viper.New() when no extra flag bindings are needed.
+func LoadAndValidate(path string, v *viper.Viper) (*Config, error) {
+	cfg, err := config.LoadWithViper[Config](v, path)
 	if err != nil {
 		return nil, fmt.Errorf("failed to load config: %w", err)
 	}
