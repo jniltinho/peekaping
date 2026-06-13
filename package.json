@@ -2,24 +2,19 @@
   "name": "mono",
   "private": true,
   "scripts": {
-    "build": "turbo run build",
-    "dev": "turbo run dev",
-    "dev:api": "turbo run dev:api",
-    "dev:producer": "turbo run dev:producer",
-    "dev:worker": "turbo run dev:worker",
-    "dev:ingester": "turbo run dev:ingester",
-    "lint": "turbo run lint",
-    "check-types": "turbo run check-types",
+    "build": "pnpm --filter=web build",
+    "dev": "pnpm --filter=web dev",
+    "lint": "pnpm --filter=web lint",
+    "check-types": "pnpm --filter=web check-types",
     "e2e": "pnpm exec playwright test"
   },
   "devDependencies": {
     "@playwright/test": "^1.53.1",
     "@types/node": "22.15.17",
-    "turbo": "^2.5.4",
     "nodemon": "^3.1.10"
   },
   "packageManager": "pnpm@9.0.0",
   "engines": {
-    "node": ">=20.18.0"
+    "node": ">=22.0.0"
   }
 }
