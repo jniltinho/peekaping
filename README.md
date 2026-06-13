@@ -6,6 +6,7 @@
 ![TypeScript](https://img.shields.io/badge/typescript-%23007acc.svg?style=flat&logo=typescript&logoColor=white)
 
 ![PostgreSQL](https://img.shields.io/badge/postgresql-%23336791.svg?style=flat&logo=postgresql&logoColor=white)
+![MySQL](https://img.shields.io/badge/mysql-%234479a1.svg?style=flat&logo=mysql&logoColor=white)
 ![SQLite](https://img.shields.io/badge/sqlite-%2307405e.svg?style=flat&logo=sqlite&logoColor=white)
 ![Docker Pulls](https://img.shields.io/docker/pulls/jniltinho/peekaping-web)
 
@@ -31,7 +32,7 @@ Peekaping is a modern uptime monitoring solution designed with the requirements 
 - **Server built with Golang** — using one of the most performant compiled languages ensures high speed with minimal consumption of RAM and CPU resources
 - **Unmatched stability** — thanks to a typed client and compiled Golang language, the system demonstrates high reliability and predictable operation
 - **Modern and intuitive interface** — clean user interface design built on contemporary UI/UX principles
-- **Flexible storage options** — support for popular databases (SQLite / PostgreSQL / MySQL / MariaDB) allows adapting the solution to any infrastructure
+- **Flexible storage options** — support for SQLite, PostgreSQL, MySQL, and MariaDB allows adapting the solution to any infrastructure
 - **API key management and access control** — built-in security system with access rights management and API keys provides enterprise-level protection
 
 
@@ -60,7 +61,7 @@ docker run -d --restart=always \
 
 Peekaping also supports [PostgreSQL](./docs/self-hosting/docker-with-postgres.md) and [MySQL/MariaDB](./docs/self-hosting/docker-with-mysql.md).
 
-See the full [self-hosting docs](./docs/index.md) and [configuration reference](./docs/configuration.md).
+See the full [self-hosting docs](./docs/index.md), [configuration reference](./docs/configuration.md), and [migration setup](./MIGRATION_SETUP.md).
 
 ## ⚡ Features
 

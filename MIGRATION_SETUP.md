@@ -1,76 +1,87 @@
-# Database Migration Setup
+# Database Migrations
 
-This project includes a separate migration container that gives you full control over when database migrations run.
+Peekaping uses **GORM AutoMigrate** to manage the database schema. On every startup, the migration step creates any missing tables, adds new columns, and creates indexes automatically — no manual tracking files required.
 
 ## How it works
 
-1. **Migration Container**: The project uses a dedicated migration container built from `Dockerfile.migrate`
-2. **Migration Tool**: Uses the bun migration tool located in `apps/server/cmd/bun/`
-3. **Separate Control**: Migrations run in their own container, separate from the application server
-4. **Server Dependency**: The server waits for migrations to complete successfully before starting
+1. The `monitoring migrate up` command connects to the configured database and calls GORM AutoMigrate across all 19 tables.
+2. AutoMigrate is **idempotent** — running it against an existing, up-to-date database is a no-op.
+3. Tables and columns that exist in the database but are not in the schema are left untouched (AutoMigrate never drops columns or tables).
 
+## Running migrations
 
-## Manual Migration Commands
+### Via Docker (bundle images)
 
-If you need to run migrations manually outside of Docker:
+Migrations run automatically before the server starts inside every bundle image (`peekaping-bundle-sqlite`, `peekaping-bundle-postgres`, `peekaping-bundle-mysql`). No manual step is needed.
 
-1. **Build the bun migration tool**:
-   ```bash
-   cd apps/server
-   go build -o bun ./cmd/bun
-   ```
+### Via Makefile (development)
 
-2. **Run migrations**:
-   ```bash
-   ./bun db migrate
-   ```
+```bash
+# Apply / update schema
+make migrate-up
 
-3. **Check migration status**:
-   ```bash
-   ./bun db status
-   ```
+# Check database connectivity
+make migrate-status
+```
 
-4. **Rollback last migration**:
-   ```bash
-   ./bun db rollback
-   ```
+### Via binary
 
-### Creating New Migrations
+```bash
+cd apps/server
 
-For creating new migrations, use the bun tool:
+# Build the unified binary
+go build -o monitoring ./cmd/monitoring
 
-1. **Build the bun tool**:
-   ```bash
-   cd apps/server
-   go build -o bun ./cmd/bun
-   ```
+# Apply / update schema
+./monitoring migrate up
 
-2. **Create new migration**:
-   ```bash
-   ./bun db create_tx_sql migration_name
-   ```
+# Check database connectivity
+./monitoring migrate status
+```
 
-## Migration Files
+Pass `--env-file /path/to/.env` to load configuration from a specific file:
 
-Migrations are stored in `apps/server/cmd/bun/migrations/` and follow the naming convention:
-- `YYYYMMDDHHMMSS_description.tx.up.sql` - Migration to apply
-- `YYYYMMDDHHMMSS_description.tx.down.sql` - Migration to rollback
+```bash
+./monitoring --env-file /app/.env migrate up
+```
 
-## Migration Container Details
+## Available subcommands
 
-- **Image**: Built from `apps/server/infra/Dockerfile.migrate`
-- **Tool**: Uses bun migration tool (`./bun db migrate`)
-- **Restart Policy**: `no` (runs once and exits)
-- **Dependencies**: Waits for database to be healthy before running
-- **Server Dependency**: Server waits for migration container to complete successfully
+| Command | Description |
+|---|---|
+| `monitoring migrate up` | Create missing tables, add missing columns, create indexes |
+| `monitoring migrate status` | Verify database connectivity and report DB type |
 
-## Database Support
+## Supported databases
 
-The migration system supports:
-- PostgreSQL (recommended)
-- MySQL / MariaDB
-- SQLite
+| DB_TYPE | Notes |
+|---|---|
+| `sqlite` | Default. Single file, no server required. |
+| `postgres` / `postgresql` | Recommended for production. |
+| `mysql` / `mariadb` | MySQL 8+ or MariaDB 10.5+. |
 
-(Note: MongoDB was previously supported as a schemaless backend but is no longer a valid DB_TYPE for the application.)
+## Migration container (microservices deployment)
 
-The startup script automatically detects the database type and waits appropriately.
+The `apps/server/infra/Dockerfile.migrate` builds a minimal image that runs `monitoring migrate up` and exits. It is used in the microservices Docker Compose files:
+
+```yaml
+migrate:
+  build:
+    context: apps/server
+    dockerfile: infra/Dockerfile.migrate
+  env_file: .env
+  restart: "no"
+  depends_on:
+    database:
+      condition: service_healthy
+```
+
+The server service should declare `depends_on: migrate: condition: service_completed_successfully` so it waits for the migration to finish before accepting traffic.
+
+## Makefile targets reference
+
+| Target | Description |
+|---|---|
+| `make migrate-up` | Run `monitoring migrate up` via `go run` |
+| `make migrate-status` | Run `monitoring migrate status` via `go run` |
+| `make build` | Compile `monitoring` binary to `bin/monitoring` |

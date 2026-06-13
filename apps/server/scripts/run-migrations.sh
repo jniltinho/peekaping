@@ -1,6 +1,5 @@
 #!/bin/sh
 
-# Function to wait for database
 wait_for_database() {
     echo "Waiting for database to be ready..."
     case "$DB_TYPE" in
@@ -10,7 +9,7 @@ wait_for_database() {
                 sleep 2
             done
             ;;
-        "mysql")
+        "mysql"|"mariadb")
             while ! nc -z $DB_HOST $DB_PORT; do
                 echo "Waiting for MySQL at $DB_HOST:$DB_PORT..."
                 sleep 2
@@ -27,36 +26,7 @@ wait_for_database() {
     echo "Database is ready!"
 }
 
-# Function to check if database needs initialization
-check_and_init_database() {
-    echo "Checking if database needs initialization..."
-
-    # Try to run status command to see if migration tables exist
-    if ./monitoring migrate status >/dev/null 2>&1; then
-        echo "Migration tables exist, proceeding with migrations..."
-        return 0
-    else
-        echo "Migration tables not found, initializing database..."
-        if ./monitoring migrate init; then
-            echo "Database initialized successfully!"
-            return 0
-        else
-            echo "Failed to initialize database!"
-            return 1
-        fi
-    fi
-}
-
-# (MongoDB backend removed - no special skip needed)
-
-# Wait for database and run migrations
 wait_for_database
-
-# Check if database needs initialization
-if ! check_and_init_database; then
-    echo "Database initialization failed!"
-    exit 1
-fi
 
 echo "Running database migrations..."
 if ./monitoring migrate up; then

@@ -1,12 +1,13 @@
 # Docker + SQLite Setup
 
-SQLite is the simplest way to run Peekaping — everything runs in a single container with no external database required.
+SQLite is the simplest way to run Peekaping — everything runs in a single container with no external database required. Schema migrations run automatically on first start.
 
 ## Quick start
 
 ```bash
 docker run -d --restart=always \
   -p 8383:8383 \
+  -e DB_TYPE=sqlite \
   -e DB_NAME=/app/data/peekaping.db \
   -v $(pwd)/.data/sqlite:/app/data \
   --name peekaping \
@@ -48,5 +49,6 @@ docker compose up -d
 
 ## Notes
 
-- No Redis required — the engine runs without a queue when `ENGINE_USE_REDIS=false` (default).
+- **Migrations** run automatically at startup via `monitoring migrate up` (GORM AutoMigrate). No manual step needed.
+- No Redis required for single-node SQLite deployments.
 - For additional configuration see [Configuration](../configuration.md).

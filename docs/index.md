@@ -13,3 +13,4 @@ Peekaping is a modern, self-hosted uptime monitoring solution built with Go and 
 ## Reference
 
 - [Configuration](./configuration.md) — All environment variables
+- [Migration Setup](../MIGRATION_SETUP.md) — How database schema migrations work and manual commands

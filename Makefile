@@ -117,17 +117,13 @@ docker-down-all: ## Stop all bundle services
 
 # ── Database migrations ───────────────────────────────────────────────────────
 
-.PHONY: migrate-init
-migrate-init: ## Init database migrations
-	cd apps/server && ../../scripts/tool.sh go run ./cmd/monitoring migrate init
-
 .PHONY: migrate-up
-migrate-up: ## Run database migrations
+migrate-up: ## Apply / update database schema (GORM AutoMigrate)
 	cd apps/server && ../../scripts/tool.sh go run ./cmd/monitoring migrate up
 
-.PHONY: migrate-down
-migrate-down: ## Rollback database migrations
-	cd apps/server && ../../scripts/tool.sh go run ./cmd/monitoring migrate rollback
+.PHONY: migrate-status
+migrate-status: ## Check database connectivity
+	cd apps/server && ../../scripts/tool.sh go run ./cmd/monitoring migrate status
 
 
 # ── Build ─────────────────────────────────────────────────────────────────────
