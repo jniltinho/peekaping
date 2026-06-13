@@ -19,7 +19,7 @@ type Config struct {
 	// Database configuration
 	DBHost string `env:"DB_HOST"`                           // validated in Validate()
 	DBPort string `env:"DB_PORT"`                           // validated in Validate()
-	DBName string `env:"DB_NAME" validate:"required,min=1" default:"peekaping.db"` // validated in Validate()
+	DBName string `env:"DB_NAME" validate:"required,min=1" default:"monitoring.db"` // validated in Validate()
 	DBUser string `env:"DB_USER"`                           // validated in Validate()
 	DBPass string `env:"DB_PASS"`                           // validated in Validate()
 	DBType string `env:"DB_TYPE" validate:"required,db_type" default:"sqlite"`
@@ -46,7 +46,7 @@ type Config struct {
 	BruteforceWindow      time.Duration `env:"BRUTEFORCE_WINDOW" default:"1m"`
 	BruteforceLockout     time.Duration `env:"BRUTEFORCE_LOCKOUT" default:"1m"`
 
-	ServiceName string `env:"SERVICE_NAME" validate:"required,min=1" default:"peekaping:api"`
+	ServiceName string `env:"SERVICE_NAME" validate:"required,min=1" default:"monitoring:api"`
 }
 
 // LoadAndValidate loads and validates the API service configuration.

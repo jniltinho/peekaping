@@ -13,8 +13,9 @@ import (
 	"gorm.io/gorm/schema"
 )
 
-// NewGormDB creates a *gorm.DB connection used exclusively for schema migrations.
-// Application queries continue to use the bun.DB provided by ProvideSQLDB.
+// NewGormDB opens a GORM connection used exclusively for schema migrations
+// (AutoMigrate). Application queries use the bun.DB provided by ProvideSQLDB.
+// Supported backends: postgres, mysql, mariadb, sqlite.
 func NewGormDB(cfg *config.DBConfig) (*gorm.DB, error) {
 	var dialector gorm.Dialector
 
@@ -38,7 +39,6 @@ func NewGormDB(cfg *config.DBConfig) (*gorm.DB, error) {
 		if dbPath == "" {
 			dbPath = "./data.db"
 		}
-		// WAL mode and foreign keys via connection string pragmas
 		connStr := fmt.Sprintf(
 			"file:%s?cache=shared&mode=rwc&_journal_mode=WAL&_foreign_keys=ON&_busy_timeout=5000",
 			dbPath,
@@ -53,7 +53,7 @@ func NewGormDB(cfg *config.DBConfig) (*gorm.DB, error) {
 		NamingStrategy: schema.NamingStrategy{
 			SingularTable: true,
 		},
-		Logger:                 logger.Default.LogMode(logger.Warn),
+		Logger:                                   logger.Default.LogMode(logger.Warn),
 		DisableForeignKeyConstraintWhenMigrating: false,
 	})
 	if err != nil {

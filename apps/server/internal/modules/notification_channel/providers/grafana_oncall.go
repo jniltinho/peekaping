@@ -112,7 +112,7 @@ func (g *GrafanaOncallSender) Send(
 	}
 
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("User-Agent", fmt.Sprintf("Peekaping/%s", version.Version))
+	req.Header.Set("User-Agent", fmt.Sprintf("Monitoring/%s", version.Version))
 
 	resp, err := g.client.Do(req)
 	if err != nil {

@@ -246,7 +246,7 @@ func (s *ServiceImpl) SetupTwoFA(ctx context.Context, userId, password string) (
 	if user.TwoFASecret == "" {
 		// Generate new secret and provisioning URI
 		key, err := totp.Generate(totp.GenerateOpts{
-			Issuer:      "peekaping",
+			Issuer:      "monitoring",
 			AccountName: user.Email,
 		})
 		if err != nil {
@@ -266,7 +266,7 @@ func (s *ServiceImpl) SetupTwoFA(ctx context.Context, userId, password string) (
 		secretStr = user.TwoFASecret
 		// Recreate the provisioning URI
 		key, err := totp.Generate(totp.GenerateOpts{
-			Issuer:      "peekaping",
+			Issuer:      "monitoring",
 			AccountName: user.Email,
 			Secret:      []byte(user.TwoFASecret),
 		})

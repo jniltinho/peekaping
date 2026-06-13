@@ -12,15 +12,15 @@ import (
 	"go.uber.org/zap"
 )
 
-const (
-	// RedisEventChannelPrefix is the prefix for Redis pub/sub channels
-	RedisEventChannelPrefix = "peekaping:events:"
-)
+// RedisEventChannelPrefix is the namespace prefix for all Redis pub/sub channels.
+const RedisEventChannelPrefix = "monitoring:events:"
 
-// RedisEventBus is a distributed event bus implementation using Redis Pub/Sub
+// RedisEventBus implements events.EventBus using Redis pub/sub so events are
+// delivered across multiple processes. Each EventType maps to one channel.
+// A dedicated publishing client is maintained to avoid blocking the subscriber.
 type RedisEventBus struct {
 	client      *redis.Client
-	pubClient   *redis.Client // Separate client for publishing
+	pubClient   *redis.Client // separate client so Publish never blocks Subscribe
 	logger      *zap.SugaredLogger
 	mu          sync.RWMutex
 	handlers    map[events.EventType][]events.EventHandler
@@ -30,17 +30,17 @@ type RedisEventBus struct {
 	wg          sync.WaitGroup
 }
 
-// SerializedEvent represents an event that can be serialized to JSON
+// SerializedEvent is the wire format carried over Redis channels.
+// Payload is kept as raw JSON so each subscriber can decode into its own type.
 type SerializedEvent struct {
 	Type    events.EventType `json:"type"`
 	Payload json.RawMessage  `json:"payload"`
 }
 
-// NewRedisEventBus creates a new Redis-based event bus
+// NewRedisEventBus constructs a RedisEventBus. The publish client is created
+// from client.Options so it shares the same connection parameters.
 func NewRedisEventBus(client *redis.Client, logger *zap.SugaredLogger) *RedisEventBus {
 	ctx, cancel := context.WithCancel(context.Background())
-
-	// Create a separate client for publishing to avoid blocking
 	pubClient := redis.NewClient(client.Options())
 
 	return &RedisEventBus{
@@ -54,28 +54,26 @@ func NewRedisEventBus(client *redis.Client, logger *zap.SugaredLogger) *RedisEve
 	}
 }
 
-// Subscribe registers a handler for a specific event type and starts listening
+// Subscribe registers handler for eventType. The first handler for a given
+// event type starts a background goroutine that listens on the Redis channel.
 func (b *RedisEventBus) Subscribe(eventType events.EventType, handler events.EventHandler) {
 	b.logger.Debugf("Subscribing to event: %s", eventType)
 	b.mu.Lock()
 	defer b.mu.Unlock()
 
-	// Add handler to local handlers
 	handlers := b.handlers[eventType]
 	handlers = append(handlers, handler)
 	b.handlers[eventType] = handlers
 
-	// If this is the first handler for this event type, create Redis subscription
 	if len(handlers) == 1 {
 		b.startRedisSubscription(eventType)
 	}
 }
 
-// startRedisSubscription starts a Redis pub/sub subscription for an event type
+// startRedisSubscription opens a Redis pub/sub channel for eventType and
+// dispatches incoming messages to all registered handlers in separate goroutines.
 func (b *RedisEventBus) startRedisSubscription(eventType events.EventType) {
 	channel := b.getChannelName(eventType)
-
-	// Create pub/sub subscription
 	pubsub := b.client.Subscribe(b.ctx, channel)
 	b.subscribers[eventType] = pubsub
 
@@ -84,9 +82,7 @@ func (b *RedisEventBus) startRedisSubscription(eventType events.EventType) {
 		defer b.wg.Done()
 		b.logger.Infof("Started Redis subscription for channel: %s", channel)
 
-		// Wait for confirmation
-		_, err := pubsub.Receive(b.ctx)
-		if err != nil {
+		if _, err := pubsub.Receive(b.ctx); err != nil {
 			b.logger.Errorw("Failed to receive subscription confirmation",
 				"channel", channel,
 				"error", err,
@@ -94,7 +90,6 @@ func (b *RedisEventBus) startRedisSubscription(eventType events.EventType) {
 			return
 		}
 
-		// Start listening for messages
 		ch := pubsub.Channel()
 		for {
 			select {
@@ -113,11 +108,11 @@ func (b *RedisEventBus) startRedisSubscription(eventType events.EventType) {
 	}()
 }
 
-// handleRedisMessage processes a message received from Redis
+// handleRedisMessage deserialises a raw Redis message and fans it out to all
+// local handlers. Each handler runs in its own goroutine with panic recovery.
 func (b *RedisEventBus) handleRedisMessage(eventType events.EventType, msg *redis.Message) {
 	b.logger.Debugf("Received Redis message for event type: %s", eventType)
 
-	// Deserialize the event
 	var serialized SerializedEvent
 	if err := json.Unmarshal([]byte(msg.Payload), &serialized); err != nil {
 		b.logger.Errorw("Failed to unmarshal event",
@@ -127,13 +122,11 @@ func (b *RedisEventBus) handleRedisMessage(eventType events.EventType, msg *redi
 		return
 	}
 
-	// Reconstruct the event with raw payload
 	event := events.Event{
 		Type:    serialized.Type,
 		Payload: serialized.Payload,
 	}
 
-	// Call all local handlers
 	b.mu.RLock()
 	handlers := b.handlers[eventType]
 	b.mu.RUnlock()
@@ -153,11 +146,12 @@ func (b *RedisEventBus) handleRedisMessage(eventType events.EventType, msg *redi
 	}
 }
 
-// Publish sends an event to all registered handlers across all instances
+// Publish serialises event to JSON and delivers it to the corresponding Redis
+// channel. Errors are logged but not returned; callers must not rely on
+// delivery guarantees.
 func (b *RedisEventBus) Publish(event events.Event) {
 	b.logger.Debugf("Publishing event: %s", event.Type)
 
-	// Serialize the event
 	payloadJSON, err := json.Marshal(event.Payload)
 	if err != nil {
 		b.logger.Errorw("Failed to marshal event payload",
@@ -167,12 +161,10 @@ func (b *RedisEventBus) Publish(event events.Event) {
 		return
 	}
 
-	serialized := SerializedEvent{
+	data, err := json.Marshal(SerializedEvent{
 		Type:    event.Type,
 		Payload: payloadJSON,
-	}
-
-	data, err := json.Marshal(serialized)
+	})
 	if err != nil {
 		b.logger.Errorw("Failed to marshal event",
 			"event_type", event.Type,
@@ -181,29 +173,25 @@ func (b *RedisEventBus) Publish(event events.Event) {
 		return
 	}
 
-	// Publish to Redis
 	channel := b.getChannelName(event.Type)
-	err = b.pubClient.Publish(b.ctx, channel, data).Err()
-	if err != nil {
+	if err = b.pubClient.Publish(b.ctx, channel, data).Err(); err != nil {
 		b.logger.Errorw("Failed to publish event to Redis",
 			"event_type", event.Type,
 			"channel", channel,
 			"error", err,
 		)
-		return
 	}
 
 	b.logger.Debugf("Successfully published event to Redis: %s", event.Type)
 }
 
-// Close closes all Redis subscriptions and cleans up resources
+// Close cancels all Redis subscriptions, waits for goroutines to exit, and
+// closes the publish client.
 func (b *RedisEventBus) Close() error {
 	b.logger.Info("Closing Redis event bus")
 
-	// Cancel context to stop all subscriptions
 	b.cancel()
 
-	// Close all pub/sub subscriptions
 	b.mu.Lock()
 	for eventType, pubsub := range b.subscribers {
 		if err := pubsub.Close(); err != nil {
@@ -216,10 +204,8 @@ func (b *RedisEventBus) Close() error {
 	b.subscribers = make(map[events.EventType]*redis.PubSub)
 	b.mu.Unlock()
 
-	// Wait for all goroutines to finish
 	b.wg.Wait()
 
-	// Close the pub client
 	if err := b.pubClient.Close(); err != nil {
 		b.logger.Errorw("Failed to close pub client", "error", err)
 	}
@@ -228,30 +214,30 @@ func (b *RedisEventBus) Close() error {
 	return nil
 }
 
-// getChannelName returns the Redis channel name for an event type
+// getChannelName returns the full Redis channel name for the given event type.
 func (b *RedisEventBus) getChannelName(eventType events.EventType) string {
 	return fmt.Sprintf("%s%s", RedisEventChannelPrefix, eventType)
 }
 
-// GetStats returns statistics about the event bus
-func (b *RedisEventBus) GetStats() map[string]interface{} {
+// GetStats returns a snapshot of handler and subscription counts keyed by
+// event type, suitable for observability endpoints.
+func (b *RedisEventBus) GetStats() map[string]any {
 	b.mu.RLock()
 	defer b.mu.RUnlock()
 
-	stats := make(map[string]interface{})
-	stats["total_event_types"] = len(b.handlers)
-	stats["total_subscriptions"] = len(b.subscribers)
-
-	handlerCounts := make(map[events.EventType]int)
+	handlerCounts := make(map[events.EventType]int, len(b.handlers))
 	for eventType, handlers := range b.handlers {
 		handlerCounts[eventType] = len(handlers)
 	}
-	stats["handler_counts"] = handlerCounts
 
-	return stats
+	return map[string]any{
+		"total_event_types":   len(b.handlers),
+		"total_subscriptions": len(b.subscribers),
+		"handler_counts":      handlerCounts,
+	}
 }
 
-// ProvideRedisClient provides a Redis client
+// ProvideRedisClient constructs a *redis.Client from cfg for use in the DI container.
 func ProvideRedisClient(cfg *config.Config, logger *zap.SugaredLogger) (*redis.Client, error) {
 	client := redis.NewClient(&redis.Options{
 		Addr:     fmt.Sprintf("%s:%s", cfg.RedisHost, cfg.RedisPort),
@@ -263,7 +249,8 @@ func ProvideRedisClient(cfg *config.Config, logger *zap.SugaredLogger) (*redis.C
 	return client, nil
 }
 
-// ProvideRedisEventBus creates and returns a Redis-based event bus
+// ProvideRedisEventBus wraps NewRedisEventBus and satisfies the events.EventBus
+// interface for the DI container.
 func ProvideRedisEventBus(client *redis.Client, logger *zap.SugaredLogger) events.EventBus {
 	logger.Info("Creating Redis-based event bus")
 	return NewRedisEventBus(client, logger)

@@ -29,7 +29,7 @@ import (
 )
 
 func main() {
-	log.Printf("Starting Peekaping Ingester v%s", version.Version)
+	log.Printf("Starting Monitoring Ingester v%s", version.Version)
 
 	// Load and validate Ingester-specific config
 	cfg, err := LoadAndValidate("../..")

@@ -9,8 +9,8 @@ import (
 )
 
 const (
-	redisJobQueueKey    = "peekaping:engine:jobs"
-	redisResultQueueKey = "peekaping:engine:results"
+	redisJobQueueKey    = "monitoring:engine:jobs"
+	redisResultQueueKey = "monitoring:engine:results"
 )
 
 // RedisQueue is a Redis-backed job queue using LPUSH/BRPOP for FIFO ordering.

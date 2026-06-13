@@ -16,7 +16,7 @@ type Config struct {
 	// Database configuration
 	DBHost string `env:"DB_HOST"`
 	DBPort string `env:"DB_PORT"`
-	DBName string `env:"DB_NAME" validate:"required,min=1" default:"peekaping.db"`
+	DBName string `env:"DB_NAME" validate:"required,min=1" default:"monitoring.db"`
 	DBUser string `env:"DB_USER"`
 	DBPass string `env:"DB_PASS"`
 	DBType string `env:"DB_TYPE" validate:"required,db_type" default:"sqlite"`
@@ -39,7 +39,7 @@ type Config struct {
 	EngineQueueBuffer       int           `env:"ENGINE_QUEUE_BUFFER" validate:"min=10" default:"1000"`
 	EngineUseRedis          bool          `env:"ENGINE_USE_REDIS" default:"false"`
 
-	ServiceName string `env:"SERVICE_NAME" validate:"required,min=1" default:"peekaping:engine"`
+	ServiceName string `env:"SERVICE_NAME" validate:"required,min=1" default:"monitoring:engine"`
 }
 
 // LoadAndValidate loads and validates the Engine service configuration.

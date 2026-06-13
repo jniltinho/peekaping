@@ -1,3 +1,5 @@
+// Package infra provides the infrastructure layer: database connections,
+// distributed event bus, and task queue providers consumed by the DI container.
 package infra
 
 import (
@@ -18,6 +20,10 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 )
 
+// ProvideSQLDB opens and verifies a database connection based on cfg.DBType,
+// returning a bun.DB ready for use. Supported backends: postgres, mysql,
+// mariadb, sqlite. For SQLite, WAL mode and serialised access are configured
+// automatically to prevent lock contention under concurrent processes.
 func ProvideSQLDB(
 	cfg *config.Config,
 	logger *zap.SugaredLogger,
@@ -28,83 +34,62 @@ func ProvideSQLDB(
 
 	switch cfg.DBType {
 	case "postgres", "postgresql":
-		// PostgreSQL connection
 		dsn := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable",
 			cfg.DBUser, cfg.DBPass, cfg.DBHost, cfg.DBPort, cfg.DBName)
-
 		sqldb = sql.OpenDB(pgdriver.NewConnector(pgdriver.WithDSN(dsn)))
 		db = bun.NewDB(sqldb, pgdialect.New())
-
 		logger.Infof("Connecting to PostgreSQL database: %s:%s/%s", cfg.DBHost, cfg.DBPort, cfg.DBName)
 
 	case "mysql":
-		// MySQL connection
 		dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?parseTime=true&loc=UTC",
 			cfg.DBUser, cfg.DBPass, cfg.DBHost, cfg.DBPort, cfg.DBName)
-
 		sqldb, err = sql.Open("mysql", dsn)
 		if err != nil {
 			return nil, fmt.Errorf("failed to open MySQL connection: %w", err)
 		}
-
 		db = bun.NewDB(sqldb, mysqldialect.New())
-
 		logger.Infof("Connecting to MySQL database: %s:%s/%s", cfg.DBHost, cfg.DBPort, cfg.DBName)
 
 	case "mariadb":
-		// MariaDB connection (MySQL wire protocol compatible)
 		dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?parseTime=true&loc=UTC",
 			cfg.DBUser, cfg.DBPass, cfg.DBHost, cfg.DBPort, cfg.DBName)
-
 		sqldb, err = sql.Open("mysql", dsn)
 		if err != nil {
 			return nil, fmt.Errorf("failed to open MariaDB connection: %w", err)
 		}
-
 		db = bun.NewDB(sqldb, mysqldialect.New())
-
 		logger.Infof("Connecting to MySQL-compatible database (type: mariadb): %s:%s/%s", cfg.DBHost, cfg.DBPort, cfg.DBName)
 
 	case "sqlite":
-		// SQLite connection
 		dbPath := cfg.DBName
 		if dbPath == "" {
-			dbPath = "./data.db" // Default SQLite file path
+			dbPath = "./data.db"
 		}
 
-		// Configure SQLite for concurrent access
-		// cache=shared: Share cache between connections
-		// mode=rwc: Read-write-create mode
 		sqldb, err = sql.Open(sqliteshim.ShimName, fmt.Sprintf("file:%s?cache=shared&mode=rwc", dbPath))
 		if err != nil {
 			return nil, fmt.Errorf("failed to open SQLite connection: %w", err)
 		}
 
-		// Set connection pool limits for SQLite to prevent lock contention
-		// SQLite works best with a limited number of connections
-		// For multiple processes, use very conservative limits
-		sqldb.SetMaxOpenConns(1)    // Force serialized access
-		sqldb.SetMaxIdleConns(1)    // Keep one connection alive
-		sqldb.SetConnMaxLifetime(0) // Connections never expire (important for WAL mode)
+		// SQLite requires serialised access; multiple open connections cause lock contention.
+		sqldb.SetMaxOpenConns(1)
+		sqldb.SetMaxIdleConns(1)
+		sqldb.SetConnMaxLifetime(0)
 
 		db = bun.NewDB(sqldb, sqlitedialect.New())
 
-		// Configure SQLite using PRAGMA statements for corruption prevention
-		// Set busy_timeout FIRST so subsequent PRAGMA statements can wait for locks
+		// busy_timeout must be set first so that subsequent PRAGMAs can wait when the DB is locked.
 		if _, err := db.Exec("PRAGMA busy_timeout=5000"); err != nil {
 			logger.Warnf("Failed to set busy_timeout (non-fatal): %v", err)
 		}
 
-		// Check current journal mode before trying to change it
 		var currentJournalMode string
 		if err := db.QueryRow("PRAGMA journal_mode").Scan(&currentJournalMode); err != nil {
 			logger.Warnf("Failed to check journal_mode (non-fatal): %v", err)
 		}
 
-		// Only set WAL mode if it's not already enabled
 		if currentJournalMode != "wal" {
 			if _, err := db.Exec("PRAGMA journal_mode=WAL"); err != nil {
-				// If it fails, log warning but don't fail - database might already be in WAL mode
 				logger.Warnf("Failed to set journal_mode to WAL (non-fatal, current mode: %s): %v", currentJournalMode, err)
 			} else {
 				logger.Infof("SQLite journal mode set to WAL")
@@ -113,73 +98,47 @@ func ProvideSQLDB(
 			logger.Infof("SQLite already in WAL mode")
 		}
 
-		// Enable synchronous mode for better reliability in multi-process scenarios
-		// NORMAL is a good balance between performance and safety
-		// For critical data, consider FULL, but it's slower
-		if _, err := db.Exec("PRAGMA synchronous=NORMAL"); err != nil {
-			logger.Warnf("Failed to set synchronous mode (non-fatal): %v", err)
+		pragmas := []string{
+			"PRAGMA synchronous=NORMAL",
+			"PRAGMA foreign_keys=ON",
+			"PRAGMA temp_store=MEMORY",
+			"PRAGMA wal_autocheckpoint=1000",
+			"PRAGMA cache_size=-64000",
+			"PRAGMA auto_vacuum=INCREMENTAL",
+		}
+		for _, p := range pragmas {
+			if _, err := db.Exec(p); err != nil {
+				logger.Warnf("Failed to set %s (non-fatal): %v", p, err)
+			}
 		}
 
-		// Enable foreign key constraints (important for data integrity)
-		if _, err := db.Exec("PRAGMA foreign_keys=ON"); err != nil {
-			logger.Warnf("Failed to enable foreign keys (non-fatal): %v", err)
-		}
-
-		// Use memory for temporary tables to reduce disk I/O and corruption risk
-		if _, err := db.Exec("PRAGMA temp_store=MEMORY"); err != nil {
-			logger.Warnf("Failed to set temp_store (non-fatal): %v", err)
-		}
-
-		// Control WAL automatic checkpointing (default is 1000 pages)
-		// This prevents the WAL file from growing too large
-		if _, err := db.Exec("PRAGMA wal_autocheckpoint=1000"); err != nil {
-			logger.Warnf("Failed to set wal_autocheckpoint (non-fatal): %v", err)
-		}
-
-		// Set cache size (negative value means KB, positive means pages)
-		// -64000 = 64MB cache (good for most applications)
-		if _, err := db.Exec("PRAGMA cache_size=-64000"); err != nil {
-			logger.Warnf("Failed to set cache_size (non-fatal): %v", err)
-		}
-
-		// Enable auto_vacuum to prevent database file fragmentation
-		// INCREMENTAL allows gradual cleanup
-		if _, err := db.Exec("PRAGMA auto_vacuum=INCREMENTAL"); err != nil {
-			logger.Warnf("Failed to set auto_vacuum (non-fatal): %v", err)
-		}
-
-		// Run integrity check on startup to detect existing corruption
 		var integrityResult string
 		if err := db.QueryRow("PRAGMA integrity_check").Scan(&integrityResult); err != nil {
 			logger.Warnf("Failed to run integrity check (non-fatal): %v", err)
 		} else if integrityResult != "ok" {
 			logger.Errorf("Database integrity check FAILED: %s - database may be corrupted!", integrityResult)
-			logger.Error("Consider restoring from backup or running 'PRAGMA integrity_check' manually")
 		} else {
 			logger.Info("Database integrity check passed")
 		}
 
-		logger.Infof("Connecting to SQLite database: %s (WAL mode enabled, corruption prevention active)", dbPath)
+		logger.Infof("Connecting to SQLite database: %s (WAL mode enabled)", dbPath)
 
 	default:
 		return nil, fmt.Errorf("unsupported database type: %s. Supported types: postgres, mysql, mariadb, sqlite", cfg.DBType)
 	}
 
-	// Test the connection
 	if err = db.Ping(); err != nil {
 		return nil, fmt.Errorf("failed to ping database: %w", err)
 	}
 
-	db.AddQueryHook(bundebug.NewQueryHook(
-		bundebug.FromEnv(),
-	))
+	db.AddQueryHook(bundebug.NewQueryHook(bundebug.FromEnv()))
 
 	logger.Info("Successfully connected to SQL database")
 	return db, nil
 }
 
-// GracefulSQLiteShutdown performs a graceful shutdown of SQLite database
-// This checkpoints the WAL file and ensures data integrity
+// GracefulSQLiteShutdown checkpoints the WAL file, runs an incremental vacuum,
+// and closes the connection. It is a no-op for non-SQLite backends.
 func GracefulSQLiteShutdown(db *bun.DB, dbType string, logger *zap.SugaredLogger) error {
 	if dbType != "sqlite" {
 		return nil
@@ -187,20 +146,16 @@ func GracefulSQLiteShutdown(db *bun.DB, dbType string, logger *zap.SugaredLogger
 
 	logger.Info("Performing graceful SQLite shutdown...")
 
-	// Checkpoint the WAL file to ensure all changes are written to the main database
-	// TRUNCATE mode checkpoints and truncates the WAL file
 	if _, err := db.Exec("PRAGMA wal_checkpoint(TRUNCATE)"); err != nil {
 		logger.Warnf("Failed to checkpoint WAL (non-fatal): %v", err)
 	} else {
 		logger.Info("WAL checkpoint completed successfully")
 	}
 
-	// Perform incremental vacuum to clean up fragmented space
 	if _, err := db.Exec("PRAGMA incremental_vacuum"); err != nil {
 		logger.Warnf("Failed to perform incremental vacuum (non-fatal): %v", err)
 	}
 
-	// Run integrity check before shutdown
 	var integrityResult string
 	if err := db.QueryRow("PRAGMA integrity_check").Scan(&integrityResult); err != nil {
 		logger.Warnf("Failed to run shutdown integrity check (non-fatal): %v", err)
@@ -210,7 +165,6 @@ func GracefulSQLiteShutdown(db *bun.DB, dbType string, logger *zap.SugaredLogger
 		logger.Info("Shutdown integrity check passed")
 	}
 
-	// Close the database connection
 	if err := db.Close(); err != nil {
 		return fmt.Errorf("failed to close database: %w", err)
 	}
@@ -219,12 +173,11 @@ func GracefulSQLiteShutdown(db *bun.DB, dbType string, logger *zap.SugaredLogger
 	return nil
 }
 
-// GracefulDatabaseShutdown performs graceful shutdown for any database type
-// It uses the DI container to get the appropriate database connection
+// GracefulDatabaseShutdown resolves the *bun.DB from the DI container and
+// delegates to GracefulSQLiteShutdown for all supported database types.
 func GracefulDatabaseShutdown(container *dig.Container, cfg *config.Config, logger *zap.SugaredLogger) error {
 	switch cfg.DBType {
 	case "postgres", "postgresql", "mysql", "mariadb", "sqlite":
-		// For SQL databases, perform graceful shutdown
 		return container.Invoke(func(db *bun.DB) {
 			if err := GracefulSQLiteShutdown(db, cfg.DBType, logger); err != nil {
 				logger.Errorw("Failed to gracefully shutdown database", "error", err)

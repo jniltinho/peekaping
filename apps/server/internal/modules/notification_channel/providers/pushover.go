@@ -91,7 +91,7 @@ func (p *PushoverSender) Send(
 	if cfg.Title != "" {
 		payload["title"] = cfg.Title
 	} else {
-		payload["title"] = "Peekaping Notification"
+		payload["title"] = "Monitoring Notification"
 	}
 
 	// Set priority (default to 0 if not specified)
@@ -129,7 +129,7 @@ func (p *PushoverSender) Send(
 	}
 
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("User-Agent", "Peekaping-Pushover/"+version.Version)
+	req.Header.Set("User-Agent", "Monitoring-Pushover/"+version.Version)
 
 	// Send request
 	resp, err := p.client.Do(req)

@@ -82,7 +82,7 @@ func (e *NTFYSender) Send(
 	}
 
 	// Prepare title
-	finalTitle := "Peekaping Notification"
+	finalTitle := "Monitoring Notification"
 	if cfg.Title != "" {
 		if rendered, err := engine.ParseAndRenderString(cfg.Title, bindings); err == nil {
 			finalTitle = rendered
@@ -122,7 +122,7 @@ func (e *NTFYSender) Send(
 
 	// Set headers
 	req.Header.Set("Content-Type", "text/plain")
-	req.Header.Set("User-Agent", "Peekaping-NTFY/"+version.Version)
+	req.Header.Set("User-Agent", "Monitoring-NTFY/"+version.Version)
 
 	// Set title header if provided
 	if finalTitle != "" {

@@ -6404,7 +6404,7 @@ var SwaggerInfo = &swag.Spec{
 	Host:             "",
 	BasePath:         "/api/v1",
 	Schemes:          []string{},
-	Title:            "Peekaping API",
+	Title:            "Monitoring API",
 	Description:      "",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,

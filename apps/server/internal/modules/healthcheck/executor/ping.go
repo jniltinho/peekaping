@@ -125,7 +125,7 @@ func (p *PingExecutor) tryNativePing(ctx context.Context, host string, packetSiz
 		dataSize = 0
 	}
 	data := make([]byte, dataSize)
-	copy(data, []byte("Peekaping"))
+	copy(data, []byte("Monitoring"))
 
 	p.logger.Debugf("Native ping: host=%s, dataSize=%d, totalPacketSize=%d", host, dataSize, dataSize+8)
 

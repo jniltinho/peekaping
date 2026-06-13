@@ -13,7 +13,7 @@ type Config struct {
 	// Database configuration
 	DBHost string `env:"DB_HOST"`                           // validated in Validate()
 	DBPort string `env:"DB_PORT"`                           // validated in Validate()
-	DBName string `env:"DB_NAME" validate:"required,min=1" default:"peekaping.db"` // validated in Validate()
+	DBName string `env:"DB_NAME" validate:"required,min=1" default:"monitoring.db"` // validated in Validate()
 	DBUser string `env:"DB_USER"`                           // validated in Validate()
 	DBPass string `env:"DB_PASS"`                           // validated in Validate()
 	DBType string `env:"DB_TYPE" validate:"required,db_type" default:"sqlite"`
@@ -32,7 +32,7 @@ type Config struct {
 	// Producer configuration
 	ProducerConcurrency int `env:"PRODUCER_CONCURRENCY" validate:"min=1,max=128" default:"10"`
 
-	ServiceName string `env:"SERVICE_NAME" validate:"required,min=1" default:"peekaping:producer"`
+	ServiceName string `env:"SERVICE_NAME" validate:"required,min=1" default:"monitoring:producer"`
 }
 
 // LoadAndValidate loads and validates the Producer service configuration

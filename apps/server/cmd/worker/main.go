@@ -23,7 +23,7 @@ import (
 )
 
 func main() {
-	log.Printf("Starting Peekaping Worker v%s", version.Version)
+	log.Printf("Starting Monitoring Worker v%s", version.Version)
 
 	// Load and validate Worker-specific config
 	cfg, err := LoadAndValidate("../..")

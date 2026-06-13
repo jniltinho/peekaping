@@ -34,7 +34,7 @@ import (
 )
 
 func main() {
-	log.Printf("Starting Peekaping Producer v%s", version.Version)
+	log.Printf("Starting Monitoring Producer v%s", version.Version)
 
 	cfg, err := LoadAndValidate("../..")
 	if err != nil {

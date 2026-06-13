@@ -1,4 +1,4 @@
-# Peekaping - the best uptime kuma alternative
+# Monitoring - the best uptime kuma alternative
 
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 ![Go](https://img.shields.io/badge/go-%23007d9c.svg?style=flat&logo=go&logoColor=white)
@@ -8,11 +8,11 @@
 ![PostgreSQL](https://img.shields.io/badge/postgresql-%23336791.svg?style=flat&logo=postgresql&logoColor=white)
 ![MySQL](https://img.shields.io/badge/mysql-%234479a1.svg?style=flat&logo=mysql&logoColor=white)
 ![SQLite](https://img.shields.io/badge/sqlite-%2307405e.svg?style=flat&logo=sqlite&logoColor=white)
-![Docker Pulls](https://img.shields.io/docker/pulls/jniltinho/peekaping-web)
+![Docker Pulls](https://img.shields.io/docker/pulls/jniltinho/monitoring-bundle-sqlite)
 
 **A modern, self-hosted uptime monitoring solution**
 
-Peekaping is a uptime monitoring system built with Golang and React. You can monitor your websites, API and many more leveraging beautiful status pages, alert notifications.
+Monitoring is a uptime monitoring system built with Golang and React. You can monitor your websites, API and many more leveraging beautiful status pages, alert notifications.
 
 🔗 Website **[peekaping.com](https://peekaping.com)**
 
@@ -22,9 +22,9 @@ Peekaping is a uptime monitoring system built with Golang and React. You can mon
 
 🔗 Community terraform provider **[registry.terraform.io/providers/tafaust/peekaping](https://registry.terraform.io/providers/tafaust/peekaping/latest)**
 
-## Why Peekaping Is the Optimal Alternative to Uptime Kuma
+## Why Monitoring Is the Optimal Alternative to Uptime Kuma
 
-Peekaping is a modern uptime monitoring solution designed with the requirements of professional DevOps teams in mind, addressing the key limitations of traditional monitoring systems.
+Monitoring is a modern uptime monitoring solution designed with the requirements of professional DevOps teams in mind, addressing the key limitations of traditional monitoring systems.
 
 **Key Advantages:**
 - **API-first architecture** — all system functions are accessible through a RESTful API, ensuring complete automation and seamless integration with CI/CD processes and Infrastructure as Code tools
@@ -38,7 +38,7 @@ Peekaping is a modern uptime monitoring solution designed with the requirements 
 
 ## ⚠️ Beta Status
 
-**Peekaping is currently in beta and actively being developed.**
+**Monitoring is currently in beta and actively being developed.**
 Please note:
 
 - The software is still under active development
@@ -46,20 +46,20 @@ Please note:
 - I recommend testing in non-production environments first
 - Please report any issues you encounter - your feedback helps us improve!
 
-Please try Peekaping and provide feedback, this is huge contribution for us! Let's make Peekaping production ready.
+Please try Monitoring and provide feedback, this is huge contribution for us! Let's make Monitoring production ready.
 
 ## Quick start (docker + SQLite)
 
 ```bash
 docker run -d --restart=always \
   -p 8383:8383 \
-  -e DB_NAME=/app/data/peekaping.db \
+  -e DB_NAME=/app/data/monitoring.db \
   -v $(pwd)/.data/sqlite:/app/data \
-  --name peekaping \
-  jniltinho/peekaping-bundle-sqlite:latest
+  --name monitoring \
+  jniltinho/monitoring-bundle-sqlite:latest
 ```
 
-Peekaping also supports [PostgreSQL](./docs/self-hosting/docker-with-postgres.md) and [MySQL/MariaDB](./docs/self-hosting/docker-with-mysql.md).
+Monitoring also supports [PostgreSQL](./docs/self-hosting/docker-with-postgres.md) and [MySQL/MariaDB](./docs/self-hosting/docker-with-mysql.md).
 
 See the full [self-hosting docs](./docs/index.md), [configuration reference](./docs/configuration.md), and [migration setup](./MIGRATION_SETUP.md).
 
@@ -119,12 +119,12 @@ See the full [self-hosting docs](./docs/index.md), [configuration reference](./d
 
 ## 💡 Motivation Behind Creating an Uptime Kuma Alternative
 
-The creation of Peekaping was inspired by our experience using Uptime Kuma — a popular open-source monitoring solution. We deeply respect this project and its contribution to the community, but we aimed to address the systemic limitations that teams face when scaling and integrating monitoring into modern DevOps processes.
+The creation of Monitoring was inspired by our experience using Uptime Kuma — a popular open-source monitoring solution. We deeply respect this project and its contribution to the community, but we aimed to address the systemic limitations that teams face when scaling and integrating monitoring into modern DevOps processes.
 
 Our goal is to build a new system that combines the features requested by the community with modern technological approaches: strict typing and extensible architecture.
 
 **Our Approach:**
-**API as the foundation.** We designed Peekaping from the ground up as an API-first solution, where every function is accessible programmatically. This opens up possibilities for complete automation and integration with any tools.
+**API as the foundation.** We designed Monitoring from the ground up as an API-first solution, where every function is accessible programmatically. This opens up possibilities for complete automation and integration with any tools.
 
 **Performance through the right technology choices.** The server side is implemented in Golang — a fast and efficient language that delivers high performance with minimal RAM consumption. This is especially critical when monitoring a large number of services.
 
@@ -132,10 +132,10 @@ Our goal is to build a new system that combines the features requested by the co
 
 **Reliable client side.** The frontend is built with React and TypeScript, ensuring not only high performance but also reliability thanks to static typing. The client side was also designed with ease of extension in mind.
 
-Peekaping is the ideal choice for teams that need a reliable and customizable uptime monitoring solution capable of growing alongside their infrastructure.
+Monitoring is the ideal choice for teams that need a reliable and customizable uptime monitoring solution capable of growing alongside their infrastructure.
 
 
-![Peekaping Dashboard](./pictures/monitor.png)
+![Monitoring Dashboard](./pictures/monitor.png)
 
 ## 📡 Stay in the Loop
 
@@ -200,4 +200,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-**Made with ❤️ by the Peekaping team**
+**Made with ❤️ by the Monitoring team**

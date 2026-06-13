@@ -62,7 +62,7 @@ func (s *SendGridSender) Send(
 	bindings := PrepareTemplateBindings(m, heartbeat, message)
 
 	// Prepare subject with template support
-	finalSubject := "Peekaping Notification"
+	finalSubject := "Monitoring Notification"
 	if cfg.Subject != "" {
 		if rendered, err := engine.ParseAndRenderString(cfg.Subject, bindings); err == nil {
 			finalSubject = rendered

@@ -135,7 +135,7 @@ func (w *WhatsAppSender) sendToPhoneNumber(
 
 	// Set headers
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("User-Agent", "Peekaping-WhatsApp/"+version.Version)
+	req.Header.Set("User-Agent", "Monitoring-WhatsApp/"+version.Version)
 	if cfg.APIKey != "" {
 		req.Header.Set("x-api-key", cfg.APIKey)
 	}

@@ -75,7 +75,7 @@ func (g *GotifySender) Send(
 	engine := liquid.NewEngine()
 
 	// Set default title if not provided
-	title := "Peekaping"
+	title := "Monitoring"
 	if cfg.Title != "" {
 		// Use liquid templating for title
 		if rendered, err := engine.ParseAndRenderString(cfg.Title, bindings); err == nil {
@@ -128,7 +128,7 @@ func (g *GotifySender) Send(
 
 	// Set headers
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("User-Agent", "Peekaping-Gotify/"+version.Version)
+	req.Header.Set("User-Agent", "Monitoring-Gotify/"+version.Version)
 
 	// Send request
 	g.logger.Infof("Sending Gotify notification to %s", serverURL)

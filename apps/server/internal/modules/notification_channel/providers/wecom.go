@@ -108,7 +108,7 @@ func (w *WeComSender) Send(
 
 	// Set request headers
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("User-Agent", "Peekaping-WeCom/"+version.Version)
+	req.Header.Set("User-Agent", "Monitoring-WeCom/"+version.Version)
 
 	// Send HTTP request
 	resp, err := w.client.Do(req)

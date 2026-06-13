@@ -1,5 +1,9 @@
 FROM golang:1.26-alpine AS builder
 
+ARG VERSION=dev
+ARG BUILD_TIME=unknown
+ARG GIT_COMMIT=unknown
+
 WORKDIR /app
 
 COPY go.mod go.sum ./
@@ -7,12 +11,17 @@ RUN go mod download
 
 COPY . .
 
-RUN CGO_ENABLED=0 GOFLAGS="-trimpath" go build -o main -ldflags="-s -w" ./cmd/engine
+RUN CGO_ENABLED=0 go build -o monitoring \
+    -trimpath \
+    -ldflags="-s -w \
+      -X peekaping/version.Version=${VERSION} \
+      -X peekaping/version.BuildTime=${BUILD_TIME} \
+      -X peekaping/version.GitCommit=${GIT_COMMIT}" .
 
-FROM alpine
+FROM alpine:3.21
 
 WORKDIR /app
 
-COPY --from=builder /app/main .
+COPY --from=builder /app/monitoring .
 
-CMD ["./main"]
+CMD ["./monitoring", "engine"]

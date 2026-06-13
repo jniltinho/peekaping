@@ -16,7 +16,7 @@ import (
 type DBConfig struct {
 	DBHost string `env:"DB_HOST"`                           // validated in validateCustomRules
 	DBPort string `env:"DB_PORT"`                           // validated in validateCustomRules
-	DBName string `env:"DB_NAME" validate:"required,min=1" default:"peekaping.db"` // validated in validateCustomRules
+	DBName string `env:"DB_NAME" validate:"required,min=1" default:"monitoring.db"` // validated in validateCustomRules
 	DBUser string `env:"DB_USER"`                           // validated in validateCustomRules
 	DBPass string `env:"DB_PASS"`                           // validated in validateCustomRules
 	DBType string `env:"DB_TYPE" validate:"required,db_type" default:"sqlite"`
@@ -28,7 +28,7 @@ type Config struct {
 
 	DBHost string `env:"DB_HOST"`                           // validated in validateCustomRules
 	DBPort string `env:"DB_PORT"`                           // validated in validateCustomRules
-	DBName string `env:"DB_NAME" validate:"required,min=1" default:"peekaping.db"` // validated in validateCustomRules
+	DBName string `env:"DB_NAME" validate:"required,min=1" default:"monitoring.db"` // validated in validateCustomRules
 	DBUser string `env:"DB_USER"`                           // validated in validateCustomRules
 	DBPass string `env:"DB_PASS"`                           // validated in validateCustomRules
 	DBType string `env:"DB_TYPE" validate:"required,db_type" default:"sqlite"`
@@ -67,7 +67,7 @@ type Config struct {
 	// Examples: "5m", "30m", "1h", "24h"
 	BruteforceLockout time.Duration `env:"BRUTEFORCE_LOCKOUT" default:"1m"`
 
-	ServiceName string `env:"SERVICE_NAME" validate:"required,min=1" default:"peekaping:api"`
+	ServiceName string `env:"SERVICE_NAME" validate:"required,min=1" default:"monitoring:api"`
 }
 
 var validate = validator.New()

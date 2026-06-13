@@ -102,7 +102,7 @@ func (s *SignalSender) Send(
 
 	// Set headers
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("User-Agent", "Peekaping-Signal/"+version.Version)
+	req.Header.Set("User-Agent", "Monitoring-Signal/"+version.Version)
 
 	// Send the request
 	resp, err := s.client.Do(req)

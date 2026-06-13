@@ -12,8 +12,8 @@ var envFile string
 
 var rootCmd = &cobra.Command{
 	Use:   "monitoring",
-	Short: "Peekaping — uptime monitoring platform",
-	Long:  "Peekaping — uptime monitoring platform. Use subcommands to start the API server, engine, or run database migrations.",
+	Short: "Monitoring — uptime monitoring platform",
+	Long:  "Monitoring — uptime monitoring platform. Use subcommands to start the API server, engine, or run database migrations.",
 }
 
 // Execute runs the root command.

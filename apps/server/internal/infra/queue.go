@@ -13,7 +13,7 @@ import (
 	"go.uber.org/zap"
 )
 
-// ProvideAsynqClient creates and returns an asynq.Client for enqueuing tasks
+// ProvideAsynqClient creates an asynq.Client connected to Redis via cfg.
 func ProvideAsynqClient(
 	cfg *config.Config,
 	logger *zap.SugaredLogger,
@@ -23,14 +23,13 @@ func ProvideAsynqClient(
 		Password: cfg.RedisPassword,
 		DB:       cfg.RedisDB,
 	}
-
 	client := asynq.NewClient(redisOpt)
-
 	logger.Info("Successfully created Asynq client")
 	return client, nil
 }
 
-// ProvideAsynqServer creates and returns an asynq.Server for processing tasks
+// ProvideAsynqServer creates an asynq.Server with four strict-priority queues
+// (critical=6 > healthcheck=5 > default=3 > low=1) and cfg.QueueConcurrency workers.
 func ProvideAsynqServer(
 	cfg *config.Config,
 	logger *zap.SugaredLogger,
@@ -41,21 +40,14 @@ func ProvideAsynqServer(
 		DB:       cfg.RedisDB,
 	}
 
-	// Configure server with appropriate concurrency and queue priorities
-	// Note: Worker only processes healthcheck tasks. Ingester tasks are handled by a separate ingester service.
 	serverCfg := asynq.Config{
-		// Number of concurrent workers to process tasks
 		Concurrency: cfg.QueueConcurrency,
-
-		// Queue priorities - higher value means higher priority
 		Queues: map[string]int{
-			"critical":    6, // Highest priority
-			"healthcheck": 5, // High priority for health checks
-			"default":     3, // Medium priority
-			"low":         1, // Lowest priority
+			"critical":    6,
+			"healthcheck": 5,
+			"default":     3,
+			"low":         1,
 		},
-
-		// Error handler for logging failed tasks
 		ErrorHandler: asynq.ErrorHandlerFunc(func(ctx context.Context, task *asynq.Task, err error) {
 			logger.Errorw("Task processing failed",
 				"type", task.Type(),
@@ -63,51 +55,32 @@ func ProvideAsynqServer(
 				"error", err,
 			)
 		}),
-
-		// Enable strict priority mode
 		StrictPriority: true,
-
-		// Logger adapter
-		Logger: NewAsynqLogger(logger),
+		Logger:         NewAsynqLogger(logger),
 	}
 
 	server := asynq.NewServer(redisOpt, serverCfg)
-
 	logger.Info("Successfully created Asynq server")
 	return server, nil
 }
 
-// AsynqLogger is an adapter to use zap logger with asynq
+// AsynqLogger adapts zap.SugaredLogger to the asynq.Logger interface.
 type AsynqLogger struct {
 	logger *zap.SugaredLogger
 }
 
-// NewAsynqLogger creates a new asynq logger adapter
+// NewAsynqLogger wraps logger in an AsynqLogger.
 func NewAsynqLogger(logger *zap.SugaredLogger) *AsynqLogger {
 	return &AsynqLogger{logger: logger}
 }
 
-func (l *AsynqLogger) Debug(args ...interface{}) {
-	l.logger.Debug(args...)
-}
+func (l *AsynqLogger) Debug(args ...any) { l.logger.Debug(args...) }
+func (l *AsynqLogger) Info(args ...any)  { l.logger.Info(args...) }
+func (l *AsynqLogger) Warn(args ...any)  { l.logger.Warn(args...) }
+func (l *AsynqLogger) Error(args ...any) { l.logger.Error(args...) }
+func (l *AsynqLogger) Fatal(args ...any) { l.logger.Fatal(args...) }
 
-func (l *AsynqLogger) Info(args ...interface{}) {
-	l.logger.Info(args...)
-}
-
-func (l *AsynqLogger) Warn(args ...interface{}) {
-	l.logger.Warn(args...)
-}
-
-func (l *AsynqLogger) Error(args ...interface{}) {
-	l.logger.Error(args...)
-}
-
-func (l *AsynqLogger) Fatal(args ...interface{}) {
-	l.logger.Fatal(args...)
-}
-
-// ProvideAsynqInspector creates and returns an asynq.Inspector for inspecting tasks and queues
+// ProvideAsynqInspector creates an asynq.Inspector for queue introspection.
 func ProvideAsynqInspector(
 	cfg *config.Config,
 	logger *zap.SugaredLogger,
@@ -117,14 +90,13 @@ func ProvideAsynqInspector(
 		Password: cfg.RedisPassword,
 		DB:       cfg.RedisDB,
 	}
-
 	inspector := asynq.NewInspector(redisOpt)
-
 	logger.Info("Successfully created Asynq inspector")
 	return inspector, nil
 }
 
-// ProvideAsynqScheduler creates and returns an asynq.Scheduler for scheduling periodic tasks
+// ProvideAsynqScheduler creates an asynq.Scheduler using cfg.Timezone for
+// cron expression evaluation.
 func ProvideAsynqScheduler(
 	cfg *config.Config,
 	logger *zap.SugaredLogger,
@@ -135,7 +107,6 @@ func ProvideAsynqScheduler(
 		DB:       cfg.RedisDB,
 	}
 
-	// Create scheduler with location for cron expressions
 	location, err := time.LoadLocation(cfg.Timezone)
 	if err != nil {
 		logger.Warnw("Failed to load timezone, using UTC", "timezone", cfg.Timezone, "error", err)
@@ -145,7 +116,6 @@ func ProvideAsynqScheduler(
 	schedulerCfg := &asynq.SchedulerOpts{
 		Location: location,
 		Logger:   NewAsynqLogger(logger),
-		// EnqueueErrorHandler is called when there's an error enqueuing a task
 		EnqueueErrorHandler: func(task *asynq.Task, opts []asynq.Option, err error) {
 			logger.Errorw("Failed to enqueue scheduled task",
 				"type", task.Type(),
@@ -155,19 +125,19 @@ func ProvideAsynqScheduler(
 	}
 
 	scheduler := asynq.NewScheduler(redisOpt, schedulerCfg)
-
 	logger.Info("Successfully created Asynq scheduler")
 	return scheduler, nil
 }
 
-// queueServiceImpl is the implementation of the queue.Service interface using asynq
+// queueServiceImpl implements queue.Service using asynq.
 type queueServiceImpl struct {
 	client    *asynq.Client
 	inspector *asynq.Inspector
 	logger    *zap.SugaredLogger
 }
 
-// ProvideQueueService creates a new queue service using asynq components
+// ProvideQueueService wraps an asynq.Client and asynq.Inspector as a queue.Service
+// for use in the DI container.
 func ProvideQueueService(
 	client *asynq.Client,
 	inspector *asynq.Inspector,
@@ -180,26 +150,20 @@ func ProvideQueueService(
 	}
 }
 
-// Enqueue adds a task to the queue
-func (s *queueServiceImpl) Enqueue(ctx context.Context, taskType string, payload interface{}, opts *queue.EnqueueOptions) (*queue.TaskInfo, error) {
+func (s *queueServiceImpl) Enqueue(ctx context.Context, taskType string, payload any, opts *queue.EnqueueOptions) (*queue.TaskInfo, error) {
 	if opts == nil {
 		opts = queue.DefaultEnqueueOptions()
 	}
 
-	// Marshal payload to JSON
 	payloadBytes, err := json.Marshal(payload)
 	if err != nil {
 		s.logger.Errorw("Failed to marshal payload", "task_type", taskType, "error", err)
 		return nil, fmt.Errorf("failed to marshal payload: %w", err)
 	}
 
-	// Create the task
 	task := asynq.NewTask(taskType, payloadBytes)
-
-	// Build options
 	asynqOpts := buildAsynqOptions(opts)
 
-	// Enqueue the task
 	var info *asynq.TaskInfo
 	if opts.ProcessAt != nil {
 		info, err = s.client.Enqueue(task, append(asynqOpts, asynq.ProcessAt(*opts.ProcessAt))...)
@@ -214,20 +178,13 @@ func (s *queueServiceImpl) Enqueue(ctx context.Context, taskType string, payload
 		return nil, fmt.Errorf("failed to enqueue task: %w", err)
 	}
 
-	// s.logger.Infow("Task enqueued successfully",
-	// 	"task_type", taskType,
-	// 	"task_id", info.ID,
-	// 	"queue", info.Queue,
-	// )
-
 	return convertTaskInfo(info), nil
 }
 
-// EnqueueUnique adds a task to the queue with deduplication
 func (s *queueServiceImpl) EnqueueUnique(
 	_ context.Context,
 	taskType string,
-	payload interface{},
+	payload any,
 	uniqueKey string,
 	ttl time.Duration,
 	opts *queue.EnqueueOptions,
@@ -236,17 +193,13 @@ func (s *queueServiceImpl) EnqueueUnique(
 		opts = queue.DefaultEnqueueOptions()
 	}
 
-	// Marshal payload to JSON
 	payloadBytes, err := json.Marshal(payload)
 	if err != nil {
 		s.logger.Errorw("Failed to marshal payload", "task_type", taskType, "error", err)
 		return nil, fmt.Errorf("failed to marshal payload: %w", err)
 	}
 
-	// Create the task
 	task := asynq.NewTask(taskType, payloadBytes)
-
-	// Build options with uniqueness
 	asynqOpts := buildAsynqOptions(opts)
 	asynqOpts = append(asynqOpts, asynq.Unique(ttl))
 
@@ -255,7 +208,6 @@ func (s *queueServiceImpl) EnqueueUnique(
 	}
 	asynqOpts = append(asynqOpts, asynq.TaskID(opts.TaskID))
 
-	// Enqueue the task
 	var info *asynq.TaskInfo
 	if opts.ProcessAt != nil {
 		info, err = s.client.Enqueue(task, append(asynqOpts, asynq.ProcessAt(*opts.ProcessAt))...)
@@ -266,36 +218,24 @@ func (s *queueServiceImpl) EnqueueUnique(
 	}
 
 	if err != nil {
-		// Check if this is a duplicate task error (expected behavior with unique constraint)
 		errMsg := err.Error()
+		// asynq surfaces deduplication collisions as non-fatal errors; log at Debug.
 		if strings.Contains(errMsg, "task ID conflicts") ||
 			strings.Contains(errMsg, "duplicated") ||
 			strings.Contains(errMsg, "already exists") {
-			// This is expected behavior - task is already queued (deduplication working)
-			// Log at debug level instead of error, but still return error for caller to handle
 			s.logger.Debugw("Task already queued (duplicate prevented by unique constraint)",
 				"task_type", taskType,
 				"unique_key", uniqueKey)
 			return nil, fmt.Errorf("task already exists: %w", err)
 		}
-
-		// This is a real error - log at error level
 		s.logger.Errorw("Failed to enqueue unique task", "task_type", taskType, "unique_key", uniqueKey, "error", err)
 		return nil, fmt.Errorf("failed to enqueue unique task: %w", err)
 	}
 
-	// s.logger.Infow("Unique task enqueued successfully",
-	// 	"task_type", taskType,
-	// 	"task_id", info.ID,
-	// 	"queue", info.Queue,
-	// 	"unique_key", uniqueKey,
-	// )
-
 	return convertTaskInfo(info), nil
 }
 
-// GetQueueInfo returns information about a specific queue
-func (s *queueServiceImpl) GetQueueInfo(ctx context.Context, queueName string) (*queue.QueueInfo, error) {
+func (s *queueServiceImpl) GetQueueInfo(_ context.Context, queueName string) (*queue.QueueInfo, error) {
 	info, err := s.inspector.GetQueueInfo(queueName)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get queue info: %w", err)
@@ -303,8 +243,7 @@ func (s *queueServiceImpl) GetQueueInfo(ctx context.Context, queueName string) (
 	return convertQueueInfo(info), nil
 }
 
-// ListQueues returns a list of all queues
-func (s *queueServiceImpl) ListQueues(ctx context.Context) ([]*queue.QueueInfo, error) {
+func (s *queueServiceImpl) ListQueues(_ context.Context) ([]*queue.QueueInfo, error) {
 	queues, err := s.inspector.Queues()
 	if err != nil {
 		return nil, fmt.Errorf("failed to list queues: %w", err)
@@ -323,8 +262,7 @@ func (s *queueServiceImpl) ListQueues(ctx context.Context) ([]*queue.QueueInfo, 
 	return queueInfos, nil
 }
 
-// GetTaskInfo returns information about a specific task
-func (s *queueServiceImpl) GetTaskInfo(ctx context.Context, queueName, taskID string) (*queue.TaskInfo, error) {
+func (s *queueServiceImpl) GetTaskInfo(_ context.Context, queueName, taskID string) (*queue.TaskInfo, error) {
 	info, err := s.inspector.GetTaskInfo(queueName, taskID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get task info: %w", err)
@@ -332,48 +270,39 @@ func (s *queueServiceImpl) GetTaskInfo(ctx context.Context, queueName, taskID st
 	return convertTaskInfo(info), nil
 }
 
-// DeleteTask deletes a task from the queue
-func (s *queueServiceImpl) DeleteTask(ctx context.Context, queueName, taskID string) error {
-	err := s.inspector.DeleteTask(queueName, taskID)
-	if err != nil {
+func (s *queueServiceImpl) DeleteTask(_ context.Context, queueName, taskID string) error {
+	if err := s.inspector.DeleteTask(queueName, taskID); err != nil {
 		return fmt.Errorf("failed to delete task: %w", err)
 	}
 	s.logger.Infow("Task deleted", "queue", queueName, "task_id", taskID)
 	return nil
 }
 
-// CancelTask cancels the processing of a task
-func (s *queueServiceImpl) CancelTask(ctx context.Context, taskID string) error {
-	err := s.inspector.CancelProcessing(taskID)
-	if err != nil {
+func (s *queueServiceImpl) CancelTask(_ context.Context, taskID string) error {
+	if err := s.inspector.CancelProcessing(taskID); err != nil {
 		return fmt.Errorf("failed to cancel task: %w", err)
 	}
 	s.logger.Infow("Task cancelled", "task_id", taskID)
 	return nil
 }
 
-// PauseQueue pauses task processing for a specific queue
-func (s *queueServiceImpl) PauseQueue(ctx context.Context, queueName string) error {
-	err := s.inspector.PauseQueue(queueName)
-	if err != nil {
+func (s *queueServiceImpl) PauseQueue(_ context.Context, queueName string) error {
+	if err := s.inspector.PauseQueue(queueName); err != nil {
 		return fmt.Errorf("failed to pause queue: %w", err)
 	}
 	s.logger.Infow("Queue paused", "queue", queueName)
 	return nil
 }
 
-// UnpauseQueue resumes task processing for a specific queue
-func (s *queueServiceImpl) UnpauseQueue(ctx context.Context, queueName string) error {
-	err := s.inspector.UnpauseQueue(queueName)
-	if err != nil {
+func (s *queueServiceImpl) UnpauseQueue(_ context.Context, queueName string) error {
+	if err := s.inspector.UnpauseQueue(queueName); err != nil {
 		return fmt.Errorf("failed to unpause queue: %w", err)
 	}
 	s.logger.Infow("Queue unpaused", "queue", queueName)
 	return nil
 }
 
-// ListPendingTasks returns a list of pending tasks in a queue
-func (s *queueServiceImpl) ListPendingTasks(ctx context.Context, queueName string, pageSize, pageNum int) ([]*queue.TaskInfo, error) {
+func (s *queueServiceImpl) ListPendingTasks(_ context.Context, queueName string, pageSize, pageNum int) ([]*queue.TaskInfo, error) {
 	tasks, err := s.inspector.ListPendingTasks(queueName, asynq.PageSize(pageSize), asynq.Page(pageNum))
 	if err != nil {
 		return nil, fmt.Errorf("failed to list pending tasks: %w", err)
@@ -381,8 +310,7 @@ func (s *queueServiceImpl) ListPendingTasks(ctx context.Context, queueName strin
 	return convertTaskInfoList(tasks), nil
 }
 
-// ListActiveTasks returns a list of active tasks in a queue
-func (s *queueServiceImpl) ListActiveTasks(ctx context.Context, queueName string, pageSize, pageNum int) ([]*queue.TaskInfo, error) {
+func (s *queueServiceImpl) ListActiveTasks(_ context.Context, queueName string, pageSize, pageNum int) ([]*queue.TaskInfo, error) {
 	tasks, err := s.inspector.ListActiveTasks(queueName, asynq.PageSize(pageSize), asynq.Page(pageNum))
 	if err != nil {
 		return nil, fmt.Errorf("failed to list active tasks: %w", err)
@@ -390,8 +318,7 @@ func (s *queueServiceImpl) ListActiveTasks(ctx context.Context, queueName string
 	return convertTaskInfoList(tasks), nil
 }
 
-// ListScheduledTasks returns a list of scheduled tasks in a queue
-func (s *queueServiceImpl) ListScheduledTasks(ctx context.Context, queueName string, pageSize, pageNum int) ([]*queue.TaskInfo, error) {
+func (s *queueServiceImpl) ListScheduledTasks(_ context.Context, queueName string, pageSize, pageNum int) ([]*queue.TaskInfo, error) {
 	tasks, err := s.inspector.ListScheduledTasks(queueName, asynq.PageSize(pageSize), asynq.Page(pageNum))
 	if err != nil {
 		return nil, fmt.Errorf("failed to list scheduled tasks: %w", err)
@@ -399,7 +326,6 @@ func (s *queueServiceImpl) ListScheduledTasks(ctx context.Context, queueName str
 	return convertTaskInfoList(tasks), nil
 }
 
-// Close closes the queue connections
 func (s *queueServiceImpl) Close() error {
 	if err := s.client.Close(); err != nil {
 		return err
@@ -411,8 +337,7 @@ func (s *queueServiceImpl) Close() error {
 	return nil
 }
 
-// Helper functions
-
+// buildAsynqOptions converts generic EnqueueOptions to the asynq option slice.
 func buildAsynqOptions(opts *queue.EnqueueOptions) []asynq.Option {
 	asynqOpts := []asynq.Option{
 		asynq.Queue(opts.Queue),
@@ -420,15 +345,12 @@ func buildAsynqOptions(opts *queue.EnqueueOptions) []asynq.Option {
 		asynq.Timeout(opts.Timeout),
 		asynq.Retention(opts.Retention),
 	}
-
 	if opts.TaskID != "" {
 		asynqOpts = append(asynqOpts, asynq.TaskID(opts.TaskID))
 	}
-
 	if opts.Deadline != nil {
 		asynqOpts = append(asynqOpts, asynq.Deadline(*opts.Deadline))
 	}
-
 	return asynqOpts
 }
 
@@ -436,7 +358,6 @@ func convertTaskInfo(info *asynq.TaskInfo) *queue.TaskInfo {
 	if info == nil {
 		return nil
 	}
-
 	return &queue.TaskInfo{
 		ID:            info.ID,
 		Queue:         info.Queue,
@@ -463,7 +384,6 @@ func convertQueueInfo(info *asynq.QueueInfo) *queue.QueueInfo {
 	if info == nil {
 		return nil
 	}
-
 	return &queue.QueueInfo{
 		Queue:     info.Queue,
 		Size:      info.Size,

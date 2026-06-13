@@ -35,7 +35,7 @@ import (
 
 // Run starts the engine with the provided configuration.
 func Run(cfg *Config) error {
-	log.Printf("Starting Peekaping Engine v%s", version.Version)
+	log.Printf("Starting Monitoring Engine v%s", version.Version)
 
 	os.Setenv("TZ", cfg.Timezone)
 

@@ -113,7 +113,7 @@ func (p *PagerTreeSender) Send(ctx context.Context, configJSON, message string, 
 
 	// Add tags
 	payload.Tags = []string{
-		"peekaping",
+		"monitoring",
 		fmt.Sprintf("monitor-type:%s", mon.Type),
 	}
 
