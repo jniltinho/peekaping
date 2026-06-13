@@ -112,7 +112,7 @@ run-bundle-sqlite: ## Run monitoring-bundle-sqlite container
 		-v monitoring-data:/app/data \
 		-e TZ=America/Sao_Paulo \
 		-e DB_NAME=/app/data/monitoring.db \
-		-e ENGINE_WORKERS=10 \
+		-e ENGINE_WORKERS=4 \
 		-e ENGINE_SCHEDULER_INTERVAL=10s \
 		monitoring-bundle-sqlite:$(VERSION)
 
@@ -127,7 +127,7 @@ run-bundle-postgres: ## Run monitoring-bundle-postgres container
 		-e DB_NAME=monitoring \
 		-e DB_USER=monitoring \
 		-e DB_PASS=password \
-		-e ENGINE_WORKERS=10 \
+		-e ENGINE_WORKERS=4 \
 		-e ENGINE_SCHEDULER_INTERVAL=10s \
 		monitoring-bundle-postgres:$(VERSION)
 
@@ -142,7 +142,7 @@ run-bundle-mysql: ## Run monitoring-bundle-mysql container
 		-e DB_NAME=monitoring \
 		-e DB_USER=monitoring \
 		-e DB_PASS=password \
-		-e ENGINE_WORKERS=10 \
+		-e ENGINE_WORKERS=4 \
 		-e ENGINE_SCHEDULER_INTERVAL=10s \
 		monitoring-bundle-mysql:$(VERSION)
 
