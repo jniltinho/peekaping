@@ -1,6 +1,6 @@
 # Docker + SQLite Setup
 
-SQLite is the simplest way to run Peekaping — everything runs in a single container with no external database required. Schema migrations run automatically on first start.
+SQLite is the simplest way to run Monitoring — everything runs in a single container with no external database required. Schema migrations run automatically on first start.
 
 ## Quick start
 
@@ -8,10 +8,10 @@ SQLite is the simplest way to run Peekaping — everything runs in a single cont
 docker run -d --restart=always \
   -p 8383:8383 \
   -e DB_TYPE=sqlite \
-  -e DB_NAME=/app/data/peekaping.db \
+  -e DB_NAME=/app/data/monitoring.db \
   -v $(pwd)/.data/sqlite:/app/data \
-  --name peekaping \
-  jniltinho/peekaping-bundle-sqlite:latest
+  --name monitoring \
+  jniltinho/monitoring-bundle-sqlite:latest
 ```
 
 Open `http://localhost:8383` in your browser.
@@ -22,18 +22,18 @@ Create a `docker-compose.yml`:
 
 ```yaml
 services:
-  peekaping:
-    image: jniltinho/peekaping-bundle-sqlite:latest
+  monitoring:
+    image: jniltinho/monitoring-bundle-sqlite:latest
     restart: unless-stopped
     ports:
       - "8383:8383"
     environment:
       - DB_TYPE=sqlite
-      - DB_NAME=/app/data/peekaping.db
+      - DB_NAME=/app/data/monitoring.db
     volumes:
       - ./.data/sqlite:/app/data
       - ./.data/logs:/var/log/supervisor
-    container_name: peekaping-bundle-sqlite
+    container_name: monitoring-bundle-sqlite
 ```
 
 ```bash

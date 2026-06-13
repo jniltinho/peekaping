@@ -11,7 +11,7 @@ All configuration is done via environment variables. Copy `.env.prod.example` to
 | `DB_PORT` | — | Database port (required for postgres/mysql) |
 | `DB_USER` | — | Database user (required for postgres/mysql) |
 | `DB_PASS` | — | Database password (required for postgres/mysql) |
-| `DB_NAME` | `peekaping.db` | Database name or SQLite file path |
+| `DB_NAME` | `monitoring.db` | Database name or SQLite file path |
 
 ## Server
 
@@ -22,7 +22,7 @@ All configuration is done via environment variables. Copy `.env.prod.example` to
 | `MODE` | `dev` | Runtime mode: `dev`, `prod`, or `test` |
 | `LOG_LEVEL` | `info` | Log verbosity: `debug`, `info`, `warn`, `error` |
 | `TZ` | `UTC` | Server timezone (e.g. `America/New_York`) |
-| `SERVICE_NAME` | `peekaping:api` | Service identifier shown in logs |
+| `SERVICE_NAME` | `monitoring:api` | Service identifier shown in logs |
 
 ## Redis
 

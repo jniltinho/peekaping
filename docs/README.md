@@ -1,6 +1,6 @@
-# Peekaping Documentation
+# Monitoring Documentation
 
-Peekaping is a modern, self-hosted uptime monitoring solution built with Go and React.
+Monitoring is a modern, self-hosted uptime monitoring solution built with Go and React.
 
 ## Self-Hosting
 

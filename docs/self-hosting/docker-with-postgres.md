@@ -11,8 +11,8 @@ Create a `docker-compose.yml`:
 
 ```yaml
 services:
-  peekaping:
-    image: jniltinho/peekaping-bundle-postgres:latest
+  monitoring:
+    image: jniltinho/monitoring-bundle-postgres:latest
     restart: unless-stopped
     ports:
       - "8383:8383"
@@ -25,7 +25,7 @@ services:
     volumes:
       - ./.data/postgres:/var/lib/postgresql/data
       - ./.data/logs:/var/log/supervisor
-    container_name: peekaping-bundle-postgres
+    container_name: monitoring-bundle-postgres
 ```
 
 Minimum `.env`:
@@ -33,7 +33,7 @@ Minimum `.env`:
 ```env
 DB_USER=postgres
 DB_PASS=yourpassword
-DB_NAME=peekaping
+DB_NAME=monitoring
 DB_HOST=localhost
 DB_TYPE=postgres
 

@@ -11,8 +11,8 @@ Create a `docker-compose.yml`:
 
 ```yaml
 services:
-  peekaping:
-    image: jniltinho/peekaping-bundle-mysql:latest
+  monitoring:
+    image: jniltinho/monitoring-bundle-mysql:latest
     restart: unless-stopped
     ports:
       - "8383:8383"
@@ -25,15 +25,15 @@ services:
     volumes:
       - ./.data/mysql:/var/lib/mysql
       - ./.data/logs:/var/log/supervisor
-    container_name: peekaping-bundle-mysql
+    container_name: monitoring-bundle-mysql
 ```
 
 Minimum `.env`:
 
 ```env
-DB_USER=peekaping
+DB_USER=monitoring
 DB_PASS=yourpassword
-DB_NAME=peekaping
+DB_NAME=monitoring
 DB_HOST=localhost
 DB_TYPE=mysql
 
