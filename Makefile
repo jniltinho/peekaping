@@ -135,18 +135,18 @@ docker-down-all: ## Stop all bundle services
 
 .PHONY: migrate-up
 migrate-up: ## Apply / update database schema (GORM AutoMigrate)
-	cd apps/server && ../../scripts/tool.sh go run . migrate up
+	cd apps/server && go run . migrate up
 
 .PHONY: migrate-status
 migrate-status: ## Check database connectivity
-	cd apps/server && ../../scripts/tool.sh go run . migrate status
+	cd apps/server && go run . migrate status
 
 
 # ── Build ─────────────────────────────────────────────────────────────────────
 
 .PHONY: build
 build: ## Build the unified peekaping binary
-	cd $(GO_SERVER_DIR) && ../../scripts/tool.sh go build -o ../../bin/monitoring .
+	cd $(GO_SERVER_DIR) && go build -o ../../bin/monitoring .
 
 .PHONY: build-api
 build-api: build ## Build the unified peekaping binary (alias)
@@ -168,26 +168,26 @@ embed-web: ## Build frontend and embed into Go API binary
 
 .PHONY: run-api
 run-api: ## Run the API server
-	cd $(GO_SERVER_DIR) && ../../scripts/tool.sh go run . api
+	cd $(GO_SERVER_DIR) && go run . api
 
 .PHONY: run-engine
 run-engine: ## Run the engine service
-	cd $(GO_SERVER_DIR) && ../../scripts/tool.sh go run . engine
+	cd $(GO_SERVER_DIR) && go run . engine
 
 .PHONY: dev
 dev: ## Start full development environment
-	./scripts/tool.sh pnpm run dev dev:api dev:engine docs:watch
+	pnpm run dev dev:api dev:engine docs:watch
 
 
 # ── Test & lint ───────────────────────────────────────────────────────────────
 
 .PHONY: test-server
 test-server: ## Run server tests
-	cd apps/server && ../../scripts/tool.sh go test -v ./internal/...
+	cd apps/server && go test -v ./internal/...
 
 .PHONY: lint-web
 lint-web: ## Lint and build the web app
-	cd apps/web && ../../scripts/tool.sh pnpm lint && ../../scripts/tool.sh pnpm build
+	cd apps/web && pnpm lint && pnpm build
 
 
 # ── Setup ─────────────────────────────────────────────────────────────────────
@@ -205,5 +205,5 @@ setup: ## Setup development environment via asdf
 
 .PHONY: install
 install: ## Install all dependencies
-	./scripts/tool.sh pnpm install
-	cd apps/server && ../../scripts/tool.sh go mod tidy
+	pnpm install
+	cd apps/server && go mod tidy

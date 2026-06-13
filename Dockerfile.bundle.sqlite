@@ -71,8 +71,8 @@ COPY --from=go-builder /app/server/monitoring /app/server/monitoring
 COPY --from=go-builder /app/server/scripts/run-migrations.sh /app/server/run-migrations.sh
 
 # Copy configuration files
-COPY supervisord.bundle.sqlite.conf /etc/supervisor/conf.d/supervisord.conf
-COPY startup.bundle.sqlite.sh /app/startup.sh
+COPY docker/scripts/supervisord.bundle.sqlite.conf /etc/supervisor/conf.d/supervisord.conf
+COPY docker/scripts/startup.bundle.sqlite.sh /app/startup.sh
 
 # Set proper permissions for executables
 RUN chmod +x /app/server/run-migrations.sh /app/startup.sh /app/server/monitoring
