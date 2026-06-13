@@ -215,9 +215,9 @@ export function Chart({ id }: { id: string }) {
 
   return (
     <Card>
-      <CardHeader className="flex items-center gap-2 space-y-0 border-b sm:flex-row">
+      <CardHeader className="flex items-center gap-2 space-y-0 border-b py-2 sm:flex-row">
         <div className="grid flex-1 gap-1 text-center sm:text-left">
-          <CardTitle>{t("timezone.response_time")}</CardTitle>
+          <CardTitle className="text-sm font-medium">{t("timezone.response_time")}</CardTitle>
         </div>
         <div className="flex gap-2 items-center">
           <Select
@@ -251,10 +251,10 @@ export function Chart({ id }: { id: string }) {
         </div>
       </CardHeader>
 
-      <CardContent className="px-2 pt-2 sm:px-6 sm:pt-6">
+      <CardContent className="px-2 pt-2 sm:px-4 sm:pt-3">
         <ChartContainer
           config={chartConfig}
-          className="aspect-auto h-[250px] w-full"
+          className="aspect-auto h-[180px] w-full"
         >
           <LineChart
             data={chartData}
@@ -266,7 +266,8 @@ export function Chart({ id }: { id: string }) {
               dataKey="timestamp"
               tickLine={false}
               axisLine={false}
-              tickMargin={8}
+              tickMargin={6}
+              tick={{ fontSize: 10, fontWeight: 300 }}
               tickFormatter={(timestamp) => {
                 return formatDateToTimezone(timestamp, timezone, {
                   month: "short",
@@ -279,12 +280,13 @@ export function Chart({ id }: { id: string }) {
             <YAxis
               tickLine={false}
               axisLine={false}
+              tick={{ fontSize: 10, fontWeight: 300 }}
               label={{
                 value: t("timezone.response_time") + " " + t("timezone.ms"),
                 angle: -90,
                 position: "insideLeft",
                 offset: 0,
-                style: { textAnchor: "middle" },
+                style: { textAnchor: "middle", fontSize: 10, fontWeight: 300 },
               }}
             />
             <ChartTooltip
@@ -368,14 +370,14 @@ export function Chart({ id }: { id: string }) {
             (item: { key: string; label: string; value: number }) => (
               <div
                 key={item.key}
-                className="flex flex-1 flex-col justify-center gap-1  px-6 py-4 text-left even:border-l sm:border-l sm:border-t-0 sm:px-8 sm:py-6"
+                className="flex flex-1 flex-col justify-center gap-0.5 px-3 py-1.5 text-left even:border-l sm:border-l sm:border-t-0"
               >
-                <span className="text-xs text-muted-foreground">
+                <span className="text-[10px] font-light text-muted-foreground">
                   {item.label}
                 </span>
-                <span className="text-lg font-bold leading-none sm:text-3xl">
+                <span className="text-xs font-medium leading-none sm:text-sm">
                   {item.value.toLocaleString()}{" "}
-                  <span className="text-sm font-normal text-muted-foreground">
+                  <span className="text-[10px] font-normal text-muted-foreground">
                     {item.key === "uptime" ? "%" : "ms"}
                   </span>
                 </span>

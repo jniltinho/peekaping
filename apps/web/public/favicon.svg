@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none">
+  <!-- Background: primary purple, Neo-Brutalism sharp corners -->
+  <rect width="32" height="32" fill="#7C5DFA"/>
+  <!-- Heartbeat / pulse line — monitoring concept -->
+  <polyline
+    points="2,16 7,16 9,7 13,25 17,9 21,16 30,16"
+    stroke="white"
+    stroke-width="3"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+</svg>

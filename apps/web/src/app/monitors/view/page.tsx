@@ -434,7 +434,7 @@ const MonitorPage = () => {
           </a>
         </div>
 
-        <div className="mt-4 mb-4">
+        <div className="mt-2 mb-2">
           <div className="inline-flex border rounded-none overflow-hidden">
             <Button
               variant="ghost"
@@ -521,19 +521,19 @@ const MonitorPage = () => {
           </div>
         </div>
 
-        <div className="text-white space-y-6 mt-4">
-          <div className="grid grid-cols-4 gap-4 mb-4">
+        <div className="text-white space-y-2 mt-2">
+          <div className="grid grid-cols-4 gap-2 mb-2">
             <Card
               className={clsx(
-                "p-4 rounded-none gap-1 col-span-4",
+                "p-2 rounded-none gap-1 col-span-4",
                 hasCertCheckExpire ? "lg:col-span-1" : "lg:col-span-1"
               )}
             >
-              <div className="font-semibold">{t("monitors.view.current_status")}</div>
+              <div className="text-xs text-muted-foreground">{t("monitors.view.current_status")}</div>
               {monitor?.active ? (
                 <div
                   className={cn(
-                    "font-semibold text-2xl",
+                    "font-semibold text-base",
                     lastHeartbeat?.status === 1 && "text-green-400",
                     lastHeartbeat?.status === 0 && "text-red-400",
                     lastHeartbeat?.status === 2 && "text-red-400",
@@ -546,14 +546,14 @@ const MonitorPage = () => {
                   {lastHeartbeat?.status === 3 && t("monitors.view.status.maintenance")}
                 </div>
               ) : (
-                <div className="font-semibold text-2xl">{t("monitors.view.status.paused")}</div>
+                <div className="font-semibold text-base">{t("monitors.view.status.paused")}</div>
               )}
 
               {monitor?.active && lastImportantHeartbeatDuration > 0 && (
-                <div className="text-sm text-gray-400">{lihText}</div>
+                <div className="text-xs text-gray-400">{lihText}</div>
               )}
               {!monitor?.active && lastHeartbeat?.time && (
-                <div className="text-sm text-gray-400">
+                <div className="text-xs text-gray-400">
                   {formatDuration(
                     dayjs().diff(dayjs(lastHeartbeat?.time), "milliseconds"),
                     t
@@ -564,21 +564,21 @@ const MonitorPage = () => {
 
             {/* Certificate Information Card - Only show for HTTPS monitors */}
             {hasCertCheckExpire && (
-              <Card className="p-4 rounded-none gap-1 col-span-4 lg:col-span-1">
-                <div className="font-semibold flex items-center gap-2">
-                  <Shield className="w-4 h-4" />
+              <Card className="p-2 rounded-none gap-1 col-span-4 lg:col-span-1">
+                <div className="text-xs text-muted-foreground flex items-center gap-1">
+                  <Shield className="w-3 h-3" />
                   {t("monitors.view.certificate")}
                 </div>
                 {tlsLoading ? (
-                  <div className="flex items-center gap-2 text-sm text-gray-400">
-                    <Loader2 className="w-4 h-4 animate-spin" />
+                  <div className="flex items-center gap-1 text-xs text-gray-400">
+                    <Loader2 className="w-3 h-3 animate-spin" />
                     {t("common.loading")}
                   </div>
                 ) : tlsInfo?.certInfo ? (
-                  <div className="space-y-1">
+                  <div className="space-y-0.5">
                     <div
                       className={cn(
-                        "font-semibold text-lg",
+                        "font-semibold text-sm",
                         tlsInfo.certInfo.daysRemaining &&
                           tlsInfo.certInfo.daysRemaining > 30 &&
                           "text-green-400",
@@ -623,34 +623,34 @@ const MonitorPage = () => {
 
             <Card
               className={clsx(
-                "p-4 rounded-none gap-2 col-span-4",
+                "p-2 rounded-none gap-1 col-span-4",
                 hasCertCheckExpire ? "lg:col-span-2" : "lg:col-span-3"
               )}
             >
-              <div className="text-white font-semibold">{t("monitors.view.live_status")}</div>
-              <BarHistory data={heartbeatData} />
-              <div className="text-sm text-gray-400">
+              <div className="text-xs text-muted-foreground">{t("monitors.view.live_status")}</div>
+              <BarHistory data={heartbeatData} barHeight={16} />
+              <div className="text-xs text-gray-400">
                 {t("monitors.view.check_every")} {monitor?.interval} {t("monitors.view.seconds")}
               </div>
             </Card>
           </div>
         </div>
 
-        <Card className="mb-4">
+        <Card className="mb-2">
           <CardContent className="">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4">
               {dataStats.map((item) => {
                 return (
                   <div
                     key={item.label}
-                    className="flex flex-1 flex-col justify-center gap-1 px-4 py-2 text-left md:border-l md:odd:border-l-0 lg:first:border-l-0"
+                    className="flex flex-1 flex-col justify-center gap-0.5 px-3 py-1 text-left md:border-l md:odd:border-l-0 lg:first:border-l-0"
                   >
                     <span className="text-xs text-muted-foreground">
                       {item.label}
                     </span>
-                    <span className="text-xl font-bold leading-none sm:text-3xl">
+                    <span className="text-sm font-bold leading-none sm:text-base">
                       {item.value?.toLocaleString()}{" "}
-                      <span className="text-sm font-normal text-muted-foreground">
+                      <span className="text-xs font-normal text-muted-foreground">
                         %
                       </span>
                     </span>

@@ -49,8 +49,8 @@ const ImportantNotificationsList = ({ monitorId }: { monitorId: string }) => {
     data?.pages.flatMap((page) => page.data || []) ?? [];
 
   return (
-    <div className="mb-6 mt-6">
-      <TypographyH4 className="mb-2">
+    <div className="mb-3 mt-3">
+      <TypographyH4 className="mb-1 text-sm font-semibold">
         {t("notifications.important")}
       </TypographyH4>
       {importantHeartbeats.length === 0 && isLoading && (
@@ -63,11 +63,11 @@ const ImportantNotificationsList = ({ monitorId }: { monitorId: string }) => {
       )}
 
       {importantHeartbeats.map((hb) => (
-        <Card key={hb.id} className="mb-2 p-4">
-          <CardContent className="p-0 flex flex-col gap-2">
+        <Card key={hb.id} className="mb-1 p-2">
+          <CardContent className="p-0 flex flex-col gap-1">
             <div className="flex items-center gap-2">
               <Badge
-                className={cn("text-white", {
+                className={cn("text-white text-xs py-0 px-1.5", {
                   "bg-green-500 border-green-600": hb.status === 1,
                   "bg-red-500 border-red-600":
                     hb.status === 0 || hb.status === 2,
@@ -83,7 +83,7 @@ const ImportantNotificationsList = ({ monitorId }: { monitorId: string }) => {
                 {hb.time && formatDateToTimezone(hb.time, timezone)}
               </span>
             </div>
-            <div className="font-medium text-sm">{hb.msg}</div>
+            <div className="font-medium text-xs">{hb.msg}</div>
           </CardContent>
         </Card>
       ))}
