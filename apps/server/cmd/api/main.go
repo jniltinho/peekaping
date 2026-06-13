@@ -1,4 +1,4 @@
-package main
+package cmdapi
 
 import (
 	"context"
@@ -46,29 +46,15 @@ import (
 	"go.uber.org/zap"
 )
 
-// @title			Peekaping API
-// @BasePath	/api/v1
-// @securityDefinitions.apikey JwtAuth
-// @in header
-// @name Authorization
-// @description JWT token authentication (Bearer token format)
-// @securityDefinitions.apikey ApiKeyAuth
-// @in header
-// @name X-API-Key
-// @description API key authentication (pk_ prefix format)
-func main() {
+// Run starts the API server with the provided configuration.
+func Run(cfg *Config) error {
 	docs.SwaggerInfo.Version = version.Version
 
 	utils.RegisterCustomValidators()
 
-	// Load and validate API-specific config
-	cfg, err := LoadAndValidate("../..")
-	if err != nil {
-		log.Fatalf("Failed to load and validate API config: %v", err)
-	}
-
 	os.Setenv("TZ", cfg.Timezone)
 
+	var err error
 	container := dig.New()
 
 	// Convert to internal config format for dependency injection
@@ -124,7 +110,7 @@ func main() {
 	})
 
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 
 	// Start cleanup cron job(s)
@@ -138,7 +124,7 @@ func main() {
 		cleanup.StartCleanupCron(heartbeatService, settingService, notificationHistoryService, tlsInfoService, logger)
 	})
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 
 	// Initialize JWT settings
@@ -148,7 +134,7 @@ func main() {
 		}
 	})
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 
 	// Start the health check supervisor
@@ -165,7 +151,7 @@ func main() {
 		listener.Subscribe(eventBus)
 	})
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 
 	// Start the monitor event listener
@@ -173,7 +159,7 @@ func main() {
 		listener.Subscribe(eventBus)
 	})
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 
 	// Start the server with graceful shutdown
@@ -237,6 +223,7 @@ func main() {
 	})
 
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
+	return nil
 }

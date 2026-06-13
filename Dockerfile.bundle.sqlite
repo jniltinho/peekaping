@@ -22,9 +22,7 @@ RUN go mod download
 COPY apps/server/ .
 # Embed compiled frontend into the api binary
 COPY --from=web-builder /app/apps/web/dist ./internal/frontend/web
-RUN CGO_ENABLED=0 GOFLAGS="-trimpath" go build -o api -ldflags="-s -w" ./cmd/api
-RUN CGO_ENABLED=0 GOFLAGS="-trimpath" go build -o engine -ldflags="-s -w" ./cmd/engine
-RUN CGO_ENABLED=0 go build -o bun -ldflags="-s -w" ./cmd/bun
+RUN CGO_ENABLED=0 GOFLAGS="-trimpath" go build -o monitoring -ldflags="-s -w" ./cmd/monitoring
 
 # Stage 3: Final runtime image with Debian bookworm-slim
 FROM debian:bookworm-slim
@@ -60,11 +58,7 @@ RUN apt-get update \
 RUN mkdir -p /app/server /app/data /var/log/supervisor
 
 # Copy built Go binaries from go-builder
-COPY --from=go-builder /app/server/api /app/server/api
-COPY --from=go-builder /app/server/engine /app/server/engine
-COPY --from=go-builder /app/server/bun /app/server/bun
-COPY --from=go-builder /app/server/cmd/bun/migrations /app/server/cmd/bun/migrations
-COPY --from=go-builder /app/server/internal/config /app/server/internal/config
+COPY --from=go-builder /app/server/monitoring /app/server/monitoring
 COPY --from=go-builder /app/server/scripts/run-migrations.sh /app/server/run-migrations.sh
 
 # Copy configuration files
@@ -72,7 +66,7 @@ COPY supervisord.bundle.sqlite.conf /etc/supervisor/conf.d/supervisord.conf
 COPY startup.bundle.sqlite.sh /app/startup.sh
 
 # Set proper permissions for executables
-RUN chmod +x /app/server/run-migrations.sh /app/startup.sh /app/server/api /app/server/engine /app/server/bun
+RUN chmod +x /app/server/run-migrations.sh /app/startup.sh /app/server/monitoring
 
 # Expose port (SERVER_PORT=8383 is set in supervisord.conf)
 EXPOSE 8383

@@ -26,6 +26,7 @@ const ImportantNotificationsList = ({ monitorId }: { monitorId: string }) => {
       initialPageParam: 0,
       enabled: !!monitorId,
       staleTime: 0,
+      refetchInterval: 30000,
     });
 
   useEffect(() => {

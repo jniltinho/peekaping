@@ -119,30 +119,31 @@ docker-down-all: ## Stop all bundle services
 
 .PHONY: migrate-init
 migrate-init: ## Init database migrations
-	cd apps/server && ../../scripts/tool.sh go run cmd/bun/main.go db init
+	cd apps/server && ../../scripts/tool.sh go run ./cmd/monitoring migrate init
 
 .PHONY: migrate-up
 migrate-up: ## Run database migrations
-	cd apps/server && ../../scripts/tool.sh go run cmd/bun/main.go db migrate
+	cd apps/server && ../../scripts/tool.sh go run ./cmd/monitoring migrate up
 
 .PHONY: migrate-down
 migrate-down: ## Rollback database migrations
-	cd apps/server && ../../scripts/tool.sh go run cmd/bun/main.go db rollback
+	cd apps/server && ../../scripts/tool.sh go run ./cmd/monitoring migrate rollback
 
 
 # ── Build ─────────────────────────────────────────────────────────────────────
 
+.PHONY: build
+build: ## Build the unified peekaping binary
+	cd $(GO_SERVER_DIR) && ../../scripts/tool.sh go build -o ../../bin/monitoring ./cmd/monitoring
+
 .PHONY: build-api
-build-api: ## Build the API binary
-	cd $(GO_SERVER_DIR) && ../../scripts/tool.sh go build -o ../../bin/api ./cmd/api
+build-api: build ## Build the unified peekaping binary (alias)
 
 .PHONY: build-engine
-build-engine: ## Build the engine binary (scheduler + worker pool + ingester)
-	cd $(GO_SERVER_DIR) && ../../scripts/tool.sh go build -o ../../bin/engine ./cmd/engine
+build-engine: build ## Build the unified peekaping binary (alias)
 
 .PHONY: build-bun
-build-bun: ## Build the bun (migration) binary
-	cd $(GO_SERVER_DIR) && ../../scripts/tool.sh go build -o ../../bin/bun ./cmd/bun
+build-bun: build ## Build the unified peekaping binary (alias)
 
 .PHONY: embed-web
 embed-web: ## Build frontend and embed into Go API binary
@@ -155,11 +156,11 @@ embed-web: ## Build frontend and embed into Go API binary
 
 .PHONY: run-api
 run-api: ## Run the API server
-	cd $(GO_SERVER_DIR) && ../../scripts/tool.sh go run ./cmd/api/main.go
+	cd $(GO_SERVER_DIR) && ../../scripts/tool.sh go run ./cmd/monitoring api
 
 .PHONY: run-engine
 run-engine: ## Run the engine service
-	cd $(GO_SERVER_DIR) && ../../scripts/tool.sh go run ./cmd/engine/main.go
+	cd $(GO_SERVER_DIR) && ../../scripts/tool.sh go run ./cmd/monitoring engine
 
 .PHONY: dev
 dev: ## Start full development environment

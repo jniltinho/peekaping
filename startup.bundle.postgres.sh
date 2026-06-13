@@ -51,7 +51,7 @@ export MODE=${MODE:-prod}
 export TZ=${TZ:-UTC}
 
 # Create .env file for the server with secure permissions
-cat > /app/.env << EOF
+cat > /app/server/.env << EOF
 SERVER_PORT=$SERVER_PORT
 CLIENT_URL=$CLIENT_URL
 DB_TYPE=$DB_TYPE
@@ -65,7 +65,7 @@ TZ=$TZ
 EOF
 
 # Security: Set restrictive permissions on sensitive config file
-chmod 600 /app/.env
+chmod 600 /app/server/.env
 
 # Create data directory if it doesn't exist
 mkdir -p /var/lib/postgresql/data

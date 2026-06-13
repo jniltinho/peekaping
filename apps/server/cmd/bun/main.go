@@ -1,14 +1,14 @@
-package main
+package cmdmigrate
 
 import (
 	"database/sql"
 	"fmt"
-	"log"
-	"os"
-	"peekaping/cmd/bun/migrations"
-	"peekaping/internal/config"
 	"strings"
 
+	"peekaping/cmd/bun/migrations"
+	"peekaping/internal/config"
+
+	"github.com/spf13/cobra"
 	"github.com/uptrace/bun"
 	"github.com/uptrace/bun/dialect/mysqldialect"
 	"github.com/uptrace/bun/dialect/pgdialect"
@@ -18,224 +18,239 @@ import (
 	"github.com/uptrace/bun/extra/bundebug"
 	"github.com/uptrace/bun/migrate"
 
-	"github.com/urfave/cli/v2"
-
 	_ "github.com/go-sql-driver/mysql"
 )
 
-func main() {
-	app := &cli.App{
-		Name: "bun",
-		Commands: []*cli.Command{
-			newDBCommand(),
-		},
+// NewMigrateCommand returns the Cobra command tree for database migrations.
+func NewMigrateCommand(cfg *config.DBConfig) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "migrate",
+		Short: "Database migration commands",
 	}
 
-	if err := app.Run(os.Args); err != nil {
-		log.Fatal(err)
-	}
+	cmd.AddCommand(
+		newInitCmd(cfg),
+		newUpCmd(cfg),
+		newRollbackCmd(cfg),
+		newLockCmd(cfg),
+		newUnlockCmd(cfg),
+		newCreateGoCmd(cfg),
+		newCreateSQLCmd(cfg),
+		newCreateTxSQLCmd(cfg),
+		newStatusCmd(cfg),
+		newMarkAppliedCmd(cfg),
+	)
+
+	return cmd
 }
 
-func newDBCommand() *cli.Command {
-	return &cli.Command{
-		Name:  "db",
-		Usage: "database migrations",
-		Subcommands: []*cli.Command{
-			{
-				Name:  "init",
-				Usage: "create migration tables",
-				Action: func(c *cli.Context) error {
-					return runWithDB(func(db *bun.DB) error {
-						migrator := migrate.NewMigrator(db, migrations.Migrations)
-						return migrator.Init(c.Context)
-					})
-				},
-			},
-			{
-				Name:  "migrate",
-				Usage: "migrate database",
-				Action: func(c *cli.Context) error {
-					return runWithDB(func(db *bun.DB) error {
-						migrator := migrate.NewMigrator(db, migrations.Migrations)
-						if err := migrator.Lock(c.Context); err != nil {
-							return err
-						}
-						defer migrator.Unlock(c.Context) // nolint:errcheck
-
-						group, err := migrator.Migrate(c.Context)
-						if err != nil {
-							migrator.Rollback(c.Context)
-							return err
-						}
-						if group.IsZero() {
-							fmt.Printf("there are no new migrations to run (database is up to date)\n")
-							return nil
-						}
-						fmt.Printf("migrated to %s\n", group)
-						return nil
-					})
-				},
-			},
-			{
-				Name:  "rollback",
-				Usage: "rollback the last migration group",
-				Action: func(c *cli.Context) error {
-					return runWithDB(func(db *bun.DB) error {
-						migrator := migrate.NewMigrator(db, migrations.Migrations)
-						if err := migrator.Lock(c.Context); err != nil {
-							return err
-						}
-						defer migrator.Unlock(c.Context) //nolint:errcheck
-
-						group, err := migrator.Rollback(c.Context)
-						if err != nil {
-							return err
-						}
-						if group.IsZero() {
-							fmt.Printf("there are no groups to roll back\n")
-							return nil
-						}
-						fmt.Printf("rolled back %s\n", group)
-						return nil
-					})
-				},
-			},
-			{
-				Name:  "lock",
-				Usage: "lock migrations",
-				Action: func(c *cli.Context) error {
-					return runWithDB(func(db *bun.DB) error {
-						migrator := migrate.NewMigrator(db, migrations.Migrations)
-						return migrator.Lock(c.Context)
-					})
-				},
-			},
-			{
-				Name:  "unlock",
-				Usage: "unlock migrations",
-				Action: func(c *cli.Context) error {
-					return runWithDB(func(db *bun.DB) error {
-						migrator := migrate.NewMigrator(db, migrations.Migrations)
-						return migrator.Unlock(c.Context)
-					})
-				},
-			},
-			{
-				Name:  "create_go",
-				Usage: "create Go migration",
-				Action: func(c *cli.Context) error {
-					return runWithDB(func(db *bun.DB) error {
-						migrator := migrate.NewMigrator(db, migrations.Migrations)
-						name := strings.Join(c.Args().Slice(), "_")
-						mf, err := migrator.CreateGoMigration(c.Context, name)
-						if err != nil {
-							return err
-						}
-						fmt.Printf("created migration %s (%s)\n", mf.Name, mf.Path)
-						return nil
-					})
-				},
-			},
-			{
-				Name:  "create_sql",
-				Usage: "create up and down SQL migrations",
-				Action: func(c *cli.Context) error {
-					return runWithDB(func(db *bun.DB) error {
-						migrator := migrate.NewMigrator(db, migrations.Migrations)
-						name := strings.Join(c.Args().Slice(), "_")
-						files, err := migrator.CreateSQLMigrations(c.Context, name)
-						if err != nil {
-							return err
-						}
-
-						for _, mf := range files {
-							fmt.Printf("created migration %s (%s)\n", mf.Name, mf.Path)
-						}
-
-						return nil
-					})
-				},
-			},
-			{
-				Name:  "create_tx_sql",
-				Usage: "create up and down transactional SQL migrations",
-				Action: func(c *cli.Context) error {
-					return runWithDB(func(db *bun.DB) error {
-						migrator := migrate.NewMigrator(db, migrations.Migrations)
-						name := strings.Join(c.Args().Slice(), "_")
-						files, err := migrator.CreateTxSQLMigrations(c.Context, name)
-						if err != nil {
-							return err
-						}
-
-						for _, mf := range files {
-							fmt.Printf("created transaction migration %s (%s)\n", mf.Name, mf.Path)
-						}
-
-						return nil
-					})
-				},
-			},
-			{
-				Name:  "status",
-				Usage: "print migrations status",
-				Action: func(c *cli.Context) error {
-					return runWithDB(func(db *bun.DB) error {
-						migrator := migrate.NewMigrator(db, migrations.Migrations)
-						ms, err := migrator.MigrationsWithStatus(c.Context)
-						if err != nil {
-							return err
-						}
-						fmt.Printf("migrations: %s\n", ms)
-						fmt.Printf("unapplied migrations: %s\n", ms.Unapplied())
-						fmt.Printf("last migration group: %s\n", ms.LastGroup())
-						return nil
-					})
-				},
-			},
-			{
-				Name:  "mark_applied",
-				Usage: "mark migrations as applied without actually running them",
-				Action: func(c *cli.Context) error {
-					return runWithDB(func(db *bun.DB) error {
-						migrator := migrate.NewMigrator(db, migrations.Migrations)
-						group, err := migrator.Migrate(c.Context, migrate.WithNopMigration())
-						if err != nil {
-							return err
-						}
-						if group.IsZero() {
-							fmt.Printf("there are no new migrations to mark as applied\n")
-							return nil
-						}
-						fmt.Printf("marked as applied %s\n", group)
-						return nil
-					})
-				},
-			},
+func newInitCmd(cfg *config.DBConfig) *cobra.Command {
+	return &cobra.Command{
+		Use:   "init",
+		Short: "Create migration tables",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return runWithDB(cfg, func(db *bun.DB) error {
+				migrator := migrate.NewMigrator(db, migrations.Migrations)
+				return migrator.Init(cmd.Context())
+			})
 		},
 	}
 }
 
-func runWithDB(fn func(*bun.DB) error) error {
-	// Load configuration
-	cfg, err := config.LoadConfig[config.DBConfig]("../..")
-	if err != nil {
-		return fmt.Errorf("failed to load config: %w", err)
-	}
+func newUpCmd(cfg *config.DBConfig) *cobra.Command {
+	return &cobra.Command{
+		Use:   "up",
+		Short: "Run pending migrations",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return runWithDB(cfg, func(db *bun.DB) error {
+				migrator := migrate.NewMigrator(db, migrations.Migrations)
+				if err := migrator.Lock(cmd.Context()); err != nil {
+					return err
+				}
+				defer migrator.Unlock(cmd.Context()) //nolint:errcheck
 
-	err = config.ValidateDatabaseCustomRules(&cfg)
-	if err != nil {
-		return fmt.Errorf("failed to validate database custom rules: %w", err)
+				group, err := migrator.Migrate(cmd.Context())
+				if err != nil {
+					migrator.Rollback(cmd.Context()) //nolint:errcheck
+					return err
+				}
+				if group.IsZero() {
+					fmt.Println("there are no new migrations to run (database is up to date)")
+					return nil
+				}
+				fmt.Printf("migrated to %s\n", group)
+				return nil
+			})
+		},
 	}
+}
 
-	// Connect to database
-	db, err := connectToDatabase(&cfg)
+func newRollbackCmd(cfg *config.DBConfig) *cobra.Command {
+	return &cobra.Command{
+		Use:   "rollback",
+		Short: "Rollback the last migration group",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return runWithDB(cfg, func(db *bun.DB) error {
+				migrator := migrate.NewMigrator(db, migrations.Migrations)
+				if err := migrator.Lock(cmd.Context()); err != nil {
+					return err
+				}
+				defer migrator.Unlock(cmd.Context()) //nolint:errcheck
+
+				group, err := migrator.Rollback(cmd.Context())
+				if err != nil {
+					return err
+				}
+				if group.IsZero() {
+					fmt.Println("there are no groups to roll back")
+					return nil
+				}
+				fmt.Printf("rolled back %s\n", group)
+				return nil
+			})
+		},
+	}
+}
+
+func newLockCmd(cfg *config.DBConfig) *cobra.Command {
+	return &cobra.Command{
+		Use:   "lock",
+		Short: "Lock migrations",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return runWithDB(cfg, func(db *bun.DB) error {
+				migrator := migrate.NewMigrator(db, migrations.Migrations)
+				return migrator.Lock(cmd.Context())
+			})
+		},
+	}
+}
+
+func newUnlockCmd(cfg *config.DBConfig) *cobra.Command {
+	return &cobra.Command{
+		Use:   "unlock",
+		Short: "Unlock migrations",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return runWithDB(cfg, func(db *bun.DB) error {
+				migrator := migrate.NewMigrator(db, migrations.Migrations)
+				return migrator.Unlock(cmd.Context())
+			})
+		},
+	}
+}
+
+func newCreateGoCmd(cfg *config.DBConfig) *cobra.Command {
+	return &cobra.Command{
+		Use:   "create-go <name>",
+		Short: "Create a Go migration file",
+		Args:  cobra.MinimumNArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return runWithDB(cfg, func(db *bun.DB) error {
+				migrator := migrate.NewMigrator(db, migrations.Migrations)
+				name := strings.Join(args, "_")
+				mf, err := migrator.CreateGoMigration(cmd.Context(), name)
+				if err != nil {
+					return err
+				}
+				fmt.Printf("created migration %s (%s)\n", mf.Name, mf.Path)
+				return nil
+			})
+		},
+	}
+}
+
+func newCreateSQLCmd(cfg *config.DBConfig) *cobra.Command {
+	return &cobra.Command{
+		Use:   "create-sql <name>",
+		Short: "Create up and down SQL migrations",
+		Args:  cobra.MinimumNArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return runWithDB(cfg, func(db *bun.DB) error {
+				migrator := migrate.NewMigrator(db, migrations.Migrations)
+				name := strings.Join(args, "_")
+				files, err := migrator.CreateSQLMigrations(cmd.Context(), name)
+				if err != nil {
+					return err
+				}
+				for _, mf := range files {
+					fmt.Printf("created migration %s (%s)\n", mf.Name, mf.Path)
+				}
+				return nil
+			})
+		},
+	}
+}
+
+func newCreateTxSQLCmd(cfg *config.DBConfig) *cobra.Command {
+	return &cobra.Command{
+		Use:   "create-tx-sql <name>",
+		Short: "Create up and down transactional SQL migrations",
+		Args:  cobra.MinimumNArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return runWithDB(cfg, func(db *bun.DB) error {
+				migrator := migrate.NewMigrator(db, migrations.Migrations)
+				name := strings.Join(args, "_")
+				files, err := migrator.CreateTxSQLMigrations(cmd.Context(), name)
+				if err != nil {
+					return err
+				}
+				for _, mf := range files {
+					fmt.Printf("created transaction migration %s (%s)\n", mf.Name, mf.Path)
+				}
+				return nil
+			})
+		},
+	}
+}
+
+func newStatusCmd(cfg *config.DBConfig) *cobra.Command {
+	return &cobra.Command{
+		Use:   "status",
+		Short: "Print migrations status",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return runWithDB(cfg, func(db *bun.DB) error {
+				migrator := migrate.NewMigrator(db, migrations.Migrations)
+				ms, err := migrator.MigrationsWithStatus(cmd.Context())
+				if err != nil {
+					return err
+				}
+				fmt.Printf("migrations: %s\n", ms)
+				fmt.Printf("unapplied migrations: %s\n", ms.Unapplied())
+				fmt.Printf("last migration group: %s\n", ms.LastGroup())
+				return nil
+			})
+		},
+	}
+}
+
+func newMarkAppliedCmd(cfg *config.DBConfig) *cobra.Command {
+	return &cobra.Command{
+		Use:   "mark-applied",
+		Short: "Mark migrations as applied without running them",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return runWithDB(cfg, func(db *bun.DB) error {
+				migrator := migrate.NewMigrator(db, migrations.Migrations)
+				group, err := migrator.Migrate(cmd.Context(), migrate.WithNopMigration())
+				if err != nil {
+					return err
+				}
+				if group.IsZero() {
+					fmt.Println("there are no new migrations to mark as applied")
+					return nil
+				}
+				fmt.Printf("marked as applied %s\n", group)
+				return nil
+			})
+		},
+	}
+}
+
+func runWithDB(cfg *config.DBConfig, fn func(*bun.DB) error) error {
+	db, err := connectToDatabase(cfg)
 	if err != nil {
 		return fmt.Errorf("failed to connect to database: %w", err)
 	}
 	defer db.Close()
 
-	// Add query hook for debugging
 	db.AddQueryHook(bundebug.NewQueryHook(
 		bundebug.WithEnabled(false),
 		bundebug.FromEnv(),
@@ -270,23 +285,14 @@ func connectToDatabase(cfg *config.DBConfig) (*bun.DB, error) {
 		if dbPath == "" {
 			dbPath = "./data.db"
 		}
-		// Configure SQLite for concurrent access
-		// Use same settings as main application for consistency
 		sqldb, err = sql.Open(sqliteshim.ShimName, fmt.Sprintf("file:%s?cache=shared&mode=rwc", dbPath))
 		if err != nil {
 			return nil, fmt.Errorf("failed to open SQLite connection: %w", err)
 		}
-
-		// Set connection pool limits for SQLite
-		// Using same conservative limits as main app to prevent lock contention
 		sqldb.SetMaxOpenConns(1)
 		sqldb.SetMaxIdleConns(1)
 		sqldb.SetConnMaxLifetime(0)
-
 		db = bun.NewDB(sqldb, sqlitedialect.New())
-
-		// Configure SQLite PRAGMA settings for corruption prevention
-		// Must match main application settings for consistency
 		db.Exec("PRAGMA busy_timeout=5000")
 		db.Exec("PRAGMA journal_mode=WAL")
 		db.Exec("PRAGMA synchronous=NORMAL")
@@ -295,14 +301,12 @@ func connectToDatabase(cfg *config.DBConfig) (*bun.DB, error) {
 		db.Exec("PRAGMA wal_autocheckpoint=1000")
 		db.Exec("PRAGMA cache_size=-64000")
 		db.Exec("PRAGMA auto_vacuum=INCREMENTAL")
-
 		fmt.Printf("Connected to SQLite database: %s (WAL mode enabled)\n", dbPath)
 
 	default:
 		return nil, fmt.Errorf("unsupported database type: %s", cfg.DBType)
 	}
 
-	// Test the connection
 	if err = db.Ping(); err != nil {
 		return nil, fmt.Errorf("failed to ping database: %w", err)
 	}

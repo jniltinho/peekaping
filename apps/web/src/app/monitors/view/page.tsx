@@ -40,7 +40,7 @@ import {
   Shield,
   AlertTriangle,
 } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
 import { cn, commonMutationErrorHandler } from "@/lib/utils";
@@ -132,7 +132,7 @@ const MonitorPage = () => {
   }, [monitor]);
 
   // Fetch TLS info for HTTP monitors using React Query
-  const { data: tlsData, isLoading: tlsLoading } = useQuery({
+  const { data: tlsData, isLoading: tlsLoading, refetch: refetchTls } = useQuery({
     ...getMonitorsByIdTlsOptions({
       path: {
         id: id!,
@@ -141,6 +141,12 @@ const MonitorPage = () => {
     enabled:
       !!id && !!monitor && monitor.type?.toLowerCase().startsWith("http"),
   });
+
+  // Track whether TLS data has been loaded to avoid refetching on every heartbeat
+  const tlsLoadedRef = useRef(false);
+  useEffect(() => {
+    if (tlsData?.data) tlsLoadedRef.current = true;
+  }, [tlsData]);
 
   // Transform TLS data to match the expected format
   const tlsInfo = useMemo(() => {
@@ -270,7 +276,7 @@ const MonitorPage = () => {
   });
 
   useEffect(() => {
-    if (!socket || !heartbeatsResponse) return;
+    if (!socket) return;
 
     const roomName = `monitor:${id}`;
 
@@ -278,47 +284,21 @@ const MonitorPage = () => {
       // TODO: new heartbeats have different timestamp then from the api response
       setHeartbeatData((p) => [...p, newHeartbeat].slice(-150));
 
-      // If it's important, update the react-query cache for important heartbeats
+      // If it's important, invalidate the infinite query so the list refetches
       if (newHeartbeat.important) {
-        const queryKey = getMonitorsByIdHeartbeatsInfiniteQueryKey({
-          path: { id: id! },
-          query: { important: true, limit: 20 },
+        queryClient.invalidateQueries({
+          queryKey: getMonitorsByIdHeartbeatsInfiniteQueryKey({
+            path: { id: id! },
+            query: { important: true, limit: 20 },
+          }),
         });
-
-        queryClient.setQueryData(
-          queryKey,
-          (oldData: {
-            pageParams: number[];
-            pages: { data: HeartbeatModel[] }[];
-          }) => {
-            if (!oldData) {
-              // If no data, create a new structure
-              return {
-                pageParams: [0],
-                pages: [{ data: [newHeartbeat] }],
-              };
-            }
-
-            const flat = oldData.pages.flatMap((page) => page.data);
-            const filtered = flat.filter((hb) => hb.id !== newHeartbeat.id);
-            const newData = [newHeartbeat, ...filtered];
-
-            // convert array to pages by 20
-            const pages = [];
-            for (let i = 0; i < newData.length; i += 20) {
-              pages.push({ data: newData.slice(i, i + 20) });
-            }
-
-            return {
-              pageParams: oldData.pageParams,
-              pages: pages,
-            };
-          }
-        );
       }
 
       refetchUptimeStats();
       refetchLastImportantHeartbeat();
+      if (!tlsLoadedRef.current) {
+        refetchTls();
+      }
     };
 
     if (socketStatus === WebSocketStatus.CONNECTED) {
@@ -337,11 +317,28 @@ const MonitorPage = () => {
     socket,
     socketStatus,
     id,
-    heartbeatsResponse,
     queryClient,
     refetchUptimeStats,
     refetchLastImportantHeartbeat,
+    refetchTls,
   ]);
+
+  // On initial WebSocket connect, sync important heartbeats and TLS in case
+  // events arrived before the handler was registered (race condition on first load)
+  useEffect(() => {
+    if (socketStatus !== WebSocketStatus.CONNECTED || !id) return;
+
+    queryClient.invalidateQueries({
+      queryKey: getMonitorsByIdHeartbeatsInfiniteQueryKey({
+        path: { id: id! },
+        query: { important: true, limit: 20 },
+      }),
+    });
+
+    if (!tlsLoadedRef.current) {
+      refetchTls();
+    }
+  }, [socketStatus, id, queryClient, refetchTls]);
 
   const dataStats = useMemo(() => {
     if (!stats) return [];

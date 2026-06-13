@@ -32,12 +32,12 @@ check_and_init_database() {
     echo "Checking if database needs initialization..."
 
     # Try to run status command to see if migration tables exist
-    if ./bun db status >/dev/null 2>&1; then
+    if ./monitoring migrate status >/dev/null 2>&1; then
         echo "Migration tables exist, proceeding with migrations..."
         return 0
     else
         echo "Migration tables not found, initializing database..."
-        if ./bun db init; then
+        if ./monitoring migrate init; then
             echo "Database initialized successfully!"
             return 0
         else
@@ -59,7 +59,7 @@ if ! check_and_init_database; then
 fi
 
 echo "Running database migrations..."
-if ./bun db migrate; then
+if ./monitoring migrate up; then
     echo "Migrations completed successfully!"
 else
     echo "Migration failed!"

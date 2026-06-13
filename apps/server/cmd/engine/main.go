@@ -1,4 +1,4 @@
-package main
+package cmdengine
 
 import (
 	"log"
@@ -33,15 +33,13 @@ import (
 	"go.uber.org/zap"
 )
 
-func main() {
+// Run starts the engine with the provided configuration.
+func Run(cfg *Config) error {
 	log.Printf("Starting Peekaping Engine v%s", version.Version)
 
-	cfg, err := LoadAndValidate("../..")
-	if err != nil {
-		log.Fatalf("Failed to load and validate Engine config: %v", err)
-	}
-
 	os.Setenv("TZ", cfg.Timezone)
+
+	var err error
 
 	container := dig.New()
 
@@ -115,7 +113,5 @@ func main() {
 		return nil
 	})
 
-	if err != nil {
-		log.Fatalf("Engine error: %v", err)
-	}
+	return err
 }

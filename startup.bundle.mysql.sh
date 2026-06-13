@@ -41,7 +41,7 @@ chown -R mysql:mysql /var/lib/mysql /run/mysqld
 chmod 700 /var/lib/mysql
 
 # Create .env file for the server
-cat > /app/.env << EOF
+cat > /app/server/.env << EOF
 SERVER_PORT=$SERVER_PORT
 CLIENT_URL=$CLIENT_URL
 DB_TYPE=$DB_TYPE
@@ -53,7 +53,7 @@ DB_PASS=$DB_PASS
 MODE=$MODE
 TZ=$TZ
 EOF
-chmod 600 /app/.env
+chmod 600 /app/server/.env
 
 # Root connects via unix socket (no password needed with MariaDB unix_socket auth).
 mariadb_start() {
